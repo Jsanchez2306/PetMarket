@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PetMarket - Gestion de Productos.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.css">
+
+    <link rel="icon" href="assets/Imagenes/HuellaPerro.png">
+     <script src="assets/js/sesionAdmin.js"></script>
+    <title>Modulo Productos</title>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg barra w-100">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="nosotrosadmin">
+                    <img class="logo" src="assets/Imagenes/PetMarket_Logo.png" alt="Logo de PetMarket"
+                        title="Logo de PetMarket" loading="lazy">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" href="indexadmin">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="aggempleados">Empleados</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="gestionClientes">Clientes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="panel">Dashboard</a>
+                        </li>
+                    </ul>
+                    <form class="d-flex mt-1 ms-1" role="search" style="max-width: 500px; width: 100%;">
+                        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Search">
+                        <button class="btn btn-primary" type="submit">Buscar</button>
+                    </form>
+                    <div class="dropdown ms-1  mt-1">
+                        <a class="btn-admin btn dropdown-toggle" href="#" role="button" id="userMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu">
+                            Administrador
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="userMenu">
+                            <li><a class="dropdown-item" href="perfil">Perfil</a></li>
+                            <li><a class="dropdown-item" href="panel">Panel</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="index" onclick="cerrarSesion()">Cerrar Sesion</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main class="container my-5">
+        <h1 class="text-center mb-4">Todos los productos</h1>
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fas fa-plus"></i> Nuevo Producto
+            </button>
+        </div>
+        <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addProductModalLabel">Añadir Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formProducto">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre del Producto</label>
+                                <input type="text" class="form-control" id="nombre" placeholder="Nombre del producto"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Descripción</label>
+                                <input type="text" class="form-control" id="descripcion" placeholder="descripcion"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">URL</label>
+                                <input type="text" class="form-control" id="url" placeholder="URL" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="precio" class="form-label">Precio</label>
+                                <input type="number" class="form-control" id="precio" placeholder="Precio del producto"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="stock" class="form-label">Stock</label>
+                                <input type="number" class="form-control" id="stock" placeholder="Cantidad en stock"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="categoria" class="form-label">Categoria</label>
+                                <select class="form-select" id="categoria" required>
+                                    <option value="" disabled selected>Selecciona una categoria</option>
+                                    <option value="Juguetes">Juguetes</option>
+                                    <option value="Comida">Comida</option>
+                                    <option value="Accesorios">Accesorios</option>
+                                </select>
+                            </div>
+
+
+                            <button type="button" class="btn btn-primary w-100" id="añadirProducto">Guardar
+                                Producto</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editProductModalLabel">Editar Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formEditarProducto">
+                            <div class="mb-3">
+                                <label for="edit-nombre" class="form-label">Nombre del Producto</label>
+                                <input type="text" class="form-control" id="edit-nombre" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-descripcion" class="form-label">Descripción</label>
+                                <input type="text" class="form-control" id="edit-descripcion" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-url" class="form-label">URL</label>
+                                <input type="text" class="form-control" id="edit-url" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-precio" class="form-label">Precio</label>
+                                <input type="number" class="form-control" id="edit-precio" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-stock" class="form-label">Stock</label>
+                                <input type="number" class="form-control" id="edit-stock" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-categoria" class="form-label">Categoría</label>
+                                <select class="form-select" id="edit-categoria" required>
+                                    <option value="" disabled selected>Selecciona una categoría</option>
+                                    <option value="Juguetes">Juguetes</option>
+                                    <option value="Comida">Comida</option>
+                                    <option value="Accesorios">Accesorios</option>
+                                </select>
+                            </div>
+
+
+                            <button type="submit" class="btn btn-success w-100" id="guardarCambiosProducto">
+                                Guardar Cambios
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle" id="example">
+                <thead class="table-info text-center">
+                    <tr>
+                        <th>#</th>
+                        <th>Título</th>
+                        <th>Descripción</th>
+                        <th>Imagen (URL)</th>
+                        <th>Precio unidad</th>
+                        <th>Stock</th>
+                        <th>Categoria</th>
+                        <th style="width: 150px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaProductos">
+
+                </tbody>
+            </table>
+        </div>
+
+
+    </main>
+    <footer>
+        <div class="container p-4 pb-0">
+            <section class="mb-4">
+                <h6>Ponte en Contacto con Nosotros</h6>
+                <a class="btn text-white btn-floating m-1" style="background-color: #3b5998;"
+                    href="https://www.facebook.com" role="button" aria-label="Ir a Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #55acee;"
+                    href="https://twitter.com" role="button" aria-label="Ir a Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #dd4b39;"
+                    href="https://mail.google.com" role="button" aria-label="Ir a Google">
+                    <i class="fab fa-google"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #ac2bac;"
+                    href="https://www.instagram.com" role="button" aria-label="Ir a Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #0082ca;"
+                    href="https://www.linkedin.com" role="button" aria-label="Ir a LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+            </section>
+            <section>
+                <h6>Nuestros Metodos de Pago</h6>
+                <i class="fab fa-cc-visa fa-2x mx-2"></i>
+                <i class="fab fa-cc-mastercard fa-2x mx-2"></i>
+                <i class="fab fa-cc-paypal fa-2x mx-2"></i>
+                <i class="fab fa-cc-amex fa-2x mx-2"></i>
+            </section>
+        </div>
+        <div class="p-3">
+            © 2025 Copyright PetMarket
+            <a class="text-body" href="https://mdbootstrap.com/"></a>
+        </div>
+    </footer>
+    
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"
+        defer></script>
+        <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+        <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
+        <script>
+            new DataTable('#example');
+        </script>
+    <script src="assets/js/script.js" defer></script>
+    <script src="assets/js/productos.js"></script>
+</body>
+
+</html>

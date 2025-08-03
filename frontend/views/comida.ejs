@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PetMarket - Comidas">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="icon" href="assets/Imagenes/HuellaPerro.png">
+    <link rel="preload" as="image" href="assets/Imagenes/promocion_comida_pedigree.webp">
+  <script src="assets/js/deleteLogin.js"></script>
+    <title>Comidas</title>
+    <title>PetMarket</title>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg barra w-100">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="nosotros">
+                    <img class="logo" src="assets/Imagenes/PetMarket_Logo.png" alt="Logo de PetMarket"
+                        title="Logo de PetMarket" loading="lazy">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Abrir menu de navegacion">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 mt-1">
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" href="index">Inicio</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="productosDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" aria-label="Abrir menu de productos">
+                                Productos
+                            </a>
+                            <ul class="dropdown-menu dropdownMenu" aria-labelledby="productosDropdown">
+                                <li><a class="dropdown-item" href="juguetes">Juguetes</a></li>
+                                <li><a class="dropdown-item" href="#">Comida</a></li>
+                                <li><a class="dropdown-item" href="accesorios">Accesorios</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#nuestrasMarcas">Marcas</a>
+                        </li>
+                    </ul>
+                    <form class="d-flex mt-1" role="search" style="width: 60%;">
+                        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
+                        <button class="btn btn-primary" type="submit">Buscar</button>
+                    </form>
+                    <div class="d-flex ms-auto mt-1">
+                        <a href="carrito" class="btn btn-primary me-2 position-relative"
+                            aria-label="Ir al carrito de compras">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="carrito-badge"
+                                class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-danger"
+                                style="font-size:0.75rem;">
+                                2
+                                <span class="visually-hidden">productos en el carrito</span>
+                            </span>
+                        </a>
+                        <button class="btn btn-login me-2" type="button" data-bs-toggle="modal"
+                            data-bs-target="#loginModal" aria-label="Abrir modal de inicio de sesion">Iniciar
+                            Sesion</button>
+                        <button class="btn btn-register" type="button" data-bs-toggle="modal"
+                            data-bs-target="#registerModal" aria-label="Abrir modal de registro">Registrarse</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content custom-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Iniciar Sesion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"
+                        title="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo Electronico</label>
+                            <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="password" placeholder="Contraseña" required>
+                        </div>
+                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=admin@PetMarket.com&su=Recuperar%20contraseña&body=Perdí%20mi%20contraseña"
+                            target="_blank">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Iniciar Sesion</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content custom-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Registrarse</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="formulario">
+                        <div class="mb-3">
+                            <label for="email" class="form-label"><i class="bi bi-envelope-lock"></i>
+                                Ingrese su correo electrónico</label>
+                            <input type="email" class="form-control" id="email" placeholder="Correo electrónico">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label"><i class="bi bi-key"></i> Ingrese su
+                                contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" placeholder="Contraseña">
+                                <span class="input-group-text"><i class="bi bi-eye"></i></span>
+                            </div>
+                            <label for="passwordVerify" class="form-label"><i class="bi bi-key"></i> Verifique su
+                                contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="passwordVerify"
+                                    placeholder=" Verifique Contraseña">
+                                <span class="input-group-text"><i class="bi bi-eye"></i></span>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-center">
+                            <span class="mb-2 d-block" style="color: black;">También puedes registrarte con:</span>
+                            <a class="btn text-white btn-floating m-1" style="background-color: #3b5998;"
+                                href="https://www.facebook.com" role="button" aria-label="Ir a Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a data-mdb-ripple-init class="btn text-white btn-floating m-1"
+                                style="background-color: #dd4b39;" href="https://mail.google.com" role="button"
+                                aria-label="Ir a Google">
+                                <i class="fab fa-google"></i>
+                                <a data-mdb-ripple-init class="btn text-white btn-floating m-1"
+                                    style="background-color: #0082ca;" href="https://www.linkedin.com" role="button"
+                                    aria-label="Ir a LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="condiciones">
+                            <label class="form-check-label" for="condiciones">Aceptar Términos y condiciones</label>
+                        </div>
+                        <button class="btn btn-primary w-100 mt-3" id="registro">Registrarse</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <main>
+        <div class="container my-5">
+            <h2 class="text-center mb-4">Alimentos De Calidad🐾</h2>
+            <div class="row" id="productosContainer">
+
+
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="container p-4 pb-0">
+            <section class="mb-4">
+                <h6>Ponte en Contacto con Nosotros</h6>
+                <a class="btn text-white btn-floating m-1" style="background-color: #3b5998;"
+                    href="https://www.facebook.com" role="button" aria-label="Ir a Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #55acee;"
+                    href="https://twitter.com" role="button" aria-label="Ir a Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #dd4b39;"
+                    href="https://mail.google.com" role="button" aria-label="Ir a Google">
+                    <i class="fab fa-google"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #ac2bac;"
+                    href="https://www.instagram.com" role="button" aria-label="Ir a Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn text-white btn-floating m-1" style="background-color: #0082ca;"
+                    href="https://www.linkedin.com" role="button" aria-label="Ir a LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+            </section>
+            <section>
+                <h6>Nuestros Metodos de Pago</h6>
+                <i class="fab fa-cc-visa fa-2x mx-2"></i>
+                <i class="fab fa-cc-mastercard fa-2x mx-2"></i>
+                <i class="fab fa-cc-paypal fa-2x mx-2"></i>
+                <i class="fab fa-cc-amex fa-2x mx-2"></i>
+            </section>
+        </div>
+        <div class="p-3">
+            © 2025 Copyright PetMarket
+            <a class="text-body" href="https://mdbootstrap.com/"></a>
+        </div>
+    </footer>
+    
+    <script>
+        new DataTable('#example');
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"
+        defer></script>
+        <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+        <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
+    <script src="assets/js/script.js" defer></script>
+    <script src="assets/js/productos.js"></script>
+</body>
+
+</html>
