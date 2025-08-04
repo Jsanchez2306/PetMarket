@@ -2,19 +2,18 @@
 const express = require('express');
 const modeloCliente = require('../backend/models/cliente.model')
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use('/assets', express.static('assets'));
 
 
+require('dotenv').config();
+require('../backend/config/conect.js'); 
 
-
-
-
-app.get('/index', (req, res) => {
-    res.render('index.ejs');
+app.get('/', (req, res) => {
+    res.render('indexadmin.ejs');
 });
 
 app.get('/comida', (req, res) => {
@@ -132,4 +131,4 @@ app.put('/api/clientes/:id', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-});
+  });
