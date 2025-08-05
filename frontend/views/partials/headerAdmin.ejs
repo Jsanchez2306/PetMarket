@@ -1,42 +1,45 @@
-<body>
-  <header class="navbar navbar-expand-lg bg-pet px-4 py-3">
-    <a class="navbar-brand d-flex align-items-center" href="#">
-      <img src="../Imagenes/PetMarket_Logo.png" alt="Pet Market Logo" height="40" class="me-2" />
-    </a>
+<header class="navbar navbar-expand-lg bg-pet px-4 py-3">
+  <a class="navbar-brand d-flex align-items-center" href="#">
+    <img src="../Imagenes/PetMarket_Logo.png" alt="Pet Market Logo" height="40" class="me-2" />
+  </a>
 
-    <button class="navbar-toggler btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#navBar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+  <button class="navbar-toggler btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#navBar">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-    <div class="collapse navbar-collapse justify-content-between" id="navBar">
-      <ul class="navbar-nav ms-3 mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-      </ul>
+  <div class="collapse navbar-collapse justify-content-between" id="navBar">
+    <ul class="navbar-nav ms-3 mb-2 mb-lg-0">
+      <li class="nav-item"><a class="nav-link active" href="/">Inicio</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Productos</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Marcas</a></li>
+    </ul>
 
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-2 flex-grow-1">
-          <input type="text" class="form-control" placeholder="Buscar">
-          <button class="btn btn-outline-light btn-primary">Buscar</button>
-          <div class="dropdown">
-            <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-              Administrador
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Panel</a></li>
-              <li><a class="dropdown-item" href="#">Gestión Clientes</a></li>
-              <li><a class="dropdown-item" href="#">Gestión Empleados</a></li>
-              <li><a class="dropdown-item" href="#">Gestión Productos</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="dropdown ms-3">
-          <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown"><i
-              class="fa-solid fa-gear"></i></button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#">Perfil</a></li>
-            <li><a class="dropdown-item" href="/">Cerrar sesión</a></li>
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2 flex-grow-1">
+        <input type="text" class="form-control" placeholder="Buscar">
+        <button class="btn btn-outline-light btn-primary">Buscar</button>
+        <div class="dropdown">
+          <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+            Administrador
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Panel</a></li>
+            <li><a class="dropdown-item" href="/clientes">Gestión Clientes</a></li>
+            <li><a class="dropdown-item" href="#">Gestión Empleados</a></li>
+            <li><a class="dropdown-item" href="#">Gestión Productos</a></li>
           </ul>
         </div>
       </div>
-  </header>
+
+      <div class="dropdown ms-3">
+        <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/perfilAdmin">Perfil</a></li>
+          <li><a class="dropdown-item" href="/">Cerrar sesión</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>

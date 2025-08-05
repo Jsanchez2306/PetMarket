@@ -28,6 +28,12 @@ const esquemaCliente = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+    rol: {
+    type: String,
+    enum: ["cliente", "admin"],
+    required: true,
+    default: "cliente"
   }
 }, { versionKey: false });
 
