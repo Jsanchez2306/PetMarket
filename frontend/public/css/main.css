@@ -1,0 +1,80 @@
+main {
+    flex: 1
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.titulo1,
+.titulo2,
+.titulo3,
+.titulo4,
+.titulo5 {
+    background-color: #334C75;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+    margin: 0;
+    width: 100vw;
+    position: relative;
+    left: 0
+}
+
+.custom-modal {
+    background-color: #ffffff;
+    color: black
+}
+
+.custom-modal label{
+    color: black;
+}
+
+.custom-modal-header {
+  background-color: #334C75; 
+  color: rgb(255, 255, 255);
+  border-bottom: 1px solid rgba(235, 0, 0, 0.2);
+}
+
+.custom-modal .modal-body {
+    color: #000000
+}
+
+.custom-modal .btn-primary {
+    background-color: #334C75;
+    border-color: #7cf09f
+}
+
+.custom-modal .btn-primary:hover {
+    background-color: #05d05a;
+}
+
+@keyframes modalFadeSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.custom-modal {
+  animation: modalFadeSlide 0.4s ease-out;
+}
+
+.password-dots,
+.real-password {
+  font-family: 'monospace';
+  letter-spacing: 2px;
+}
+
+.toggle-password i {
+  cursor: pointer;
+  color: #333;
+}

@@ -1,0 +1,57 @@
+.btn-login,
+.btn-register {
+    color: #fff;
+    border-color: #7cf0c0;
+    background-color: #5F99D2;
+    padding: .4rem;
+    border-radius: 5px;
+    margin-right: 15px;
+    width: 110px;
+    text-align: center;
+    white-space: nowrap
+}
+
+.btn-login:hover,
+.btn-register:hover {
+    color: rgb(148, 223, 148);
+    border-color: #7cf0c0
+}
+
+.btn-admin {
+    color: #fff;
+    border-color: #7cf0c0;
+    background-color: #5F99D2;
+    padding: .4rem;
+    border-radius: 5px;
+    margin-right: 15px;
+    text-align: center;
+    white-space: nowrap
+}
+
+.btn-admin:hover {
+    border-color:  #86f07c;
+    background-color: #5fd2b5;
+}
+
+.btn-admin:active,
+.btn-admin:focus,
+.btn-admin.dropdown-toggle:focus {
+    background-color: #5F99D2;
+    color: #fff;
+    border-color: #86f07c
+}
+
+.btn-primary {
+    background-color: #5F99D2;
+    border-color: #7cf0dd
+}
+
+.btn-primary:hover {
+    background-color: #05d07b;
+    border-color: #9df07c
+}
+
+.btn-outline-light:hover {
+  background-color: #9ef5cc;
+  color: #000;
+}

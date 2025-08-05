@@ -1,0 +1,36 @@
+const mongoose = require("../config/connection");
+
+const esquemaCliente = new mongoose.Schema({
+  nombre: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  contrasena: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 6
+  },
+  telefono: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  direccion: {
+    type: String,
+    required: true,
+    trim: true
+  }
+}, { versionKey: false });
+
+const Cliente = mongoose.model('cliente', esquemaCliente);
+
+module.exports = Cliente;
