@@ -1,5 +1,5 @@
 <header class="navbar navbar-expand-lg bg-pet px-4 py-3">
-  <a class="navbar-brand d-flex align-items-center" href="/nosotros/admin">
+  <a class="navbar-brand d-flex align-items-center" href="/nosotros/cliente">
     <img src="../Imagenes/PetMarket_Logo.png" alt="Pet Market Logo" height="40" class="me-2">
   </a>
 
@@ -18,25 +18,16 @@
       <div class="d-flex align-items-center gap-2 flex-grow-1">
         <input type="text" class="form-control" placeholder="Buscar">
         <button class="btn btn-outline-light btn-primary">Buscar</button>
-        <div class="dropdown">
-          <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-            Administrador
-          </button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Panel</a></li>
-            <li><a class="dropdown-item" href="/clientes">Gestión Clientes</a></li>
-            <li><a class="dropdown-item" href="#">Gestión Empleados</a></li>
-            <li><a class="dropdown-item" href="#">Gestión Productos</a></li>
-          </ul>
-        </div>
-      </div>
+        <a href="#" class="btn btn-outline-light btn-primary position-relative">
+          <i class="fas fa-shopping-cart"></i>
+        </a>
 
       <div class="dropdown ms-3">
         <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
           <i class="fa-solid fa-gear"></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="/perfil/admin">Perfil</a></li>
+          <li><a class="dropdown-item" href="/perfil/cliente">Perfil</a></li>
           <li><a class="dropdown-item" href="/">Cerrar sesión</a></li>
         </ul>
       </div>

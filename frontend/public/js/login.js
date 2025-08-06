@@ -37,22 +37,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json().catch(() => ({}));
 
       if (res.ok && data.rol) {
-        // Hide modal
         const loginModalEl = document.getElementById('loginModal');
         if (loginModalEl) {
           const bsModal = bootstrap.Modal.getInstance(loginModalEl) || new bootstrap.Modal(loginModalEl);
           bsModal.hide();
         }
 
-        // Normalize rol and redirect
         const rol = String(data.rol).toLowerCase();
         if (rol === 'admin' || rol === 'administrador') {
-          window.location.href = '/perfilAdmin';
+          window.location.href = '/perfil/admin';
         } else {
-          window.location.href = '/clientes';
+          window.location.href = '/perfil/cliente';
         }
       } else {
-        // show backend message or generic
         mostrarError(data.mensaje || 'Correo o contraseña incorrectos');
       }
     } catch (err) {

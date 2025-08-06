@@ -1,97 +1,143 @@
-document.getElementById("btn-configuracion").addEventListener("click", (e) => {
-    e.preventDefault();
-    document.getElementById("seccion-configuracion").classList.remove("d-none");
-    document.getElementById("seccion-pedidos").classList.add("d-none");
-});
+const getFirstEl = (...ids) => ids.map(id => document.getElementById(id)).find(Boolean);
 
-document.getElementById("btn-pedidos").addEventListener("click", (e) => {
+const safeGet = (id) => document.getElementById(id);
+
+const showErrorIn = (containerEl, msg) => {
+  if (!containerEl) return alert(msg);
+  containerEl.textContent = msg;
+  containerEl.classList.remove('d-none');
+  setTimeout(() => containerEl.classList.add('d-none'), 3000);
+};
+
+const setupToggleSections = () => {
+  const btnConfig = getFirstEl('btn-configuracion', 'btn-configuracion-cliente');
+  const btnPedidos = getFirstEl('btn-pedidos', 'btn-pedidos-cliente');
+
+  const seccionConfig = getFirstEl('seccion-configuracion', 'seccion-configuracion-cliente');
+  const seccionPedidos = getFirstEl('seccion-pedidos', 'seccion-pedidos-cliente', 'seccion-pedidos');
+
+  if (!btnConfig || !btnPedidos || !seccionConfig || !seccionPedidos) return;
+
+  btnConfig.addEventListener('click', (e) => {
     e.preventDefault();
-    document.getElementById("seccion-configuracion").classList.add("d-none");
-    document.getElementById("seccion-pedidos").classList.remove("d-none");
-});
+    seccionConfig.classList.remove('d-none');
+    seccionPedidos.classList.add('d-none');
+  });
+
+  btnPedidos.addEventListener('click', (e) => {
+    e.preventDefault();
+    seccionConfig.classList.add('d-none');
+    seccionPedidos.classList.remove('d-none');
+  });
+};
+
+const handleProfileForm = (formId, apiUrl, successModalId) => {
+  const form = safeGet(formId);
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const datos = {
+      nombre: (form.nombre?.value || '').trim(),
+      correo: (form.correo?.value || '').trim().toLowerCase(),
+      telefono: (form.telefono?.value || '').trim(),
+      direccion: (form.direccion?.value || '').trim()
+    };
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const modalEl = safeGet(successModalId);
+        if (modalEl) {
+          new bootstrap.Modal(modalEl).show();
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          alert('Perfil actualizado correctamente');
+          location.reload();
+        }
+      } else {
+        alert(data.mensaje || 'No se pudo actualizar el perfil. Intenta nuevamente.');
+      }
+    } catch (err) {
+      alert('Hubo un problema de conexión. Revisa tu internet.');
+      console.error(err);
+    }
+  });
+};
+
+const handleChangePassword = (formId, apiUrl, modalIdToHide, errorBoxId, successModalId) => {
+  const form = safeGet(formId);
+  if (!form) return;
+
+  const errorBox = safeGet(errorBoxId);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const actual = (form.actual?.value || '').trim();
+    const nueva = (form.nueva?.value || '').trim();
+    const confirmar = (form.confirmar?.value || '').trim();
+
+    if (!actual || !nueva || !confirmar) return showErrorIn(errorBox, 'Completa todos los campos.');
+    if (nueva !== confirmar) return showErrorIn(errorBox, 'Las contraseñas no coinciden.');
+    if (nueva.length < 6) return showErrorIn(errorBox, 'La contraseña debe tener al menos 6 caracteres.');
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actual, nueva, confirmar })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const modalToHide = safeGet(modalIdToHide);
+        if (modalToHide) {
+          const inst = bootstrap.Modal.getInstance(modalToHide);
+          if (inst) inst.hide();
+        }
+        const successModalEl = safeGet(successModalId);
+        if (successModalEl) {
+          new bootstrap.Modal(successModalEl).show();
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          location.reload();
+        }
+      } else {
+        showErrorIn(errorBox, data.mensaje || 'No se pudo cambiar la contraseña.');
+      }
+    } catch (err) {
+      showErrorIn(errorBox, 'Hubo un problema de conexión. Intenta más tarde.');
+      console.error(err);
+    }
+  });
+};
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    const formAdmin = document.getElementById('formPerfilAdmin');
-
-    if (formAdmin) {
-        formAdmin.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const datos = {
-                nombre: formAdmin.nombre.value.trim(),
-                correo: formAdmin.correo.value.trim().toLowerCase(),
-                telefono: formAdmin.telefono.value.trim(),
-                direccion: formAdmin.direccion.value.trim()
-            };
-
-            try {
-                const res = await fetch('/perfilAdmin/actualizar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datos)
-                });
-
-                const data = await res.json().catch(() => ({}));
-
-                if (res.ok) {
-                    new bootstrap.Modal(document.getElementById('actualizacionExitosaModal')).show();
-                    setTimeout(() => location.reload(), 1200);
-                } else {
-                    alert(data.mensaje || 'No se pudo actualizar el perfil. Intenta nuevamente.');
-                }
-            } catch (err) {
-                alert('Hubo un problema de conexión. Revisa tu internet.');
-                console.error(err);
-            }
-        });
-    }
-
-    const formPass = document.getElementById('formCambiarContrasena');
-    const errorBox = document.getElementById('cambiarPassMensajeError');
-
-    const mostrarError = (msg) => {
-        if (!errorBox) return alert(msg);
-        errorBox.textContent = msg;
-        errorBox.classList.remove('d-none');
-        setTimeout(() => errorBox.classList.add('d-none'), 3000);
-    };
-
-    const mostrarModalExito = (idModal, callback) => {
-        new bootstrap.Modal(document.getElementById(idModal)).show();
-        if (callback) setTimeout(callback, 1200);
-    };
-
-    if (formPass) {
-        formPass.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const actual = formPass.contrasenaAntigua.value.trim();
-            const nueva = formPass.contrasenaNueva.value.trim();
-            const confirmar = formPass.contrasenaConfirmar.value.trim();
-
-            if (!actual || !nueva || !confirmar) return mostrarError('Completa todos los campos.');
-            if (nueva !== confirmar) return mostrarError('Las contraseñas no coinciden.');
-
-            try {
-                const res = await fetch('/perfilAdmin/cambiar-contrasena', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ actual, nueva, confirmar })
-                });
-
-                const data = await res.json().catch(() => ({}));
-
-                if (res.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('cambiarContrasenaModal'))?.hide();
-                    mostrarModalExito('actualizacionExitosaModal', () => location.reload());
-                } else {
-                    mostrarError(data.mensaje || 'No se pudo cambiar la contraseña.');
-                }
-            } catch (err) {
-                mostrarError('Hubo un problema de conexión. Intenta más tarde.');
-                console.error(err);
-            }
-        });
-    }
+  setupToggleSections();
+  handleProfileForm('formPerfilAdmin', '/perfil/admin/actualizar', 'actualizacionExitosaModal');
+  handleProfileForm('formPerfilCliente', '/perfil/cliente/actualizar', 'actualizacionExitosaModalCliente');
+  handleChangePassword(
+    'formCambiarContrasena',
+    '/perfil/admin/cambiar-contrasena',
+    'cambiarContrasenaModal',
+    'cambiarPassMensajeError',
+    'actualizacionExitosaModal'
+  );
+  handleChangePassword(
+    'formCambiarContrasenaCliente',
+    '/perfil/cliente/cambiar-contrasena',
+    'cambiarContrasenaModalCliente',
+    'cambiarPassMensajeErrorCliente',
+    'actualizacionExitosaModalCliente'
+  );
 });

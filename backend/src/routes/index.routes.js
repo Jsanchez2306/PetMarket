@@ -3,5 +3,8 @@ const router = express.Router();
 const indexController = require('../controllers/index.controller');
 
 router.get('/', indexController.mostrarInicio);
+router.get('/nosotros/admin', indexController.nosotrosAdmin);
+router.get('/nosotros/cliente', indexController.nosotrosClientes);
+router.get('/nosotros', indexController.nosotrosVisitantes);
 
 module.exports = router;

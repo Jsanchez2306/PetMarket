@@ -12,13 +12,13 @@ app.set('views', path.join(__dirname, '..', '..', 'frontend', 'views'));
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 
 
-// Rutas
 const indexRoutes = require('./routes/index.routes');
 app.use('/', indexRoutes);
 const clienteRoutes = require('./routes/cliente.routes');
 app.use('/clientes', clienteRoutes);
 const perfilRoutes = require('./routes/perfil.routes');
-app.use('/perfilAdmin', perfilRoutes);
+app.use('/perfil', perfilRoutes);
 const authRoutes = require('./routes/auth.routes');
 app.use('/auth', authRoutes);
+
 module.exports = app;
