@@ -13,3 +13,4 @@ exports.nosotrosClientes = (req, res) => {
 exports.nosotrosVisitantes = (req, res) => {
   res.render('nosotros');
 };
+

@@ -1,6 +1,6 @@
 //Admin controller
 const Admin = require('../models/cliente.model');
-const ADMIN_ID = '68923b46f8474561cc49dda0';
+const ADMIN_ID = '689902435a07da9eeb72fa34';
 
 exports.mostrarPerfil = async (req, res) => {
   try {
@@ -66,7 +66,7 @@ exports.cambiarContrasena = async (req, res) => {
 
 // Cliente controller
 const Cliente = require('../models/cliente.model');
-const CLIENT_ID = '68935bb088e39a741ad59f35';
+const CLIENT_ID = '6898f9afc0f91d2b11273685';
 
 exports.mostrarPerfilCliente = async (req, res) => {
   try {
