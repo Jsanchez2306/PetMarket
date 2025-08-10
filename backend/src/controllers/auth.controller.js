@@ -1,6 +1,5 @@
 const Cliente = require('../models/cliente.model');
 
-// REGISTER
 exports.registro = async (req, res) => {
   try {
     const rawEmail = req.body.email || '';
@@ -35,7 +34,7 @@ exports.registro = async (req, res) => {
   }
 };
 
-// LOGIN
+
 exports.login = async (req, res) => {
   try {
     const { email: rawEmail, contrasena } = req.body;
@@ -64,4 +63,5 @@ exports.login = async (req, res) => {
     console.error('Error en auth.login:', err);
     return res.status(500).json({ mensaje: 'Error en el servidor' });
   }
-};
+}; 
+
