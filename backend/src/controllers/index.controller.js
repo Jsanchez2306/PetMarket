@@ -14,3 +14,7 @@ exports.nosotrosVisitantes = (req, res) => {
   res.render('nosotros');
 };
 
+exports.restriccion = (req, res) => {
+  res.render('restriccion');
+};
+
