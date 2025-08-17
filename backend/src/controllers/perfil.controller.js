@@ -66,7 +66,7 @@ exports.cambiarContrasena = async (req, res) => {
 
 // Cliente controller
 const Cliente = require('../models/cliente.model');
-const CLIENT_ID = '6898f9afc0f91d2b11273685';
+const CLIENT_ID = '6897743b55073dcd453ac533';
 
 exports.mostrarPerfilCliente = async (req, res) => {
   try {

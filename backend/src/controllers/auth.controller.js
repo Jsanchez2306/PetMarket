@@ -1,67 +1,70 @@
 const Cliente = require('../models/cliente.model');
+const jwt = require('jsonwebtoken');
 
 exports.registro = async (req, res) => {
   try {
-    const rawEmail = req.body.email || '';
-    const email = String(rawEmail).trim().toLowerCase();
+    const { nombre, email, contrasena, telefono, direccion } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ campo: 'email', mensaje: 'Email es requerido' });
+    if (!nombre || !email || !contrasena) {
+      return res.status(400).json({ mensaje: 'Campos requeridos incompletos' });
     }
 
-    const existe = await Cliente.findOne({ email });
+    const emailLimpio = String(email).trim().toLowerCase();
+
+    const existe = await Cliente.findOne({ email: emailLimpio });
     if (existe) {
-      return res.status(409).json({ campo: 'email', mensaje: 'Este correo ya existe' });
+      return res.status(409).json({ mensaje: 'Este correo ya está registrado' });
     }
 
-    req.body.email = email;
-    req.body.telefono = req.body.telefono ?? '0000000000';
-    req.body.direccion = req.body.direccion ?? 'Sin dirección';
+    const nuevoCliente = new Cliente({
+      nombre: nombre.trim(),
+      email: emailLimpio,
+      contrasena: contrasena.trim(),
+      telefono: telefono?.trim() || '0000000000',
+      direccion: direccion?.trim() || 'Sin dirección',
+      rol: 'cliente'
+    });
 
-    const nuevoCliente = new Cliente(req.body);
     const clienteGuardado = await nuevoCliente.save();
+    const clienteSeguro = clienteGuardado.toObject();
+    delete clienteSeguro.contrasena;
 
-    res.status(201).json(clienteGuardado);
-
+    res.status(201).json({ mensaje: 'Registro exitoso', cliente: clienteSeguro });
+    console.log('✅ Cliente registrado:', clienteSeguro);
   } catch (error) {
     console.error('Error al registrar cliente:', error);
-
-    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
-      return res.status(409).json({ campo: 'email', mensaje: 'Este correo ya existe' });
-    }
-
     res.status(500).json({ mensaje: 'Error al registrar cliente', error: error.message });
   }
 };
 
-
 exports.login = async (req, res) => {
   try {
-    const { email: rawEmail, contrasena } = req.body;
-    const email = String(rawEmail || '').trim().toLowerCase();
+    const { email, contrasena } = req.body;
 
     if (!email || !contrasena) {
       return res.status(400).json({ mensaje: 'Faltan campos' });
     }
 
-    const cliente = await Cliente.findOne({ email });
-    if (!cliente) {
+    const emailLimpio = email.trim().toLowerCase();
+    const cliente = await Cliente.findOne({ email: emailLimpio });
+
+    if (!cliente || cliente.contrasena !== contrasena.trim()) {
       return res.status(401).json({ mensaje: 'Correo o contraseña incorrectos' });
     }
 
-    if (String(cliente.contrasena) !== String(contrasena)) {
-      return res.status(401).json({ mensaje: 'Correo o contraseña incorrectos' });
-    }
+    const token = jwt.sign(
+      { id: cliente._id, email: cliente.email, rol: cliente.rol || 'cliente' },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
 
-    const rol = (cliente.rol || 'cliente').toString().trim();
+    const clienteSeguro = cliente.toObject();
+    delete clienteSeguro.contrasena;
 
-    const safe = cliente.toObject();
-    if (safe.contrasena) delete safe.contrasena;
-
-    return res.status(200).json({ mensaje: 'Login exitoso', rol, cliente: safe });
+    res.status(200).json({ mensaje: 'Login exitoso', token, cliente: clienteSeguro });
+    console.log('Login exitoso:', clienteSeguro.email);
   } catch (err) {
-    console.error('Error en auth.login:', err);
-    return res.status(500).json({ mensaje: 'Error en el servidor' });
+    console.error('Error en login:', err);
+    res.status(500).json({ mensaje: 'Error en el servidor' });
   }
-}; 
-
+};

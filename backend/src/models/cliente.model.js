@@ -11,6 +11,7 @@ const esquemaCliente = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      match: /.+\@.+\..+/,
       lowercase: true,
       trim: true,
     },
