@@ -25,4 +25,9 @@ app.use('/perfil', perfilRoutes);
 const authRoutes = require('./routes/auth.routes');
 app.use('/auth', authRoutes);
 
+// Rutas de facturas
+const facturaRoutes = require('./routes/factura.routes');
+app.use('/facturas', facturaRoutes);
+
+
 module.exports = app;

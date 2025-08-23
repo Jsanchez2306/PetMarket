@@ -8,4 +8,5 @@ router.get('/nosotros/cliente', indexController.nosotrosClientes);
 router.get('/nosotros', indexController.nosotrosVisitantes);
 router.get('/restriccion', indexController.restriccion);
 
+
 module.exports = router;
