@@ -23,7 +23,9 @@ function iniciarServidor() {
       http://localhost:${process.env.PORT}/perfil/admin
       http://localhost:${process.env.PORT}/perfil/cliente
       http://localhost:${process.env.PORT}/clientes
-      http://localhost:${process.env.PORT}/restriccion`
+      http://localhost:${process.env.PORT}/restriccion
+      http://localhost:${process.env.PORT}/api-docs`
+      
     );
   });
 }
