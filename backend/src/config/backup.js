@@ -15,6 +15,6 @@ exports.backupDatabase = async () => {
             console.error(`Error en el respaldo: ${error.message}`);
             return;
         }
-        console.log(`Respaldo completado con éxito ${stdout}`);
+        console.log(`Respaldo completado con total éxito ${stdout}`);
     });
 };
