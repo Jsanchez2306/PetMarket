@@ -1,5 +1,7 @@
 const app = require('./app');
 require('dotenv').config({ quiet: true });
+const backup = require('./config/backup');
+const cron = require('node-cron');
 
 function iniciarServidor() {
   app.listen(process.env.PORT, () => {
@@ -15,5 +17,9 @@ function iniciarServidor() {
     );
   });
 }
+cron.schedule('* * * * *', () => {
+  backup.backupDatabase();
+  console.log('Backup automático ejecutado');
+});
 
 iniciarServidor();
