@@ -1,4 +1,5 @@
 const Cliente = require('../models/cliente.model');
+const Log = require('../middlewares/logs');
 
 exports.renderizarGestionClientes = async (req, res) => {
   try {
@@ -52,6 +53,7 @@ exports.eliminarCliente = async (req, res) => {
   try {
     const { id } = req.params;
     const eliminado = await Cliente.findByIdAndDelete(id);
+   Log.generateLog("cualquiera", `Cliente eliminado: ${id}`);
     if (!eliminado) return res.status(404).json({ mensaje: 'Cliente no encontrado' });
     res.sendStatus(200);
   } catch (error) {

@@ -1,33 +1,5 @@
-/**
- * @file Modelo de Cliente para la base de datos MongoDB usando Mongoose
- * 
- * Define el esquema y modelo de Cliente para PetMarket.
- * Incluye validaciones de campos, tipos y valores por defecto.
- * 
- * @module models/Cliente
- */
-
 const mongoose = require("../config/connection");
 
-/* ============================
-   Esquema
-   ============================ */
-
-/**
- * Define las propiedades y validaciones del cliente.
- * @typedef {Object} Cliente
- * @property {string} nombre - Nombre del cliente. Obligatorio, 2-50 caracteres, solo letras y espacios.
- * @property {string} email - Correo electrónico único y válido. Obligatorio.
- * @property {string} contrasena - Contraseña mínima 6 caracteres, al menos una letra y un número. Obligatoria.
- * @property {string} [telefono] - Teléfono opcional, 7-15 dígitos.
- * @property {string} [direccion] - Dirección opcional, 5-100 caracteres.
- * @property {string} rol - Rol: "cliente" o "admin". Por defecto: "cliente".
- */
-
-/**
- * Crea el esquema de Mongoose para Cliente
- * @private
- */
 function crearEsquemaCliente() {
   return new mongoose.Schema(
     {
@@ -81,20 +53,10 @@ function crearEsquemaCliente() {
   );
 }
 
-/* ============================
-   Modelo
-   ============================ */
-
-/**
- * Crea el modelo de Mongoose para Cliente
- * @type {mongoose.Model<Cliente>}
- * @private
- */
 function crearModeloCliente() {
   const esquema = crearEsquemaCliente();
   return mongoose.model("cliente", esquema);
 }
 
-// Exporta el modelo
 const Cliente = crearModeloCliente();
 module.exports = Cliente;

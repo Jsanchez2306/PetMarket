@@ -1,20 +1,6 @@
-/**
- * @file Archivo principal del servidor PetMarket
- * @module server
- */
-
 const app = require('./app');
 require('dotenv').config({ quiet: true });
 
-/* ============================
-   Función de arranque del servidor
-   ============================ */
-
-/**
- * Inicia el servidor Express en el puerto definido en `.env`.
- * Muestra en consola las URLs principales.
- * @private
- */
 function iniciarServidor() {
   app.listen(process.env.PORT, () => {
     console.log(
@@ -30,5 +16,4 @@ function iniciarServidor() {
   });
 }
 
-// Ejecuta la función
 iniciarServidor();

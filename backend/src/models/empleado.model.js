@@ -1,27 +1,5 @@
-/**
- * @file Modelo de Empleado para la base de datos MongoDB usando Mongoose
- * @module models/Empleado
- */
-
 const mongoose = require("../config/connection");
 
-/**
- * Esquema de un empleado
- * @typedef {Object} Empleado
- * @property {string} cedula - Cédula del empleado, única y entre 6 y 15 dígitos. Obligatoria.
- * @property {string} nombre - Nombre del empleado, entre 2 y 50 caracteres, solo letras y espacios. Obligatorio.
- * @property {string} email - Correo electrónico único y válido. Obligatorio.
- * @property {string} contrasena - Contraseña con al menos 6 caracteres, debe contener una letra y un número. Obligatoria.
- * @property {string} telefono - Teléfono del empleado, entre 7 y 15 dígitos. Obligatorio.
- * @property {string} direccion - Dirección del empleado, entre 5 y 100 caracteres. Obligatoria.
- * @property {string} cargo - Cargo del empleado, mínimo 3 caracteres. Obligatorio.
- * @property {string} rol - Rol del usuario, puede ser "cliente", "admin" o "empleado". Por defecto: "empleado".
- */
-
-/**
- * Esquema de Mongoose para Empleado
- * @type {mongoose.Schema<Empleado>}
- */
 const empleadoSchema = new mongoose.Schema(
   {
     cedula: {
@@ -87,10 +65,6 @@ const empleadoSchema = new mongoose.Schema(
   { versionKey: false }
 );
 
-/**
- * Modelo de Mongoose para Empleado
- * @type {mongoose.Model<Empleado>}
- */
 const Empleado = mongoose.model("empleado", empleadoSchema);
 
 module.exports = Empleado;

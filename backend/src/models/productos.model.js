@@ -1,26 +1,4 @@
-/**
- * @file Modelo de Producto para la base de datos MongoDB usando Mongoose
- * @module models/Producto
- */
-
 const mongoose = require("../config/connection");
-
-/**
- * Esquema de un producto
- * @typedef {Object} Producto
- * @property {string} nombre - Nombre del producto (2-100 caracteres)
- * @property {string} descripcion - Descripción del producto (10-1000 caracteres)
- * @property {string} imagen - URL de la imagen del producto
- * @property {number} precio - Precio del producto, no negativo
- * @property {number} stock - Stock disponible, no negativo
- * @property {string} categoria - Categoría del producto ("accesorios", "ropa", "juguetes", "alimentos")
- * @property {Date} fechaRegistro - Fecha de registro del producto, por defecto la fecha actual
- */
-
-/**
- * Esquema de Mongoose para Producto
- * @type {mongoose.Schema<Producto>}
- */
 const productoSchema = new mongoose.Schema(
   {
     nombre: {
@@ -71,10 +49,6 @@ const productoSchema = new mongoose.Schema(
   }
 );
 
-/**
- * Modelo de Mongoose para Producto
- * @type {mongoose.Model<Producto>}
- */
 const Producto = mongoose.model("producto", productoSchema);
 
 module.exports = Producto;

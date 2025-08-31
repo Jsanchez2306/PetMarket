@@ -1,59 +1,53 @@
-/**
- * @file Modelo de Factura para la base de datos MongoDB usando Mongoose
- * @module models/Factura
- */
-
 const mongoose = require('mongoose');
 
-/**
- * Esquema de un cliente dentro de la factura
- * @typedef {Object} ClienteFactura
- * @property {string} nombre - Nombre del cliente
- * @property {string} correo - Correo electrónico del cliente
- */
-
-/**
- * Esquema de un producto dentro de la factura
- * @typedef {Object} ProductoFactura
- * @property {string} nombre - Nombre del producto
- * @property {number} cantidad - Cantidad del producto
- * @property {number} precio - Precio unitario del producto
- */
-
-/**
- * Esquema de una factura
- * @typedef {Object} Factura
- * @property {ClienteFactura} cliente - Información del cliente
- * @property {ProductoFactura[]} productos - Lista de productos
- * @property {number} total - Total de la factura
- * @property {Date} fecha - Fecha de creación de la factura, por defecto la fecha actual
- */
-
-/**
- * Esquema de Mongoose para Factura
- * @type {mongoose.Schema<Factura>}
- */
 const facturaSchema = new mongoose.Schema({
     cliente: {
-        nombre: String,
-        correo: String,
+        nombre: {
+            type: String,
+            required: [true, "El nombre del cliente es obligatorio"],
+            trim: true,
+            minlength: [2, "El nombre del cliente debe tener al menos 2 caracteres"],
+            maxlength: [50, "El nombre del cliente no puede exceder los 50 caracteres"],
+            match: [/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "El nombre del cliente solo puede contener letras y espacios"]
+        },
+        correo: {
+            type: String,
+            required: [true, "El correo del cliente es obligatorio"],
+            trim: true,
+            lowercase: true,
+            match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "El correo del cliente no es válido"]
+        }
     },
     productos: [
         {
-            nombre: String,
-            cantidad: Number,
-            precio: Number,
+            nombre: {
+                type: String,
+                required: [true, "El nombre del producto es obligatorio"],
+                trim: true,
+                minlength: [2, "El nombre del producto debe tener al menos 2 caracteres"],
+                maxlength: [100, "El nombre del producto no puede exceder los 100 caracteres"]
+            },
+            cantidad: {
+                type: Number,
+                required: [true, "La cantidad del producto es obligatoria"],
+                min: [1, "La cantidad del producto debe ser al menos 1"]
+            },
+            precio: {
+                type: Number,
+                required: [true, "El precio del producto es obligatorio"],
+                min: [0, "El precio del producto no puede ser negativo"]
+            }
         }
     ],
-    total: Number,
+    total: {
+        type: Number,
+        required: [true, "El total de la factura es obligatorio"],
+        min: [0, "El total no puede ser negativo"]
+    },
     fecha: {
         type: Date,
-        default: Date.now,
+        default: Date.now
     }
-});
+}, { versionKey: false });
 
-/**
- * Modelo de Mongoose para Factura
- * @type {mongoose.Model<Factura>}
- */
 module.exports = mongoose.model('Factura', facturaSchema);

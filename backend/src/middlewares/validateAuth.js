@@ -1,4 +1,3 @@
-
 const jwt = require('jsonwebtoken');
 
 function validarAuth(req, res, next) {
