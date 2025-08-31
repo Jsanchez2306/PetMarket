@@ -1,5 +1,7 @@
 $(document).ready(function () {
 
+  const token = localStorage.getItem('token'); // ✅ Obtenemos token
+
   // ----------------------------
   // DataTable (clientes)
   // ----------------------------
@@ -58,7 +60,10 @@ $(document).ready(function () {
     try {
       const res = await fetch(`/clientes/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // ✅ token agregado
+        },
         body: JSON.stringify(data)
       });
 
@@ -90,26 +95,27 @@ $(document).ready(function () {
     new bootstrap.Modal(document.getElementById('confirmarEliminacionModal')).show();
   });
 
-  $('#btnConfirmarEliminar').on('click', function () {
+  $('#btnConfirmarEliminar').on('click', async function () {
     const id = $(this).data('id');
     if (!id) return;
 
-    fetch(`/clientes/${id}`, { method: 'DELETE' })
-      .then(response => {
-        if (response.ok) {
-          bootstrap.Modal.getInstance(document.getElementById('confirmarEliminacionModal'))?.hide();
-          const modal = new bootstrap.Modal(document.getElementById('eliminacionExitosaModal'));
-          modal.show();
-          setTimeout(() => location.reload(), 1200);
-        } else {
-          alert('Error al eliminar cliente');
-        }
-      })
-      .catch(error => {
-        console.error('Error eliminar:', error);
-        alert('Error al procesar la solicitud');
+    try {
+      const res = await fetch(`/clientes/${id}`, { 
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` } // ✅ token agregado
       });
+      if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('confirmarEliminacionModal'))?.hide();
+        const modal = new bootstrap.Modal(document.getElementById('eliminacionExitosaModal'));
+        modal.show();
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        alert('Error al eliminar cliente');
+      }
+    } catch (error) {
+      console.error('Error eliminar:', error);
+      alert('Error al procesar la solicitud');
+    }
   });
 
-}); 
-
+});

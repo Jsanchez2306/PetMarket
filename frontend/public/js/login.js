@@ -19,7 +19,7 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
       localStorage.setItem('token', data.token);
 
       alert('Login exitoso ✅');
-      window.location.href = '/clientes';
+      window.location.href = '/panel';
     } else {
       document.getElementById('loginMensajeError').textContent = data.mensaje || 'Error';
       document.getElementById('loginMensajeError').classList.remove('d-none');

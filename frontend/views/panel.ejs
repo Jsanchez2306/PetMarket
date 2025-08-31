@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PetMarket - Panel Administrador.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/assets.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/buttons.css">
+    <link rel="icon" href="/Imagenes/HuellaPerro.png">
+    <title>Panel Administrador</title>
+</head>
+
+<body>
+    <%- include('partials/headerAdmin') %>
+
+    <main class="container my-5">
+        <section id="estadisticas" class="mb-5">
+            <h1 class="text-center mb-5">Estadísticas</h1>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card tarjetaProductos mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Productos</h5>
+                            <p class="card-text fs-4" id="cantidadProductos"><%= cantidadProductos %></p>
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card tarjetaFacturas mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Clientes registrados</h5>
+                            <p class="card-text fs-4" id="cantidadClientes"><%= cantidadClientes %></p>
+                            <i class="fas fa-file-invoice fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card tarjetaClientes mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Empleados</h5>
+                            <p class="card-text fs-4" id="cantidadEmpleados"><%= cantidadEmpleados %></p>
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="gestion">
+            <h1 class="text-center mb-4">Gestión</h1>
+            <div class="row text-center justify-content-center">
+                <div class="col-md-4 mb-3">
+                    <a href="/productos" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-box"></i> Gestión de Productos
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="/clientes" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-file-invoice"></i> Gestión de Clientes
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="/empleados" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-users"></i> Gestión de Empleados
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include('partials/footer') %>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" defer></script>
+</body>
+</html>
