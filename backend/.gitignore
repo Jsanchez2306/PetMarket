@@ -1,4 +1,25 @@
+# Dependencias
 node_modules/
+
+# Configuración sensible
 .env
+
+# Respaldos de MongoDB
+backup/
+
+# Archivos de salida o compilación
 out/
+dist/
+build/
+
+# Archivos de documentación generados
 jsdoc.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
