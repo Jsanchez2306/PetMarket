@@ -1,30 +1,59 @@
+// backend/src/config/backup.js
 /* eslint-disable no-unused-vars */
-const { exec } = require('child_process');
-require('dotenv').config();
+const { execFile } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ quiet: true });
 
-exports.backupDatabase = async () => {
-    const outputPath = './backup';
+const ENABLE = process.env.ENABLE_BACKUP === 'true';               // <— apaga/enciende backup
+const dumpCmd = process.env.MONGODUMP_PATH || 'mongodump';         // <— binario (ruta o nombre)
+const outDir  = path.resolve(process.env.BACKUP_DIR || './backup');
 
-    // Usa la variable de entorno MONGO_DB_NAME
-    const dbName = process.env.MONGO_DB_NAME;
+function buildMongoUri() {
+  if (process.env.MONGO_URI) return process.env.MONGO_URI;
+  const { DB_USER, DB_PASS, DB_HOST, MONGO_DB_NAME } = process.env;
+  if (DB_USER && DB_PASS && DB_HOST && MONGO_DB_NAME) {
+    const u = encodeURIComponent(DB_USER);
+    const p = encodeURIComponent(DB_PASS);
+    return `mongodb+srv://${u}:${p}@${DB_HOST}/${MONGO_DB_NAME}?retryWrites=true&w=majority`;
+  }
+  return null;
+}
 
-    const mongoUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${dbName}?retryWrites=true&w=majority`;
-    // const command = `"C:\\Users\\yepes\\OneDrive\\Desktop\\mongodb-database-tools-windows-x86_64-100.13.0\\mongodb-database-tools-windows-x86_64-100.13.0\\bin\\mongodump.exe" --uri "${mongoUri}" --out ${outputPath} --gzip`;
-    const command = `mongodump --uri "${mongoUri}" --out ${outputPath} --gzip`;
+exports.backupDatabase = (cb = () => {}) => {
+  if (!ENABLE) {
+    console.log('⏭️  Backup desactivado (ENABLE_BACKUP != true)');
+    return cb(null, 'disabled');
+  }
 
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error en el respaldo: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.warn(` Advertencia: ${stderr}`);
-        }
-        console.log(` Respaldo completado con total éxito\n${stdout}`);
-    });
+  const mongoUri = buildMongoUri();
+  if (!mongoUri) {
+    const err = new Error('No hay MONGO_URI ni variables DB_* suficientes');
+    console.error('❌', err.message);
+    return cb(err);
+  }
+
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const dbName = process.env.MONGO_DB_NAME || 'db';
+  const archive = path.join(outDir, `backup-${dbName}-${ts}.archive.gz`);
+
+  const args = ['--uri', mongoUri, `--archive=${archive}`, '--gzip'];
+
+  execFile(dumpCmd, args, (err, stdout, stderr) => {
+    if (err) {
+      console.error('❌ Error en el respaldo:', err.message);
+      if (stderr) console.error(stderr);
+      return cb(err);
+    }
+    console.log('✅ Respaldo OK →', archive);
+    if (stdout) console.log(stdout);
+    cb(null, archive);
+  });
 };
 
-//  Ejecutar directamente si este archivo se llama con `node src/config/backup.js`
+// Ejecutar directo: `node src/config/backup.js`
 if (require.main === module) {
-    exports.backupDatabase();
+  exports.backupDatabase();
 }

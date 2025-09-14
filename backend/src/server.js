@@ -13,13 +13,18 @@ function iniciarServidor() {
       http://localhost:${process.env.PORT}/clientes
       http://localhost:${process.env.PORT}/restriccion
       http://localhost:${process.env.PORT}/api-docs`
-      
     );
   });
 }
-cron.schedule('* * * * *', () => {
-  backup.backupDatabase();
-  console.log('Backup automático ejecutado');
-});
+
+// ✅ solo corre el backup si lo activas por variable de entorno
+if (process.env.ENABLE_BACKUP === 'true') {
+  cron.schedule('* * * * *', () => {
+    backup.backupDatabase();
+    console.log('Backup automático ejecutado');
+  });
+} else {
+  console.log(' Backups desactivados (ENABLE_BACKUP != true)');
+}
 
 iniciarServidor();
