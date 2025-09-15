@@ -3,11 +3,11 @@ const Empleado = require('../models/empleado.model');
 // Renderizar la vista con todos los empleados
 exports.renderizarGestionEmpleados = async (req, res) => {
   try {
-    const empleados = await Empleado.find(); // traemos todos los empleados
-    res.render('gestionEmpleados', { empleados }); // pasamos al EJS
+    const empleados = await Empleado.find();
+    res.render('gestionEmpleados', { empleados });
   } catch (err) {
     console.error('Error al obtener empleados para la vista:', err);
-    res.status(500).send('Error al obtener empleados'); // mensaje simple para no romper la vista
+    res.status(500).send('Error al obtener empleados');
   }
 };
 
@@ -24,47 +24,76 @@ exports.obtenerEmpleados = async (req, res) => {
 
 // Crear nuevo empleado
 exports.crearEmpleado = async (req, res) => {
-  try {
-    const data = req.body;
-    
-    // Verificar si el email ya existe
-    const existe = await Empleado.findOne({ email: data.email });
-    if (existe) {
-      return res.status(409).json({ campo: 'email', mensaje: 'Este email ya existe' });
-    }
+    try {
+        const data = req.body;
+        let errores = {};
 
-    const nuevoEmpleado = await Empleado.create(data);
-    res.status(201).json(nuevoEmpleado);
-  } catch (err) {
-    console.error('Error al crear empleado:', err);
-    res.status(400).json({ mensaje: 'Error al crear empleado', error: err.message });
-  }
+        // Validaciones únicas
+        if (await Empleado.findOne({ cedula: data.cedula })) {
+            errores.cedula = 'Esta cédula ya existe';
+        }
+        if (await Empleado.findOne({ email: data.email })) {
+            errores.email = 'Este correo ya existe';
+        }
+
+        // Validación password
+        if (!data.contrasena || data.contrasena.length < 6 || /^\d+$/.test(data.contrasena) || /^[A-Za-z]+$/.test(data.contrasena)) {
+            errores.password = 'La contraseña debe tener al menos 6 caracteres y contener letras y números';
+        }
+
+        if (Object.keys(errores).length > 0) {
+            return res.status(400).json({ errores }); // Enviar todos los errores juntos
+        }
+
+        const nuevoEmpleado = await Empleado.create(data);
+        res.status(201).json(nuevoEmpleado);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ mensaje: 'Error al crear empleado', error: err.message });
+    }
 };
 
 // Actualizar empleado
 exports.actualizarEmpleado = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = { ...req.body };
+    try {
+        const { id } = req.params;
+        const updateData = { ...req.body };
+        let errores = {};
 
-    // Normalizar email
-    if (updateData.email) {
-      updateData.email = String(updateData.email).trim().toLowerCase();
-      const otro = await Empleado.findOne({ email: updateData.email, _id: { $ne: id } });
-      if (otro) return res.status(409).json({ campo: 'email', mensaje: 'Este email ya existe' });
+        // Validación email único
+        if (updateData.email) {
+            updateData.email = String(updateData.email).trim().toLowerCase();
+            const otro = await Empleado.findOne({ email: updateData.email, _id: { $ne: id } });
+            if (otro) errores.email = 'Este email ya existe';
+        }
+
+        // Validación cédula única
+        if (updateData.cedula) {
+            const otra = await Empleado.findOne({ cedula: updateData.cedula, _id: { $ne: id } });
+            if (otra) errores.cedula = 'Esta cédula ya existe';
+        }
+
+        // Validación password si se actualiza
+        if (updateData.contrasena) {
+            if (updateData.contrasena.length < 6 || /^\d+$/.test(updateData.contrasena) || /^[A-Za-z]+$/.test(updateData.contrasena)) {
+                errores.password = 'La contraseña debe tener al menos 6 caracteres y contener letras y números';
+            }
+        }
+
+        if (Object.keys(errores).length > 0) {
+            return res.status(400).json({ errores });
+        }
+
+        const actualizado = await Empleado.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+        if (!actualizado) return res.status(404).json({ mensaje: 'Empleado no encontrado' });
+
+        res.json(actualizado);
+
+    } catch (err) {
+        console.error('Error al actualizar empleado:', err);
+        res.status(500).json({ mensaje: 'Error al actualizar', error: err.message });
     }
-
-    const actualizado = await Empleado.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
-    if (!actualizado) return res.status(404).json({ mensaje: 'Empleado no encontrado' });
-
-    res.json(actualizado);
-  } catch (err) {
-    console.error('Error al actualizar empleado:', err);
-    if (err.code === 11000 && err.keyPattern?.email) {
-      return res.status(409).json({ campo: 'email', mensaje: 'Este email ya existe' });
-    }
-    res.status(400).json({ mensaje: 'Error al actualizar', error: err.message });
-  }
 };
 
 // Eliminar empleado

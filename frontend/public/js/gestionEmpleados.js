@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    const token = localStorage.getItem('token'); // Obtenemos token
+    const token = localStorage.getItem('token');
 
     // Inicializar DataTable
     if ($('#tablaEmpleados').length && !$.fn.DataTable.isDataTable('#tablaEmpleados')) {
@@ -13,7 +13,26 @@ $(document).ready(function () {
                 emptyTable: "No hay empleados registrados",
                 zeroRecords: "No se encontraron coincidencias"
             },
-            columnDefs: [{ targets: 3, orderable: false }] // columna de acciones
+            columnDefs: [{ targets: 3, orderable: false }]
+        });
+    }
+
+    // Funciones de errores
+    function mostrarError(input, mensaje) {
+        const divError = document.getElementById('error-' + input);
+        if (divError) {
+            divError.textContent = mensaje;
+            divError.classList.remove('d-none');
+        }
+    }
+
+    function limpiarErrores() {
+        ['nombre','cedula','email','telefono','direccion','cargo','password'].forEach((input) => {
+            const divError = document.getElementById('error-' + input);
+            if (divError) {
+                divError.textContent = '';
+                divError.classList.add('d-none');
+            }
         });
     }
 
@@ -39,13 +58,15 @@ $(document).ready(function () {
         $('#edit-telefono').val(fila.data('telefono') || '');
         $('#edit-direccion').val(fila.data('direccion') || '');
         $('#edit-cargo').val(fila.data('cargo'));
-        $('#edit-password').val(''); // limpiar password
+        $('#edit-password').val('');
+        limpiarErrores();
         $('#modalEditarEmpleado').modal('show');
     });
 
     // Guardar edición
     $('#formEditarEmpleado').on('submit', async function (e) {
         e.preventDefault();
+        limpiarErrores();
         const id = $('#editarId').val();
         const data = {
             nombre: $('#edit-nombre').val().trim(),
@@ -56,39 +77,48 @@ $(document).ready(function () {
             cargo: $('#edit-cargo').val().trim()
         };
         const contrasena = $('#edit-password').val().trim();
-        if (contrasena) data.contrasena = contrasena; // solo enviar si hay cambio
+        if (contrasena) data.contrasena = contrasena;
 
         try {
             const res = await fetch(`/empleados/${id}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(data)
             });
-            if (res.ok) {
-                $('#modalEditarEmpleado').modal('hide');
-                new bootstrap.Modal(document.getElementById('confirmacionModal')).show();
-                setTimeout(() => location.reload(), 1200);
-            } else {
-                const err = await res.json();
-                alert(err.mensaje || 'Error al actualizar empleado');
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                // Mostrar todos los errores juntos
+                if (result.errores) {
+                    for (const key in result.errores) mostrarError(key, result.errores[key]);
+                }
+                return;
             }
-        } catch (error) {
-            console.error(error);
-            alert('Error en el servidor');
+
+            $('#modalEditarEmpleado').modal('hide');
+            new bootstrap.Modal(document.getElementById('confirmacionModal')).show();
+            setTimeout(() => location.reload(), 1200);
+
+        } catch (err) {
+            console.error(err);
+            mostrarError('password', 'Error en el servidor');
         }
     });
 
     // Abrir modal agregar empleado
     $('[data-bs-target="#modalAgregarEmpleado"]').on('click', function () {
         $('#formAgregarEmpleado')[0].reset();
+        limpiarErrores();
     });
 
     // Guardar nuevo empleado
     $('#formAgregarEmpleado').on('submit', async function (e) {
         e.preventDefault();
+        limpiarErrores();
         const data = {
             nombre: $('#agregar-nombre').val().trim(),
             email: $('#agregar-email').val().trim().toLowerCase(),
@@ -98,26 +128,33 @@ $(document).ready(function () {
             cargo: $('#agregar-cargo').val().trim(),
             contrasena: $('#agregar-password').val().trim()
         };
+
         try {
             const res = await fetch('/empleados', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(data)
             });
-            if (res.ok) {
-                $('#modalAgregarEmpleado').modal('hide');
-                new bootstrap.Modal(document.getElementById('confirmacionModal')).show();
-                setTimeout(() => location.reload(), 1200);
-            } else {
-                const err = await res.json();
-                alert(err.mensaje || 'Error al agregar empleado');
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                if (result.errores) {
+                    for (const key in result.errores) mostrarError(key, result.errores[key]);
+                }
+                return;
             }
-        } catch (error) {
-            console.error(error);
-            alert('Error en el servidor');
+
+            $('#modalAgregarEmpleado').modal('hide');
+            new bootstrap.Modal(document.getElementById('confirmacionModal')).show();
+            setTimeout(() => location.reload(), 1200);
+
+        } catch (err) {
+            console.error(err);
+            mostrarError('password', 'Error en el servidor');
         }
     });
 
@@ -139,13 +176,9 @@ $(document).ready(function () {
                 $('#confirmarEliminacionModal').modal('hide');
                 new bootstrap.Modal(document.getElementById('eliminacionExitosaModal')).show();
                 setTimeout(() => location.reload(), 1200);
-            } else {
-                const err = await res.json();
-                alert(err.mensaje || 'No se pudo eliminar');
             }
         } catch (error) {
             console.error(error);
-            alert('Error en el servidor');
         }
     });
 });
