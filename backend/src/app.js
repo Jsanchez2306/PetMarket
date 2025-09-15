@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const path = require('path');
+const session = require('express-session');
 
 
 function configurarMiddlewares() {
@@ -20,6 +21,13 @@ function configurarStatic() {
    app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 }
 configurarStatic();
+
+app.use(session({ 
+    secret: 'tu_secreto', 
+    resave: false,    
+    saveUninitialized: true,    
+    cookie: { secure: false }
+}));
 
 function configurarRutas() {
    const indexRoutes = require('./routes/index.routes');
