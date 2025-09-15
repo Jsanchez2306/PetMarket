@@ -11,7 +11,7 @@ const { validarAuth } = require('../middlewares/validateAuth');
  */
 
 // Vista principal de gestión de empleados
-router.get('/', validarAuth, empleadoController.renderizarGestionEmpleados);
+router.get('/', empleadoController.renderizarGestionEmpleados);
 
 // API: Obtener todos los empleados
 router.get('/api', validarAuth, empleadoController.obtenerEmpleados);
