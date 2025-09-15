@@ -18,8 +18,8 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
     if (res.ok) {
       localStorage.setItem('token', data.token);
 
-      alert('Login exitoso ✅');
-      window.location.href = '/panel';
+      alert('Login exitoso ');
+      window.location.href = 'http://localhost:3191/';
     } else {
       document.getElementById('loginMensajeError').textContent = data.mensaje || 'Error';
       document.getElementById('loginMensajeError').classList.remove('d-none');

@@ -10,18 +10,24 @@
     "backup": "node src/config/backup.js",
     "test": "echo \"no test\" && exit 0"
   },
-  "engines": { "node": ">=18 <23" },
+  "engines": {
+    "node": ">=18 <23"
+  },
   "dependencies": {
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.0",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
+    "qrcode": "^1.5.4",
     "router": "^2.2.0",
+    "speakeasy": "^2.0.0",
+    "svg-captcha": "^1.4.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
