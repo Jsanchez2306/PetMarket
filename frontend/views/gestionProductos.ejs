@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Productos</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto 30px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        form input,
+        form textarea,
+        form select,
+        form button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        form button {
+            background-color: #ff6b81;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        form button:hover {
+            background-color: #ff4757;
+        }
+
+        #productosLista {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .producto-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            text-align: center;
+        }
+
+        .producto-card img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+
+        .producto-card h3 {
+            margin: 10px 0 5px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .producto-card p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Agregar Producto</h1>
+    <form id="formProducto" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre" required>
+        <textarea name="descripcion" placeholder="Descripción" required></textarea>
+        <input type="number" name="precio" placeholder="Precio" required>
+        <input type="number" name="stock" placeholder="Stock" required>
+        <select name="categoria" required>
+            <option value="">Selecciona categoría</option>
+            <option value="accesorios">Accesorios</option>
+            <option value="ropa">Ropa</option>
+            <option value="juguetes">Juguetes</option>
+            <option value="alimentos">Alimentos</option>
+        </select>
+        <input type="file" name="imagen" accept="image/*" required>
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <h2>Productos</h2>
+    <div id="productosLista"></div>
+
+    <script>
+        const form = document.getElementById('formProducto');
+        const productosLista = document.getElementById('productosLista');
+
+        async function cargarProductos() {
+            try {
+                const res = await axios.get('/productos/api');
+                productosLista.innerHTML = '';
+                res.data.forEach(p => {
+                    productosLista.innerHTML += `
+            <div class="producto-card">
+              <img src="${p.imagen}" alt="${p.nombre}">
+              <h3>${p.nombre}</h3>
+              <p>${p.descripcion}</p>
+              <p>Precio: $${p.precio}</p>
+              <p>Stock: ${p.stock}</p>
+              <p>Categoría: ${p.categoria}</p>
+            </div>
+          `;
+                });
+            } catch (err) {
+                console.error('Error al cargar productos:', err);
+            }
+        }
+
+        cargarProductos();
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            try {
+                const res = await axios.post('/productos', formData); // sin headers
+                alert('Producto agregado con éxito 💖');
+                form.reset();
+                cargarProductos();
+            } catch (err) {
+                console.error('Error al agregar producto:', err);
+                alert('Error al agregar producto, revisa los datos 🥺');
+            }
+        });
+    </script>
+</body>
+
+</html>
