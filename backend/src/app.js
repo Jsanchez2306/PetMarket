@@ -22,6 +22,7 @@ configurarVistas();
 function configurarStatic() {
    app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 }
+
 configurarStatic();
 
 app.use(session({ 
@@ -39,6 +40,7 @@ function configurarRutas() {
    const facturaRoutes = require('./routes/factura.routes');
    const panelRouter = require('./routes/panel');
    const empleadoRoutes = require('./routes/empleado.routes');
+   const productosRoutes = require('./routes/productos.routes');
 
    app.use('/', indexRoutes);
    app.use('/clientes', clienteRoutes);
@@ -47,6 +49,7 @@ function configurarRutas() {
    app.use('/facturas', facturaRoutes);
    app.use('/panel', panelRouter);
    app.use('/empleados', empleadoRoutes);
+   app.use('/productos', productosRoutes);
 }
 configurarRutas();
 
