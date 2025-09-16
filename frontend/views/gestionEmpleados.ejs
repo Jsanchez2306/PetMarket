@@ -87,52 +87,67 @@
             </div>
         </div>
 
-        <!-- Modal Editar Empleado -->
-        <div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">Editar Empleado</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+       <!-- Modal Editar Empleado -->
+<div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header custom-modal-header">
+                <h5 class="modal-title">Editar Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarEmpleado">
+                    <input type="hidden" id="editarId">
+
+                    <div class="mb-3">
+                        <label for="edit-nombre" class="form-label">Nombre</label>
+                        <div id="error-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="text" class="form-control" id="edit-nombre" required>
                     </div>
-                    <div class="modal-body">
-                        <form id="formEditarEmpleado">
-                            <input type="hidden" id="editarId">
-                            <div class="mb-3">
-                                <label for="edit-nombre" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="edit-nombre" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-cedula" class="form-label">Cédula</label>
-                                <input type="text" class="form-control" id="edit-cedula" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit-email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-telefono" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="edit-telefono" placeholder="0000000000">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-direccion" class="form-label">Dirección</label>
-                                <input type="text" class="form-control" id="edit-direccion" placeholder="Sin dirección">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-cargo" class="form-label">Cargo</label>
-                                <input type="text" class="form-control" id="edit-cargo" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-password" class="form-label">Contraseña</label>
-                                <input type="text" class="form-control" id="edit-password"
-                                    placeholder="Dejar vacío para no cambiar">
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
-                        </form>
+
+                    <div class="mb-3">
+                        <label for="edit-cedula" class="form-label">Cédula</label>
+                        <div id="error-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="text" class="form-control" id="edit-cedula" required>
                     </div>
-                </div>
+
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email</label>
+                        <div id="error-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="email" class="form-control" id="edit-email" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-telefono" class="form-label">Teléfono</label>
+                        <div id="error-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="text" class="form-control" id="edit-telefono" placeholder="0000000000">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-direccion" class="form-label">Dirección</label>
+                        <div id="error-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="text" class="form-control" id="edit-direccion" placeholder="Sin dirección">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-cargo" class="form-label">Cargo</label>
+                        <div id="error-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="text" class="form-control" id="edit-cargo" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-password" class="form-label">Contraseña</label>
+                        <div id="error-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                        <input type="text" class="form-control" id="edit-password" placeholder="Dejar vacío para no cambiar">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
+                </form>
             </div>
         </div>
+    </div>
+</div>
+
 
         <!-- Modales de confirmación -->
         <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-hidden="true">
