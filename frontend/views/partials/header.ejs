@@ -117,6 +117,34 @@
   </div>
 </div>
 
+<!-- Modal de advertencia para errores de registro -->
+<div class="modal fade" id="registroErrorModal" tabindex="-1" aria-labelledby="registroErrorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="registroErrorModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>Error en el registro
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning mb-3">
+          <strong>⚠️ Ocurrió un error al registrar</strong>
+        </div>
+        <p id="registroErrorMensaje" class="mb-0">
+          Hubo un problema al crear tu cuenta. Por favor, verifica tus datos e intenta nuevamente.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">
+          Intentar nuevamente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="registroExitosoModal" tabindex="-1" aria-labelledby="registroExitosoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
@@ -126,6 +154,87 @@
       </div>
       <div class="modal-body">
         El cliente ha sido registrado exitosamente.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de error para login -->
+<div class="modal fade" id="loginErrorModal" tabindex="-1" aria-labelledby="loginErrorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header bg-danger text-white">
+        <h5 class="modal-title" id="loginErrorModalLabel">
+          <i class="fas fa-times-circle me-2"></i>Error al iniciar sesión
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger mb-3">
+          <strong>❌ No se pudo iniciar sesión</strong>
+        </div>
+        <p id="loginErrorMensaje" class="mb-0">
+          Verifica tu correo electrónico y contraseña, luego intenta nuevamente.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">
+          Intentar nuevamente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de éxito para login -->
+<div class="modal fade" id="loginExitosoModal" tabindex="-1" aria-labelledby="loginExitosoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header bg-success text-white">
+        <h5 class="modal-title" id="loginExitosoModalLabel">
+          <i class="fas fa-check-circle me-2"></i>¡Bienvenido!
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-success mb-3">
+          <strong>✅ Has iniciado sesión correctamente</strong>
+        </div>
+        <p class="mb-0">
+          <span id="loginBienvenidaMensaje">¡Bienvenido de vuelta!</span> Ya puedes disfrutar de todas las funcionalidades de PetMarket.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Continuar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de información para auto-login fallido -->
+<div class="modal fade" id="autoLoginFailModal" tabindex="-1" aria-labelledby="autoLoginFailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header bg-info text-white">
+        <h5 class="modal-title" id="autoLoginFailModalLabel">
+          <i class="fas fa-info-circle me-2"></i>Registro exitoso
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-success mb-3">
+          <strong>✅ ¡Tu cuenta fue creada exitosamente!</strong>
+        </div>
+        <p class="mb-0">
+          Hubo un problema al iniciar sesión automáticamente. Por favor, inicia sesión manualmente con tus credenciales.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">
+          Iniciar sesión
+        </button>
       </div>
     </div>
   </div>
@@ -233,7 +342,7 @@
       </div>
       <div class="modal-body">
         <div class="alert alert-warning">
-          <strong>⚠️ ¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente de la base de datos.
+          <strong>¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente de la base de datos.
         </div>
         <form id="formEliminarCuenta">
           <div class="mb-3">
