@@ -14,15 +14,15 @@ const { validarAuth } = require('../middlewares/validateAuth');
 router.get('/', empleadoController.renderizarGestionEmpleados);
 
 // API: Obtener todos los empleados
-router.get('/api', validarAuth, empleadoController.obtenerEmpleados);
+router.get('/api', empleadoController.obtenerEmpleados);
 
 // API: Crear nuevo empleado
-router.post('/', validarAuth, empleadoController.crearEmpleado);
+router.post('/', empleadoController.crearEmpleado);
 
 // API: Actualizar empleado por ID
-router.put('/:id', validarAuth, empleadoController.actualizarEmpleado);
+router.put('/:id',  empleadoController.actualizarEmpleado);
 
 // API: Eliminar empleado por ID
-router.delete('/:id', validarAuth, empleadoController.eliminarEmpleado);
+router.delete('/:id', empleadoController.eliminarEmpleado);
 
 module.exports = router;
