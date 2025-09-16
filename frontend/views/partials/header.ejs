@@ -20,7 +20,7 @@
         <button class="btn btn-outline-light btn-primary">Buscar</button>
       </div>
 
-      <div class="d-flex align-items-center ms-3 gap-2">
+      <div class="d-flex align-items-center ms-3 gap-2" id="authButtons">
         <button type="button" class="btn btn-outline-light btn-primary" data-bs-toggle="modal"
           data-bs-target="#loginModal">
           Iniciar sesión
@@ -29,6 +29,28 @@
           data-bs-target="#registerModal">
           Registrarse
         </button>
+      </div>
+
+      <!-- Dropdown para usuario autenticado -->
+      <div class="dropdown d-none" id="userDropdown">
+        <button class="btn btn-outline-light btn-primary dropdown-toggle" type="button" 
+                data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-user me-2"></i>
+          <span id="userEmail">Usuario</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#perfilModal">
+            <i class="fas fa-user-edit me-2"></i>Actualizar datos
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#eliminarCuentaModal">
+            <i class="fas fa-user-times me-2"></i>Eliminar cuenta
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#" id="logoutBtn">
+            <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+          </a></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -147,6 +169,90 @@
                   class="fab fa-linkedin-in"></i></a>
             </div>
           </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para actualizar datos de perfil -->
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="perfilModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header">
+        <h5 class="modal-title" id="perfilModalLabel">Actualizar datos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formActualizarPerfil">
+          <div class="mb-3">
+            <label for="perfilNombre" class="form-label">Nombre y Apellido</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-user"></i></span>
+              <input type="text" class="form-control" id="perfilNombre" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="perfilCorreo" class="form-label">Correo electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              <input type="email" class="form-control" id="perfilCorreo" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="perfilPasswordActual" class="form-label">Contraseña actual</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="perfilPasswordActual">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="perfilPasswordNueva" class="form-label">Nueva contraseña (opcional)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="perfilPasswordNueva" minlength="6">
+            </div>
+          </div>
+          <div id="perfilMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
+          <button type="submit" class="btn btn-primary w-100">Actualizar datos</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para confirmar eliminación de cuenta -->
+<div class="modal fade" id="eliminarCuentaModal" tabindex="-1" aria-labelledby="eliminarCuentaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header bg-danger text-white">
+        <h5 class="modal-title" id="eliminarCuentaModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>Eliminar cuenta
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <strong>⚠️ ¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente de la base de datos.
+        </div>
+        <form id="formEliminarCuenta">
+          <div class="mb-3">
+            <label for="eliminarPassword" class="form-label">Confirma tu contraseña para continuar</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="eliminarPassword" required>
+            </div>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="confirmarEliminacion" required>
+            <label class="form-check-label text-danger" for="confirmarEliminacion">
+              Entiendo que esta acción eliminará mi cuenta permanentemente
+            </label>
+          </div>
+          <div id="eliminarMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
+          <button type="submit" class="btn btn-danger w-100">
+            <i class="fas fa-trash me-2"></i>Eliminar cuenta definitivamente
+          </button>
         </form>
       </div>
     </div>
