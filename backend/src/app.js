@@ -4,12 +4,6 @@ const app = express();
 const path = require('path');
 const session = require('express-session');
 
-app.use((req, res, next) => {
-  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.originalUrl}`);
-  console.log('Headers:', req.headers);
-  next();
-});
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,6 +22,7 @@ configurarVistas();
 function configurarStatic() {
    app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 }
+
 configurarStatic();
 
 app.use(session({ 
@@ -45,6 +40,7 @@ function configurarRutas() {
    const facturaRoutes = require('./routes/factura.routes');
    const panelRouter = require('./routes/panel');
    const empleadoRoutes = require('./routes/empleado.routes');
+   const productosRoutes = require('./routes/productos.routes');
 
    app.use('/', indexRoutes);
    app.use('/clientes', clienteRoutes);
@@ -53,6 +49,7 @@ function configurarRutas() {
    app.use('/facturas', facturaRoutes);
    app.use('/panel', panelRouter);
    app.use('/empleados', empleadoRoutes);
+   app.use('/productos', productosRoutes);
 }
 configurarRutas();
 
