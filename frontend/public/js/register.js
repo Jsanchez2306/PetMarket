@@ -26,15 +26,55 @@ document.getElementById('formRegistro').addEventListener('submit', async (e) => 
     if (res.ok) {
       // Cerrar el modal de registro
       bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-      
+
       // Realizar auto-login después del registro exitoso
       await autoLoginAfterRegister(email, contrasena);
     } else {
-      document.getElementById('registroMensajeError').textContent = data.mensaje || 'Error en el registro';
-      document.getElementById('registroMensajeError').classList.remove('d-none');
+      // Cerrar modal de registro y mostrar modal de error
+      bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+      
+      // Configurar mensaje de error
+      const mensajeElemento = document.getElementById('registroErrorMensaje');
+      mensajeElemento.textContent = data.mensaje || 'Hubo un problema al crear tu cuenta. Por favor, verifica tus datos e intenta nuevamente.';
+      
+      // Mostrar modal de error
+      const errorModal = new bootstrap.Modal(document.getElementById('registroErrorModal'));
+      errorModal.show();
+      
+      // Limpiar formulario para permitir nuevo intento
+      document.getElementById('formRegistro').reset();
+      document.getElementById('registroMensajeError').classList.add('d-none');
     }
   } catch (err) {
     console.error('Error al registrar:', err);
+    
+    // En caso de error de conexión o servidor
+    bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+    
+    const mensajeElemento = document.getElementById('registroErrorMensaje');
+    mensajeElemento.textContent = 'Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.';
+    
+    const errorModal = new bootstrap.Modal(document.getElementById('registroErrorModal'));
+    errorModal.show();
+    
+    // Limpiar formulario para permitir nuevo intento
+    document.getElementById('formRegistro').reset();
+    document.getElementById('registroMensajeError').classList.add('d-none');
+  }
+});
+
+// Event listener para manejar el botón "Intentar nuevamente" del modal de error
+document.addEventListener('DOMContentLoaded', function() {
+  // Cuando se cierre el modal de error y se abra el de registro
+  const registroErrorModal = document.getElementById('registroErrorModal');
+  if (registroErrorModal) {
+    registroErrorModal.addEventListener('hidden.bs.modal', function() {
+      // Limpiar cualquier mensaje de error previo
+      const errorAlert = document.getElementById('registroMensajeError');
+      if (errorAlert) {
+        errorAlert.classList.add('d-none');
+      }
+    });
   }
 });
 
@@ -63,18 +103,19 @@ async function autoLoginAfterRegister(email, contrasena) {
       }
 
       // Mostrar mensaje de éxito personalizado
-      alert('¡Registro exitoso! Has sido conectado automáticamente.');
-      
+      const modal = new bootstrap.Modal(document.getElementById('registroExitosoModal'));
+      modal.show();
+
       // Mantener en la página actual (landing page)
     } else {
-      // Si el auto-login falla, mostrar el modal de éxito tradicional
-      const modal = new bootstrap.Modal(document.getElementById('registroExitosoModal'));
+      // Si el auto-login falla, mostrar modal informativo
+      const modal = new bootstrap.Modal(document.getElementById('autoLoginFailModal'));
       modal.show();
     }
   } catch (error) {
     console.error('Error en auto-login después del registro:', error);
-    // En caso de error, mostrar el modal de éxito tradicional
-    const modal = new bootstrap.Modal(document.getElementById('registroExitosoModal'));
+    // En caso de error, mostrar modal informativo
+    const modal = new bootstrap.Modal(document.getElementById('autoLoginFailModal'));
     modal.show();
   }
 }
