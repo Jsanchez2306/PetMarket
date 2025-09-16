@@ -87,66 +87,60 @@
             </div>
         </div>
 
-       <!-- Modal Editar Empleado -->
-<div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content custom-modal">
-            <div class="modal-header custom-modal-header">
-                <h5 class="modal-title">Editar Empleado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formEditarEmpleado">
-                    <input type="hidden" id="editarId">
-
-                    <div class="mb-3">
-                        <label for="edit-nombre" class="form-label">Nombre</label>
-                        <div id="error-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="text" class="form-control" id="edit-nombre" required>
+        <!-- Modal Editar Empleado -->
+        <div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content custom-modal">
+                    <div class="modal-header custom-modal-header">
+                        <h5 class="modal-title">Editar Empleado</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="edit-cedula" class="form-label">Cédula</label>
-                        <div id="error-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="text" class="form-control" id="edit-cedula" required>
+                    <div class="modal-body">
+                        <form id="formEditarEmpleado">
+                            <input type="hidden" id="editarId">
+                            <div class="mb-3">
+                                <label for="edit-nombre" class="form-label">Nombre</label>
+                                <div id="error-edit-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="edit-nombre" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-cedula" class="form-label">Cédula</label>
+                                <div id="error-edit-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="edit-cedula" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-email" class="form-label">Email</label>
+                                <div id="error-edit-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="email" class="form-control" id="edit-email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-telefono" class="form-label">Teléfono</label>
+                                <div id="error-edit-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="edit-telefono" placeholder="0000000000">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-direccion" class="form-label">Dirección</label>
+                                <div id="error-edit-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="edit-direccion" placeholder="Sin dirección">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-cargo" class="form-label">Cargo</label>
+                                <div id="error-edit-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="edit-cargo" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-password" class="form-label">Contraseña</label>
+                                <div id="error-edit-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="edit-password"
+                                    placeholder="Dejar vacío para no cambiar">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
+                        </form>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="edit-email" class="form-label">Email</label>
-                        <div id="error-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="email" class="form-control" id="edit-email" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="edit-telefono" class="form-label">Teléfono</label>
-                        <div id="error-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="text" class="form-control" id="edit-telefono" placeholder="0000000000">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="edit-direccion" class="form-label">Dirección</label>
-                        <div id="error-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="text" class="form-control" id="edit-direccion" placeholder="Sin dirección">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="edit-cargo" class="form-label">Cargo</label>
-                        <div id="error-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="text" class="form-control" id="edit-cargo" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="edit-password" class="form-label">Contraseña</label>
-                        <div id="error-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                        <input type="text" class="form-control" id="edit-password" placeholder="Dejar vacío para no cambiar">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+
 
 
         <!-- Modales de confirmación -->
@@ -202,39 +196,39 @@
                     <div class="modal-body">
                         <form id="formAgregarEmpleado">
                             <div class="mb-3">
-                                <label for="agregar-nombre" class="form-label">Nombre</label>
-                                <div id="error-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="agregar-nombre" required>
+                                <label for="add-nombre" class="form-label">Nombre</label>
+                                <div id="error-add-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="add-nombre" required>
                             </div>
                             <div class="mb-3">
-                                <label for="agregar-cedula" class="form-label">Cédula</label>
-                                <div id="error-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="agregar-cedula" required>
+                                <label for="add-cedula" class="form-label">Cédula</label>
+                                <div id="error-add-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="add-cedula" required>
                             </div>
                             <div class="mb-3">
-                                <label for="agregar-email" class="form-label">Email</label>
-                                <div id="error-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="email" class="form-control" id="agregar-email" required>
+                                <label for="add-email" class="form-label">Email</label>
+                                <div id="error-add-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="email" class="form-control" id="add-email" required>
                             </div>
                             <div class="mb-3">
-                                <label for="agregar-telefono" class="form-label">Teléfono</label>
-                                <div id="error-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="agregar-telefono" required>
+                                <label for="add-telefono" class="form-label">Teléfono</label>
+                                <div id="error-add-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="add-telefono" required>
                             </div>
                             <div class="mb-3">
-                                <label for="agregar-direccion" class="form-label">Dirección</label>
-                                <div id="error-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="agregar-direccion" required>
+                                <label for="add-direccion" class="form-label">Dirección</label>
+                                <div id="error-add-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="add-direccion" required>
                             </div>
                             <div class="mb-3">
-                                <label for="agregar-cargo" class="form-label">Cargo</label>
-                                <div id="error-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="agregar-cargo" required>
+                                <label for="add-cargo" class="form-label">Cargo</label>
+                                <div id="error-add-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="text" class="form-control" id="add-cargo" required>
                             </div>
                             <div class="mb-3">
-                                <label for="agregar-password" class="form-label">Contraseña</label>
-                                <div id="error-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="password" class="form-control" id="agregar-password" required>
+                                <label for="add-password" class="form-label">Contraseña</label>
+                                <div id="error-add-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                                <input type="password" class="form-control" id="add-password" required>
                             </div>
                             <button type="submit" class="btn btn-success w-100">Agregar Empleado</button>
                         </form>
@@ -242,6 +236,7 @@
                 </div>
             </div>
         </div>
+
 
 
         <%- include('partials/footer') %>

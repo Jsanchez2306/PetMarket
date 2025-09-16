@@ -18,17 +18,17 @@ $(document).ready(function () {
     }
 
     // Funciones de errores
-    function mostrarError(input, mensaje) {
-        const divError = document.getElementById('error-' + input);
+    function mostrarError(input, mensaje, tipo = 'edit') {
+        const divError = document.getElementById(`error-${tipo}-${input}`);
         if (divError) {
             divError.textContent = mensaje;
             divError.classList.remove('d-none');
         }
     }
 
-    function limpiarErrores() {
+    function limpiarErrores(tipo = 'edit') {
         ['nombre','cedula','email','telefono','direccion','cargo','password'].forEach((input) => {
-            const divError = document.getElementById('error-' + input);
+            const divError = document.getElementById(`error-${tipo}-${input}`);
             if (divError) {
                 divError.textContent = '';
                 divError.classList.add('d-none');
@@ -59,14 +59,14 @@ $(document).ready(function () {
         $('#edit-direccion').val(fila.data('direccion') || '');
         $('#edit-cargo').val(fila.data('cargo'));
         $('#edit-password').val('');
-        limpiarErrores();
+        limpiarErrores('edit');
         $('#modalEditarEmpleado').modal('show');
     });
 
     // Guardar edición
     $('#formEditarEmpleado').on('submit', async function (e) {
         e.preventDefault();
-        limpiarErrores();
+        limpiarErrores('edit');
         const id = $('#editarId').val();
         const data = {
             nombre: $('#edit-nombre').val().trim(),
@@ -92,9 +92,8 @@ $(document).ready(function () {
             const result = await res.json();
 
             if (!res.ok) {
-                // Mostrar todos los errores juntos
                 if (result.errores) {
-                    for (const key in result.errores) mostrarError(key, result.errores[key]);
+                    for (const key in result.errores) mostrarError(key, result.errores[key], 'edit');
                 }
                 return;
             }
@@ -105,28 +104,28 @@ $(document).ready(function () {
 
         } catch (err) {
             console.error(err);
-            mostrarError('password', 'Error en el servidor');
+            mostrarError('password', 'Error en el servidor', 'edit');
         }
     });
 
     // Abrir modal agregar empleado
     $('[data-bs-target="#modalAgregarEmpleado"]').on('click', function () {
         $('#formAgregarEmpleado')[0].reset();
-        limpiarErrores();
+        limpiarErrores('add');
     });
 
     // Guardar nuevo empleado
     $('#formAgregarEmpleado').on('submit', async function (e) {
         e.preventDefault();
-        limpiarErrores();
+        limpiarErrores('add');
         const data = {
-            nombre: $('#agregar-nombre').val().trim(),
-            email: $('#agregar-email').val().trim().toLowerCase(),
-            cedula: $('#agregar-cedula').val().trim(),
-            telefono: $('#agregar-telefono').val().trim(),
-            direccion: $('#agregar-direccion').val().trim(),
-            cargo: $('#agregar-cargo').val().trim(),
-            contrasena: $('#agregar-password').val().trim()
+            nombre: $('#add-nombre').val().trim(),
+            email: $('#add-email').val().trim().toLowerCase(),
+            cedula: $('#add-cedula').val().trim(),
+            telefono: $('#add-telefono').val().trim(),
+            direccion: $('#add-direccion').val().trim(),
+            cargo: $('#add-cargo').val().trim(),
+            contrasena: $('#add-password').val().trim()
         };
 
         try {
@@ -143,7 +142,7 @@ $(document).ready(function () {
 
             if (!res.ok) {
                 if (result.errores) {
-                    for (const key in result.errores) mostrarError(key, result.errores[key]);
+                    for (const key in result.errores) mostrarError(key, result.errores[key], 'add');
                 }
                 return;
             }
@@ -154,7 +153,7 @@ $(document).ready(function () {
 
         } catch (err) {
             console.error(err);
-            mostrarError('password', 'Error en el servidor');
+            mostrarError('password', 'Error en el servidor', 'add');
         }
     });
 
