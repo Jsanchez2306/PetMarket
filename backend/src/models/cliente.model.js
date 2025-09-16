@@ -24,10 +24,6 @@ function crearEsquemaCliente() {
         required: [true, "La contraseña es obligatoria"],
         trim: true,
         minlength: [6, "La contraseña debe tener al menos 6 caracteres"],
-        match: [
-          /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-          "La contraseña debe contener al menos una letra y un número",
-        ],
       },
       telefono: {
         type: String,
