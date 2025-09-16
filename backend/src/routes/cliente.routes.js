@@ -68,7 +68,7 @@ router.get('/api', validarAuth, clienteController.obtenerClientes);
  *       200:
  *         description: Cliente actualizado exitosamente
  */
-router.put('/:id', validarAuth, clienteController.actualizarCliente);
+router.put('/:id', clienteController.actualizarCliente);
 
 /**
  * @swagger
