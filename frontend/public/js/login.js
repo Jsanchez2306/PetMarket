@@ -18,8 +18,25 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
     if (res.ok) {
       localStorage.setItem('token', data.token);
 
-      alert('Login exitoso ');
-      window.location.href = 'http://localhost:3191/';
+      // Cerrar modal de login
+      const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+      if (loginModal) {
+        loginModal.hide();
+      }
+
+      // Actualizar header si existe el sistema de autenticación
+      if (window.authSystem) {
+        window.authSystem.token = data.token;
+        window.authSystem.userInfo = window.authSystem.getUserInfo();
+        window.authSystem.updateHeader();
+      }
+
+      alert('Login exitoso');
+      
+      // Solo redirigir si no estamos ya en la página de inicio
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     } else {
       document.getElementById('loginMensajeError').textContent = data.mensaje || 'Error';
       document.getElementById('loginMensajeError').classList.remove('d-none');
