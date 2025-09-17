@@ -85,66 +85,37 @@
                 <h2 class="titulo2">Productos Destacados</h2>
                 <div class="container my-5">
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="card position-relative">
-                                <span
-                                    class="badge bg-danger position-absolute top-0 start-0 m-2 px-3 py-2 rounded-pill shadow">
-                                    -20% OFF
-                                </span>
-                                <img src="assets/Imagenes/juguete_para_gato_catnip.webp" class="card-img-top"
-                                    alt="Juguete para gato con catnip Bird-ee y Turtl-ee"
-                                    title="Juguete para gato con catnip Bird-ee y Turtl-ee" loading="lazy">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title" title="Juguete Para Gato Bird-ee Y Turtl-ee JW Catnip">
-                                        Juguete
-                                        Para Gato Bird-ee Y Turtl-ee JW Catnip</h5>
-                                    <p class="card-text">
-                                        <span class="text-muted text-decoration-line-through fw-bold">$12.071 COP</span>
-                                        <span class="text-danger fw-bold ms-2">$9.657 COP</span>
-                                    </p>
-                                    <a href="#" class="btn btn-primary btn-comprar" data-producto="juguete-gato-catnip">Comprar</a>
+                        <% if (productosDestacados && productosDestacados.length > 0) { %>
+                            <% productosDestacados.forEach(function(producto) { %>
+                                <div class="col-md-4">
+                                    <div class="card position-relative">
+                                        <img src="<%= producto.imagen %>" class="card-img-top"
+                                            alt="<%= producto.nombre %>"
+                                            title="<%= producto.nombre %>" loading="lazy">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title" title="<%= producto.nombre %>">
+                                                <%= producto.nombre %>
+                                            </h5>
+                                            <p class="card-text">
+                                                <span class="text-primary fw-bold">$<%= producto.precio.toLocaleString('es-CO') %> COP</span>
+                                            </p>
+                                            <p class="card-text text-muted small">
+                                                <%= producto.descripcion.length > 80 ? producto.descripcion.substring(0, 80) + '...' : producto.descripcion %>
+                                            </p>
+                                            <a href="#" class="btn btn-primary btn-comprar" data-producto="<%= producto._id %>">Comprar</a>
+                                        </div>
+                                    </div>
                                 </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="col-12 text-center">
+                                <p class="text-muted">No hay productos disponibles en este momento.</p>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card position-relative">
-                                <span
-                                    class="badge bg-danger position-absolute top-0 start-0 m-2 px-3 py-2 rounded-pill shadow">
-                                    -30% OFF
-                                </span>
-                                <img src="assets/Imagenes/comedero_de_acero_para_gato_loving_pets.webp"
-                                    class="card-img-top" alt="Comedero de acero para gato Loving Pets color morado"
-                                    title="Comedero de acero para gato Loving Pets color morado" loading="lazy">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title"
-                                        title="Comedero Acero Para Gato Loving Pets Expresion Pez Morado">Comedero Acero
-                                        Para Gato Loving Pets Expresion Pez Morado</h5>
-                                    <p class="card-text">
-                                        <span class="text-muted text-decoration-line-through fw-bold">$15.550 COP</span>
-                                        <span class="text-danger fw-bold ms-2">$10.885 COP</span>
-                                    </p>
-                                    <a href="#" class="btn btn-primary btn-comprar" data-producto="comedero-gato-acero">Comprar</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card position-relative">
-                                <span
-                                    class="badge bg-danger position-absolute top-0 start-0 m-2 px-3 py-2 rounded-pill shadow">
-                                    -10% OFF
-                                </span>
-                                <img src="assets/Imagenes/hoodie_para_mascotas_wawaw.webp" class="card-img-top"
-                                    alt="Hoodie para mascotas Wawaw color surtido, talla L"
-                                    title="Hoodie para mascotas Wawaw color surtido, talla L" loading="lazy">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Hoodie Para Mascotas Wawaw (Color Surtido) - L</h5>
-                                    <p class="card-text">
-                                        <span class="text-muted text-decoration-line-through fw-bold">$9.000 COP</span>
-                                        <span class="text-danger fw-bold ms-2">$8.100 COP</span>
-                                    </p>
-                                    <a href="#" class="btn btn-primary btn-comprar" data-producto="hoodie-mascotas">Comprar</a>
-                                </div>
-                            </div>
+                        <% } %>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <a href="/productos/catalogo" class="btn btn-outline-primary btn-lg">Ver más productos</a>
                         </div>
                     </div>
                 </div>

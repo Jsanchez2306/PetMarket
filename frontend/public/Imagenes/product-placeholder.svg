@@ -1,0 +1,7 @@
+<!-- Placeholder SVG para productos sin imagen -->
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f8f9fa"/>
+  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" fill="#6c757d" text-anchor="middle" dy=".3em">
+    Imagen no disponible
+  </text>
+</svg>

@@ -176,3 +176,68 @@ exports.eliminarProducto = async (req, res) => {
     res.sendStatus(500);
   }
 };
+
+// Obtener productos aleatorios para el index
+exports.obtenerProductosAleatorios = async (req, res) => {
+  try {
+    const { cantidad = 3 } = req.query;
+    const productos = await Producto.aggregate([
+      { $sample: { size: parseInt(cantidad) } }
+    ]);
+    res.status(200).json(productos);
+  } catch (err) {
+    console.error('Error al obtener productos aleatorios:', err);
+    res.status(500).json({ mensaje: 'Error al obtener productos aleatorios', error: err.message });
+  }
+};
+
+// Obtener productos con filtros y paginación
+exports.obtenerProductosConFiltros = async (req, res) => {
+  try {
+    const { categoria, busqueda, pagina = 1, limite = 9 } = req.query;
+    let filtros = {};
+
+    if (categoria && categoria !== 'todas') {
+      filtros.categoria = categoria;
+    }
+
+    if (busqueda) {
+      filtros.nombre = { $regex: busqueda, $options: 'i' };
+    }
+
+    // Calcular el número de documentos a saltar
+    const saltar = (parseInt(pagina) - 1) * parseInt(limite);
+
+    // Obtener productos con paginación
+    const productos = await Producto.find(filtros)
+      .sort({ fechaRegistro: -1 })
+      .skip(saltar)
+      .limit(parseInt(limite));
+
+    // Obtener el total de productos que coinciden con los filtros
+    const totalProductos = await Producto.countDocuments(filtros);
+    
+    // Calcular información de paginación
+    const totalPaginas = Math.ceil(totalProductos / parseInt(limite));
+    const paginaActual = parseInt(pagina);
+    
+    const datosPaginacion = {
+      paginaActual,
+      totalPaginas,
+      totalProductos,
+      limite: parseInt(limite),
+      tienePaginaAnterior: paginaActual > 1,
+      tienePaginaSiguiente: paginaActual < totalPaginas,
+      paginaAnterior: paginaActual > 1 ? paginaActual - 1 : null,
+      paginaSiguiente: paginaActual < totalPaginas ? paginaActual + 1 : null
+    };
+
+    res.status(200).json({
+      productos,
+      paginacion: datosPaginacion
+    });
+  } catch (err) {
+    console.error('Error al obtener productos con filtros:', err);
+    res.status(500).json({ mensaje: 'Error al obtener productos con filtros', error: err.message });
+  }
+};
