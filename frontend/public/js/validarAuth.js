@@ -34,7 +34,7 @@ class AuthSystem {
     }
 
     // Actualizar el header según el estado de autenticación
-    updateHeader() {
+    async updateHeader() {
         const authButtons = document.getElementById('authButtons');
         const userDropdown = document.getElementById('userDropdown');
 
@@ -49,6 +49,9 @@ class AuthSystem {
                 userDropdown.classList.remove('d-none');
                 const userEmail = document.getElementById('userEmail');
                 if (userEmail) userEmail.textContent = this.userInfo.email || 'Usuario';
+
+                // Cargar contador del carrito
+                await this.loadCartCounter();
             }
         } else {
             // Usuario no autenticado - mostrar botones de login/registro
@@ -60,6 +63,43 @@ class AuthSystem {
                 userDropdown.style.display = 'none';
                 userDropdown.classList.add('d-none');
             }
+
+            // Ocultar contador del carrito
+            this.hideCartCounter();
+        }
+    }
+
+    // Cargar contador del carrito
+    async loadCartCounter() {
+        try {
+            const response = await fetch('/carrito/api/obtener', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.updateCartCounter(data.itemCount || 0);
+            }
+        } catch (error) {
+            console.error('Error al cargar contador del carrito:', error);
+        }
+    }
+
+    // Actualizar contador del carrito
+    updateCartCounter(cantidad) {
+        const contador = document.getElementById('carritoContador');
+        if (contador) {
+            contador.textContent = cantidad;
+            contador.style.display = cantidad > 0 ? 'inline' : 'none';
+        }
+    }
+
+    // Ocultar contador del carrito
+    hideCartCounter() {
+        const contador = document.getElementById('carritoContador');
+        if (contador) {
+            contador.style.display = 'none';
         }
     }
 

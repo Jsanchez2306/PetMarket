@@ -51,7 +51,7 @@ function crearEsquemaCliente() {
 
 function crearModeloCliente() {
   const esquema = crearEsquemaCliente();
-  return mongoose.model("cliente", esquema);
+  return mongoose.model("Cliente", esquema);
 }
 
 const Cliente = crearModeloCliente();

@@ -59,6 +59,14 @@ exports.login = async (req, res) => {
       { expiresIn: '2h' }
     );
 
+    // Crear sesión
+    req.session.user = {
+      id: cliente._id,
+      email: cliente.email,
+      nombre: cliente.nombre,
+      rol: cliente.rol || 'cliente'
+    };
+
     const clienteSeguro = cliente.toObject();
     delete clienteSeguro.contrasena;
 

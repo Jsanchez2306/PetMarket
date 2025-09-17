@@ -183,12 +183,168 @@ function inicializarEventosCompra() {
     });
 }
 
-function agregarAlCarrito(productoId) {
-    // Aquí puedes implementar la lógica del carrito de compras
-    // Por ahora solo mostramos una alerta
-    const producto = productos.find(p => p._id === productoId);
-    if (producto) {
-        alert(`Producto "${producto.nombre}" agregado al carrito (funcionalidad pendiente)`);
+async function agregarAlCarrito(productoId) {
+    try {
+        console.log('🛒 Intentando agregar producto al carrito:', productoId);
+        
+        // Verificar si el usuario está autenticado
+        const isAuthenticated = await verificarAutenticacion();
+        console.log('¿Usuario autenticado?:', isAuthenticated);
+        
+        if (!isAuthenticated) {
+            console.log('❌ Usuario no autenticado, mostrando toast');
+            mostrarToast('Debes iniciar sesión para agregar productos al carrito', 'warning');
+            return;
+        }
+
+        const producto = productos.find(p => p._id === productoId);
+        if (!producto) {
+            console.log('❌ Producto no encontrado en el array de productos');
+            mostrarToast('Producto no encontrado', 'error');
+            return;
+        }
+
+        if (producto.stock === 0) {
+            console.log('❌ Producto sin stock');
+            mostrarToast('Producto sin stock', 'error');
+            return;
+        }
+
+        // Deshabilitar botón temporalmente
+        const boton = document.querySelector(`[data-producto="${productoId}"]`);
+        const textoOriginal = boton.innerHTML;
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Agregando...';
+
+        console.log('📤 Enviando request al servidor...');
+        const response = await fetch('/carrito/api/agregar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                productId: productoId,
+                quantity: 1
+            })
+        });
+
+        console.log('📥 Respuesta del servidor:', response.status);
+        
+        if (response.status === 401) {
+            console.log('❌ Error 401: No autenticado');
+            mostrarToast('Debes iniciar sesión para agregar productos al carrito', 'warning');
+            boton.disabled = false;
+            boton.innerHTML = textoOriginal;
+            return;
+        }
+        
+        const data = await response.json();
+        console.log('📄 Datos de respuesta:', data);
+
+        if (response.ok) {
+            console.log('✅ Producto agregado exitosamente');
+            mostrarToast(`${producto.nombre} agregado al carrito`, 'success');
+            actualizarContadorCarrito(data.itemCount);
+        } else {
+            console.log('❌ Error del servidor:', data.mensaje);
+            mostrarToast(data.mensaje || 'Error al agregar producto al carrito', 'error');
+        }
+
+        // Restaurar botón
+        boton.disabled = false;
+        boton.innerHTML = textoOriginal;
+
+    } catch (error) {
+        console.error('💥 Error al agregar al carrito:', error);
+        mostrarToast('Error al agregar producto al carrito', 'error');
+        
+        // Restaurar botón en caso de error
+        const boton = document.querySelector(`[data-producto="${productoId}"]`);
+        if (boton) {
+            boton.disabled = false;
+            boton.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Agregar al carrito';
+        }
+    }
+}
+
+// Función para verificar autenticación
+async function verificarAutenticacion() {
+    try {
+        console.log('🔍 Verificando autenticación...');
+        const response = await fetch('/auth/verify', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('🔐 Respuesta de autenticación:', response.status);
+        
+        if (response.status === 200) {
+            const data = await response.json();
+            console.log('🔐 Datos de respuesta:', data);
+            console.log('🔐 ¿Autenticado?:', data.autenticado);
+            return data.autenticado === true;
+        } else {
+            console.log('🔐 No autenticado (status !== 200)');
+            return false;
+        }
+    } catch (error) {
+        console.error('💥 Error al verificar autenticación:', error);
+        return false;
+    }
+}
+
+// Función para mostrar toasts/notificaciones
+function mostrarToast(mensaje, tipo = 'info') {
+    // Crear elemento toast
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${tipo === 'success' ? 'success' : tipo === 'error' ? 'danger' : tipo === 'warning' ? 'warning' : 'primary'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'exclamation-circle' : tipo === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${mensaje}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    // Agregar al contenedor de toasts
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+
+    toastContainer.appendChild(toast);
+    
+    // Mostrar toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Eliminar elemento después de que se oculte
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+// Función para actualizar contador del carrito en el header
+function actualizarContadorCarrito(cantidad) {
+    const contador = document.getElementById('carritoContador');
+    if (contador) {
+        contador.textContent = cantidad;
+        contador.style.display = cantidad > 0 ? 'inline' : 'none';
     }
 }
 

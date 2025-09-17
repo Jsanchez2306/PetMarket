@@ -33,6 +33,14 @@
 
       <!-- Dropdown para usuario autenticado -->
       <div class="dropdown d-none" id="userDropdown">
+        <!-- Botón del carrito -->
+        <a href="/carrito" class="btn btn-outline-light btn-primary me-2 position-relative" id="carritoBtn">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="carritoContador">
+            0
+          </span>
+        </a>
+        
         <button class="btn btn-outline-light btn-primary dropdown-toggle" type="button" 
                 data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fas fa-user me-2"></i>
