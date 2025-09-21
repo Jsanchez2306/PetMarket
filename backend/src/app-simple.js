@@ -64,6 +64,8 @@ try {
     const clienteRoutes = require('./routes/cliente.routes');
     const perfilRoutes = require('./routes/perfil.routes');
     const panelRoutes = require('./routes/panel');
+    const empleadoRoutes = require('./routes/empleado.routes');
+
     
     app.use('/', indexRoutes);
     app.use('/auth', authRoutes);
@@ -71,6 +73,8 @@ try {
     app.use('/clientes', clienteRoutes);
     app.use('/perfil', perfilRoutes);
     app.use('/panel', panelRoutes);
+    app.use('/empleados', empleadoRoutes);
+    
     
     console.log('✅ Rutas básicas cargadas');
 } catch (error) {
