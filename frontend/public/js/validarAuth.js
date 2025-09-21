@@ -162,3 +162,7 @@ class AuthSystem {
 
 // Instanciar el sistema de autenticación
 const authSystem = new AuthSystem();
+
+
+
+  window.authSystem = authSystem;

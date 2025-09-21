@@ -1,4 +1,4 @@
-const app = require('./app-simple');  // USANDO VERSIÓN SIMPLE
+const app = require('./app');  // USANDO VERSIÓN SIMPLE
 require('dotenv').config({ quiet: true });
 // const backup = require('./config/backup');  // COMENTADO TEMPORALMENTE
 // const cron = require('node-cron');  // COMENTADO TEMPORALMENTE
@@ -18,8 +18,7 @@ function iniciarServidor() {
       http://localhost:${process.env.PORT}/clientes
       http://localhost:${process.env.PORT}/restriccion
       http://localhost:${process.env.PORT}/api-docs
-      
-      🛒 PRUEBA: http://localhost:${process.env.PORT}/carrito/test`
+      http://localhost:${process.env.PORT}/carrito/test`
     );
   });
 }
@@ -37,6 +36,6 @@ if (process.env.ENABLE_BACKUP === 'true') {
 }
 */
 
-console.log('🚀 Llamando iniciarServidor...');
+console.log(' Llamando iniciarServidor...');
 iniciarServidor();
-console.log('🚀 iniciarServidor llamado');
+console.log(' iniciarServidor llamado');
