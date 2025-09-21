@@ -4,6 +4,7 @@ require('dotenv').config({ quiet: true });
 // const cron = require('node-cron');  // COMENTADO TEMPORALMENTE
 
 console.log('🚀 === INICIANDO SERVIDOR ===');
+const HOST = process.env.HOST || "0.0.0.0";
 
 function iniciarServidor() {
   console.log('🌐 Iniciando servidor en puerto', process.env.PORT);
