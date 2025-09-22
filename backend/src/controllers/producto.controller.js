@@ -3,26 +3,36 @@ const cloudinary = require('../config/cloudinary');
 const multer = require('multer');
 const streamifier = require('streamifier');
 
-// Multer en memoria
+// ================== Config Multer ==================
+const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    if (!ALLOWED_MIME.includes(file.mimetype)) {
+      return cb(new Error('Formato no permitido (solo jpg, png, webp, gif)'), false);
+    }
+    cb(null, true);
+  }
+});
+
 exports.uploadImagen = upload.single('imagen');
 
-// Helper subir a Cloudinary
-const subirCloudinaryDesdeBuffer = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder: 'productos' },
-      (err, result) => {
-        if (err) reject(err);
-        else resolve(result);
-      }
-    );
-    streamifier.createReadStream(buffer).pipe(stream);
-  });
+// ================== Helpers ==================
+const debug = (...args) => {
+  if (process.env.DEBUG_CLOUDINARY) console.log('[CLOUDINARY]', ...args);
 };
 
-// Normaliza y valida números
+const tmark = (label) => {
+  if (process.env.DEBUG_TIMING) console.time(label);
+};
+const tend = (label) => {
+  if (process.env.DEBUG_TIMING) console.timeEnd(label);
+};
+
 function parseNumeroPositivo(value) {
   if (value === undefined || value === null || value === '') return { error: 'Valor requerido' };
   if (typeof value === 'string' && value.trim() === '') return { error: 'Valor requerido' };
@@ -31,10 +41,44 @@ function parseNumeroPositivo(value) {
   return { value: num };
 }
 
+function extractPublicIdFromUrl(url) {
+  if (!url) return null;
+  const regex = /\/upload\/v\d+\/([^.#?]+)(?:\.[a-z0-9]+)(?:[?#].*)?$/i;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
+function esNombreSoloNumeros(nombre) {
+  return /^[0-9]+$/.test((nombre || '').trim());
+}
+
+async function subirCloudinaryDesdeBuffer(buffer) {
+  return new Promise((resolve, reject) => {
+    // Transformación básica para reducir peso
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'productos',
+        resource_type: 'image',
+        transformation: [
+          { width: 1200, height: 1200, crop: 'limit' },
+          { quality: 'auto', fetch_format: 'auto' }
+        ]
+      },
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+}
+
+const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos'];
+
 // =================== Renderizar Vista ===================
 exports.renderizarGestionProductos = async (req, res) => {
   try {
-    const productos = await Producto.find();
+    const productos = await Producto.find().sort({ fechaRegistro: -1 });
     res.render('gestionProductos', { productos });
   } catch (err) {
     console.error('Error al obtener productos:', err);
@@ -43,7 +87,7 @@ exports.renderizarGestionProductos = async (req, res) => {
 };
 
 // =================== Obtener Productos API ===================
-exports.obtenerProductos = async (req, res) => {
+exports.obtenerProductos = async (_req, res) => {
   try {
     const productos = await Producto.find();
     res.status(200).json(productos);
@@ -56,23 +100,20 @@ exports.obtenerProductos = async (req, res) => {
 // =================== Crear Producto ===================
 exports.crearProducto = async (req, res) => {
   try {
+    console.time?.('CREATE_TOTAL');
     const { nombre, descripcion, precio, stock, categoria } = req.body;
     let errores = {};
 
-    // Nombre
     if (!nombre || nombre.trim().length < 2) {
       errores.nombre = 'Nombre mínimo 2 caracteres';
-    } else if (/^[0-9]+$/.test(nombre.trim())) {
+    } else if (esNombreSoloNumeros(nombre)) {
       errores.nombre = 'El nombre no puede ser solo números; agrega una descripción.';
-      // Alternativa: errores.nombre = 'Debe contener letras, no puede ser solo números.';
     }
 
-    // Descripción
     if (!descripcion || descripcion.trim().length < 10) {
       errores.descripcion = 'Descripción mínima 10 caracteres';
     }
 
-    // Precio
     const precioParsed = parseNumeroPositivo(precio);
     if (precioParsed.error) {
       errores.precio = `Precio ${precioParsed.error.toLowerCase()}`;
@@ -80,7 +121,6 @@ exports.crearProducto = async (req, res) => {
       errores.precio = 'Precio no puede ser negativo';
     }
 
-    // Stock
     const stockParsed = parseNumeroPositivo(stock);
     if (stockParsed.error) {
       errores.stock = `Stock ${stockParsed.error.toLowerCase()}`;
@@ -92,14 +132,12 @@ exports.crearProducto = async (req, res) => {
       errores.stock = 'Stock no puede superar 1000 unidades';
     }
 
-    // Categoría
     if (!categoria) {
       errores.categoria = 'Categoría obligatoria';
-    } else if (!['accesorios', 'ropa', 'juguetes', 'alimentos'].includes(categoria)) {
+    } else if (!CATEGORIAS_VALIDAS.includes(categoria)) {
       errores.categoria = 'Categoría inválida';
     }
 
-    // Imagen
     if (!req.file) {
       errores.imagen = 'Debes subir una imagen';
     }
@@ -108,23 +146,35 @@ exports.crearProducto = async (req, res) => {
       return res.status(400).json({ errores });
     }
 
-    // Subir imagen
-    const resultado = await subirCloudinaryDesdeBuffer(req.file.buffer);
+    debug('Subiendo imagen nueva...');
+    console.time?.('UPLOAD_CREATE');
+    const subida = await subirCloudinaryDesdeBuffer(req.file.buffer);
+    console.timeEnd?.('UPLOAD_CREATE');
+    debug('Subida OK:', subida.public_id);
 
+    console.time?.('MONGO_CREATE');
     const producto = await Producto.create({
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
       precio: Number(precioParsed.value),
       stock: Number(stockParsed.value),
       categoria,
-      imagen: resultado.secure_url,
-      public_id: resultado.public_id
+      imagen: subida.secure_url,
+      public_id: subida.public_id
     });
+    console.timeEnd?.('MONGO_CREATE');
 
+    console.timeEnd?.('CREATE_TOTAL');
     res.status(201).json(producto);
   } catch (err) {
     console.error('ERROR CREAR PRODUCTO:', err);
-    // Intentar mapear errores de validación de Mongoose
+
+    if (err.message && err.message.includes('Formato no permitido')) {
+      return res.status(400).json({ errores: { imagen: err.message } });
+    }
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ errores: { imagen: 'Imagen supera 5MB' } });
+    }
     if (err.name === 'ValidationError') {
       const errores = {};
       for (const campo in err.errors) {
@@ -132,32 +182,39 @@ exports.crearProducto = async (req, res) => {
       }
       return res.status(400).json({ errores });
     }
-    if (err.name === 'CastError') {
-      return res.status(400).json({ errores: { [err.path]: 'Formato inválido' } });
-    }
     res.status(500).json({ mensaje: 'Error al crear producto', error: err.message });
   }
 };
 
 // =================== Actualizar Producto ===================
 exports.actualizarProducto = async (req, res) => {
+  tmark('TOTAL_UPDATE');
   try {
     const { id } = req.params;
     let updateData = { ...req.body };
     let errores = {};
 
+    const producto = await Producto.findById(id);
+    if (!producto) {
+      return res.status(404).json({ mensaje: 'Producto no encontrado' });
+    }
+
     // Validaciones parciales
     if (updateData.nombre !== undefined) {
       if (updateData.nombre.trim().length < 2) {
         errores.nombre = 'Nombre mínimo 2 caracteres';
-      } else if (/^[0-9]+$/.test(updateData.nombre.trim())) {
+      } else if (esNombreSoloNumeros(updateData.nombre)) {
         errores.nombre = 'El nombre no puede ser solo números; agrega una descripción.';
+      } else {
+        updateData.nombre = updateData.nombre.trim();
       }
     }
 
     if (updateData.descripcion !== undefined) {
       if (updateData.descripcion.trim().length < 10) {
         errores.descripcion = 'Descripción mínima 10 caracteres';
+      } else {
+        updateData.descripcion = updateData.descripcion.trim();
       }
     }
 
@@ -188,7 +245,7 @@ exports.actualizarProducto = async (req, res) => {
     }
 
     if (updateData.categoria !== undefined) {
-      if (!['accesorios', 'ropa', 'juguetes', 'alimentos'].includes(updateData.categoria)) {
+      if (!CATEGORIAS_VALIDAS.includes(updateData.categoria)) {
         errores.categoria = 'Categoría inválida';
       }
     }
@@ -197,33 +254,66 @@ exports.actualizarProducto = async (req, res) => {
       return res.status(400).json({ errores });
     }
 
-    const producto = await Producto.findById(id);
-    if (!producto) {
-      return res.status(404).json({ mensaje: 'Producto no encontrado' });
-    }
+    let oldPublicId = producto.public_id;
+    let replacingImage = false;
 
-    // Imagen nueva
     if (req.file) {
-      if (producto.public_id) {
-        await cloudinary.uploader.destroy(producto.public_id);
+      try {
+        replacingImage = true;
+        debug('Subiendo nueva imagen...');
+        tmark('UPLOAD_NEW');
+        const nueva = await subirCloudinaryDesdeBuffer(req.file.buffer);
+        tend('UPLOAD_NEW');
+        debug('Nueva subida OK:', nueva.public_id);
+        updateData.imagen = nueva.secure_url;
+        updateData.public_id = nueva.public_id;
+      } catch (e) {
+        console.error('Error al subir nueva imagen:', e);
+        return res.status(500).json({ errores: { imagen: 'Error al subir la nueva imagen' } });
       }
-      const resultado = await subirCloudinaryDesdeBuffer(req.file.buffer);
-      updateData.imagen = resultado.secure_url;
-      updateData.public_id = resultado.public_id;
     }
 
-    if (updateData.nombre) updateData.nombre = updateData.nombre.trim();
-    if (updateData.descripcion) updateData.descripcion = updateData.descripcion.trim();
-
+    tmark('MONGO_UPDATE');
     const actualizado = await Producto.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     );
+    tend('MONGO_UPDATE');
 
+    // Responder rápido al cliente
     res.json(actualizado);
+
+    // Limpieza asíncrona (no retrasa al usuario)
+    if (replacingImage) {
+      setImmediate(async () => {
+        let pidEliminar = oldPublicId;
+        if (!pidEliminar && producto.imagen) {
+          pidEliminar = extractPublicIdFromUrl(producto.imagen);
+        }
+        if (pidEliminar) {
+          try {
+            tmark('DESTROY_OLD');
+            await cloudinary.uploader.destroy(pidEliminar);
+            tend('DESTROY_OLD');
+            debug('Imagen anterior eliminada async:', pidEliminar);
+          } catch (e) {
+            console.warn('No se pudo eliminar imagen anterior (async):', pidEliminar, e.message);
+          }
+        }
+      });
+    }
+
+    tend('TOTAL_UPDATE');
   } catch (err) {
+    tend('TOTAL_UPDATE');
     console.error('ERROR ACTUALIZAR PRODUCTO:', err);
+    if (err.message && err.message.includes('Formato no permitido')) {
+      return res.status(400).json({ errores: { imagen: err.message } });
+    }
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ errores: { imagen: 'Imagen supera 5MB' } });
+    }
     if (err.name === 'ValidationError') {
       const errores = {};
       for (const campo in err.errors) {
@@ -245,9 +335,23 @@ exports.eliminarProducto = async (req, res) => {
     const producto = await Producto.findByIdAndDelete(id);
     if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });
 
-    if (producto.public_id) {
-      await cloudinary.uploader.destroy(producto.public_id);
+    let pid = producto.public_id;
+    if (!pid && producto.imagen) {
+      pid = extractPublicIdFromUrl(producto.imagen);
     }
+
+    if (pid) {
+      // No hace falta esperar; pero aquí sí esperamos para asegurar limpieza
+      try {
+        tmark('DESTROY_DELETE');
+        await cloudinary.uploader.destroy(pid);
+        tend('DESTROY_DELETE');
+        debug('Imagen eliminada en Cloudinary:', pid);
+      } catch (e) {
+        console.warn('No se pudo eliminar imagen en Cloudinary:', pid, e.message);
+      }
+    }
+
     res.sendStatus(200);
   } catch (err) {
     console.error('Error al eliminar producto:', err);

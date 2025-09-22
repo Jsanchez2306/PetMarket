@@ -8,7 +8,9 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "backup": "node src/config/backup.js",
-    "test": "echo \"no test\" && exit 0"
+    "test": "echo \"no test\" && exit 0",
+    "backfill:publicid": "node scripts/backfillPublicIds.js",
+  "setup:once": "npm run backfill:publicid && npm run dev"
   },
   "engines": {
     "node": ">=18 <23"
