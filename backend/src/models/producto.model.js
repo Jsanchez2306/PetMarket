@@ -1,4 +1,5 @@
 const mongoose = require("../config/connection");
+
 const productoSchema = new mongoose.Schema(
   {
     nombre: {
@@ -7,6 +8,16 @@ const productoSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, "El nombre debe tener al menos 2 caracteres"],
       maxlength: [100, "El nombre no puede exceder los 100 caracteres"],
+      validate: {
+        validator: function (v) {
+          if (!v) return false;
+            // Rechaza si es solo números
+          if (/^[0-9]+$/.test(v.trim())) return false;
+          return true;
+        },
+        message: "El nombre no puede ser solo números; agrega una descripción."
+        // Si prefieres el otro texto: "Debe contener letras, no puede ser solo números."
+      }
     },
     descripcion: {
       type: String,
@@ -19,7 +30,10 @@ const productoSchema = new mongoose.Schema(
       type: String,
       required: [true, "La URL de la imagen es obligatoria"],
       trim: true,
-      match: [/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/, "La imagen debe ser una URL válida de imagen"],
+      match: [
+        /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/,
+        "La imagen debe ser una URL válida de imagen"
+      ],
     },
     precio: {
       type: Number,
@@ -30,6 +44,7 @@ const productoSchema = new mongoose.Schema(
       type: Number,
       required: [true, "El stock es obligatorio"],
       min: [0, "El stock no puede ser negativo"],
+      max: [1000, "El stock no puede superar 1000 unidades"]
     },
     categoria: {
       type: String,
@@ -43,6 +58,10 @@ const productoSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    public_id: {
+      type: String,
+      trim: true
+    }
   },
   {
     versionKey: false,
@@ -50,5 +69,4 @@ const productoSchema = new mongoose.Schema(
 );
 
 const Producto = mongoose.model("Producto", productoSchema);
-
 module.exports = Producto;
