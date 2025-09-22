@@ -84,4 +84,21 @@ try {
 
 console.log('📦 === APP SIMPLE CONFIGURADA ===');
 
-module.exports = app; 
+// Middleware de manejo específico para errores de subida (Multer / formato)
+const multer = require('multer');
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    // Límite de tamaño
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ errores: { imagen: 'Imagen supera 5MB' } });
+    }
+    return res.status(400).json({ errores: { imagen: 'Error al procesar la imagen' } });
+  }
+  if (err && err.message && err.message.includes('Formato no permitido')) {
+    return res.status(400).json({ errores: { imagen: err.message } });
+  }
+  // Pasa a otros manejadores (o default) si no era este caso
+  next(err);
+});
+
+module.exports = app;

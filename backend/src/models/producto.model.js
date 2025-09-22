@@ -1,5 +1,9 @@
 const mongoose = require("../config/connection");
 
+function soloNumeros(str) {
+  return /^[0-9]+$/.test(str.trim());
+}
+
 const productoSchema = new mongoose.Schema(
   {
     nombre: {
@@ -11,12 +15,10 @@ const productoSchema = new mongoose.Schema(
       validate: {
         validator: function (v) {
           if (!v) return false;
-            // Rechaza si es solo números
-          if (/^[0-9]+$/.test(v.trim())) return false;
+          if (soloNumeros(v)) return false;
           return true;
         },
         message: "El nombre no puede ser solo números; agrega una descripción."
-        // Si prefieres el otro texto: "Debe contener letras, no puede ser solo números."
       }
     },
     descripcion: {
@@ -24,16 +26,21 @@ const productoSchema = new mongoose.Schema(
       required: [true, "La descripción del producto es obligatoria"],
       trim: true,
       minlength: [10, "La descripción debe tener al menos 10 caracteres"],
-      maxlength: [1000, "La descripción no puede exceder los 1000 caracteres"],
+      maxlength: [1000, "La descripción no puede exceder los 1000 caracteres"]
     },
     imagen: {
       type: String,
       required: [true, "La URL de la imagen es obligatoria"],
       trim: true,
       match: [
-        /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/,
+        /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i,
         "La imagen debe ser una URL válida de imagen"
       ],
+    },
+    public_id: {
+      type: String,
+      trim: true,
+      // No lo hago required para no romper productos viejos; se puede backfillear.
     },
     precio: {
       type: Number,
@@ -57,10 +64,6 @@ const productoSchema = new mongoose.Schema(
     fechaRegistro: {
       type: Date,
       default: Date.now,
-    },
-    public_id: {
-      type: String,
-      trim: true
     }
   },
   {
