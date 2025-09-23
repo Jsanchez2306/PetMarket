@@ -18,13 +18,14 @@ function iniciarServidor() {
       http://localhost:${process.env.PORT}/clientes
       http://localhost:${process.env.PORT}/restriccion
       http://localhost:${process.env.PORT}/api-docs
-      http://localhost:${process.env.PORT}/carrito/test`
+      http://localhost:${process.env.PORT}/carrito/test
+      http://localhost:${process.env.PORT}/facturas        <-- 📄 vista gestión
+      http://localhost:${process.env.PORT}/facturas/api    <-- 📡 API facturas`
     );
   });
 }
 
 // ✅ solo corre el backup si lo activas por variable de entorno
-// BACKUP COMENTADO TEMPORALMENTE PARA DEBUGGING
 /*
 if (process.env.ENABLE_BACKUP === 'true') {
   cron.schedule('* * * * *', () => {
