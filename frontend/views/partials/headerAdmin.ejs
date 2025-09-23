@@ -1,5 +1,5 @@
 <header class="navbar navbar-expand-lg bg-pet px-4 py-3">
-  <a class="navbar-brand d-flex align-items-center" href="/nosotros/admin">
+  <a class="navbar-brand d-flex align-items-center" href="/nosotros">
     <img src="../Imagenes/PetMarket_Logo.png" alt="Pet Market Logo" height="40" class="me-2">
   </a>
 
@@ -9,9 +9,9 @@
 
   <div class="collapse navbar-collapse justify-content-between" id="navBar">
     <ul class="navbar-nav ms-3 mb-2 mb-lg-0">
-      <li class="nav-item"><a class="nav-link active" href="/">Inicio</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">Productos</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">Marcas</a></li>
+      <li class="nav-item"><a class="nav-link active" href="/"></a></li>
+      <li class="nav-item"><a class="nav-link" href="#"></a></li>
+      <li class="nav-item"><a class="nav-link" href="#"></a></li>
     </ul>
 
     <div class="d-flex align-items-center justify-content-between">
@@ -19,27 +19,34 @@
         <input type="text" class="form-control" placeholder="Buscar">
         <button class="btn btn-outline-light btn-primary">Buscar</button>
         <div class="dropdown">
-          <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-            Administrador
+          <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="adminDropdownBtn">
+            <span id="adminEmail">Administrador</span>
           </button>
           <ul class="dropdown-menu">
+            <li>
+              <h6 class="dropdown-header">
+                <i class="fas fa-user-shield me-2"></i>
+                <span id="adminNombre">Administrador</span>
+              </h6>
+            </li>
+            <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="/panel">Panel</a></li>
             <li><a class="dropdown-item" href="/clientes">Gestión Clientes</a></li>
             <li><a class="dropdown-item" href="/empleados">Gestión Empleados</a></li>
             <li><a class="dropdown-item" href="/productos">Gestión Productos</a></li>
+            <li><a class="dropdown-item" href="/facturas/crear">Crear Factura</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <button class="dropdown-item text-danger" onclick="cerrarSesion()">
+                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+              </button>
+            </li>
           </ul>
         </div>
       </div>
 
-      <div class="dropdown ms-3">
-        <button class="btn btn-outline-light btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-          <i class="fa-solid fa-gear"></i>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="/perfil/admin">Perfil</a></li>
-          <li><a class="dropdown-item" href="/">Cerrar sesión</a></li>
-        </ul>
-      </div>
     </div>
   </div>
 </header>
+
+<script src="/js/infoAdmin.js"></script>

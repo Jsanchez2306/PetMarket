@@ -39,19 +39,35 @@ class AuthSystem {
         const userDropdown = document.getElementById('userDropdown');
 
         if (this.isAuthenticated()) {
-            // Usuario autenticado - mostrar dropdown
+            // Verificar tipo de usuario desde sessionStorage
+            const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+            const tipoUsuario = userInfo.tipoUsuario || this.userInfo.tipoUsuario;
+            
+            // Usuario autenticado - mostrar dropdown correspondiente
             if (authButtons) {
                 authButtons.style.display = 'none';
                 authButtons.classList.add('d-none');
             }
-            if (userDropdown) {
-                userDropdown.style.display = 'block';
-                userDropdown.classList.remove('d-none');
-                const userEmail = document.getElementById('userEmail');
-                if (userEmail) userEmail.textContent = this.userInfo.email || 'Usuario';
 
-                // Cargar contador del carrito
-                await this.loadCartCounter();
+            // Si es empleado, manejar header específico
+            if (tipoUsuario === 'empleado') {
+                // Actualizar información en header de empleado si existe
+                const empleadoEmail = document.getElementById('empleadoEmail');
+                const empleadoNombre = document.getElementById('empleadoNombre');
+                
+                if (empleadoEmail) empleadoEmail.textContent = this.userInfo.email || 'empleado@petmarket.com';
+                if (empleadoNombre) empleadoNombre.textContent = this.userInfo.nombre || 'Empleado';
+            } else {
+                // Cliente normal
+                if (userDropdown) {
+                    userDropdown.style.display = 'block';
+                    userDropdown.classList.remove('d-none');
+                    const userEmail = document.getElementById('userEmail');
+                    if (userEmail) userEmail.textContent = this.userInfo.email || 'Usuario';
+
+                    // Cargar contador del carrito solo para clientes
+                    await this.loadCartCounter();
+                }
             }
         } else {
             // Usuario no autenticado - mostrar botones de login/registro

@@ -12,28 +12,10 @@ router.post('/login', authController.login);
 router.post('/recuperar-password', authController.recuperarPassword);
 
 // Ruta para verificar autenticación
-router.get('/verify', (req, res) => {
-  // Verificar si hay sesión activa
-  if (req.session && req.session.user) {
-    return res.status(200).json({ autenticado: true, usuario: req.session.user });
-  }
+router.get('/verify', authController.verificarSesion);
 
-  // Verificar JWT si no hay sesión
-  const authHeader = req.headers.authorization;
-  if (authHeader) {
-    const token = authHeader.split(' ')[1];
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return res.status(200).json({ autenticado: true, usuario: decoded });
-      } catch (error) {
-        // Token inválido, continuar con no autenticado
-      }
-    }
-  }
-
-  res.status(401).json({ autenticado: false });
-});
+// Ruta para cerrar sesión
+router.post('/logout', authController.logout);
 
 // Rutas protegidas para gestión de perfil
 router.put('/actualizar-perfil', validarAuth, authController.actualizarPerfil);

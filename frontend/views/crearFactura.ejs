@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Factura - PetMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/facturaStyles.css">
+</head>
+<body>
+     
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-file-invoice-dollar"></i> Crear Factura Manual</h2>
+                    <a href="/panel" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <form id="formCrearFactura">
+            <div class="row">
+                <!-- Selección de Cliente -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-user"></i> Seleccionar Cliente</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Buscar por email</label>
+                                <div class="input-group">
+                                    <input type="email" id="emailCliente" class="form-control" placeholder="Ingrese el email del cliente">
+                                    <button type="button" id="btnBuscarCliente" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="clienteSeleccionado" class="cliente-info" style="display: none;">
+                                <h6>Cliente Seleccionado:</h6>
+                                <p id="infoCliente"></p>
+                                <input type="hidden" id="clienteId" name="clienteId">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selección de Productos -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-box"></i> Seleccionar Productos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Buscar productos</label>
+                                <input type="text" id="buscarProducto" class="form-control" placeholder="Buscar productos...">
+                            </div>
+                            
+                            <div id="listaProductos" class="mb-3" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Los productos se cargarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos Seleccionados -->
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-cart"></i> Productos en la Factura</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="productosSeleccionados">
+                                <p class="text-muted">No hay productos seleccionados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional y Total -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Información Adicional</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Método de Pago</label>
+                                <select id="metodoPago" name="metodoPago" class="form-select">
+                                    <option value="efectivo">Efectivo</option>
+                                    <option value="tarjeta">Tarjeta</option>
+                                    <option value="transferencia">Transferencia</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Observaciones</label>
+                                <textarea id="observaciones" name="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales (opcional)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="total-section">
+                        <h5><i class="fas fa-calculator"></i> Resumen de la Factura</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>IVA (19%):</span>
+                            <span id="iva">$0</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total:</strong>
+                            <strong id="total">$0</strong>
+                        </div>
+                        
+                        <button type="submit" id="btnCrearFactura" class="btn btn-success w-100 mt-3" disabled>
+                            <i class="fas fa-save"></i> Crear Factura
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="/js/crearFactura.js"></script>
+</body>
+</html>

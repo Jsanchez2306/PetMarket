@@ -1,4 +1,5 @@
 const Cliente = require('../models/cliente.model');
+const Empleado = require('../models/empleado.model');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
@@ -47,31 +48,62 @@ exports.login = async (req, res) => {
     }
 
     const emailLimpio = email.trim().toLowerCase();
-    const cliente = await Cliente.findOne({ email: emailLimpio });
+    
+    // Buscar primero en clientes
+    let usuario = await Cliente.findOne({ email: emailLimpio });
+    let tipoUsuario = 'cliente';
+    
+    // Si no se encuentra en clientes, buscar en empleados
+    if (!usuario) {
+      usuario = await Empleado.findOne({ email: emailLimpio });
+      tipoUsuario = 'empleado';
+    }
 
-    if (!cliente || cliente.contrasena !== contrasena.trim()) {
+    if (!usuario || usuario.contrasena !== contrasena.trim()) {
       return res.status(401).json({ mensaje: 'Correo o contraseña incorrectos' });
     }
 
+    // Determinar el rol final
+    let rolFinal = usuario.rol || tipoUsuario;
+    
+    // Si es empleado pero no tiene rol específico, asignar 'empleado'
+    if (tipoUsuario === 'empleado' && !usuario.rol) {
+      rolFinal = 'empleado';
+    }
+
     const token = jwt.sign(
-      { id: cliente._id, email: cliente.email, nombre: cliente.nombre, rol: cliente.rol || 'cliente' },
+      { 
+        id: usuario._id, 
+        email: usuario.email, 
+        nombre: usuario.nombre, 
+        rol: rolFinal,
+        tipoUsuario: tipoUsuario 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '2h' }
     );
 
     // Crear sesión
     req.session.user = {
-      id: cliente._id,
-      email: cliente.email,
-      nombre: cliente.nombre,
-      rol: cliente.rol || 'cliente'
+      id: usuario._id,
+      email: usuario.email,
+      nombre: usuario.nombre,
+      rol: rolFinal,
+      tipoUsuario: tipoUsuario
     };
 
-    const clienteSeguro = cliente.toObject();
-    delete clienteSeguro.contrasena;
+    const usuarioSeguro = usuario.toObject();
+    delete usuarioSeguro.contrasena;
 
-    res.status(200).json({ mensaje: 'Login exitoso', token, cliente: clienteSeguro });
-    console.log('Login exitoso:', clienteSeguro.email);
+    res.status(200).json({ 
+      mensaje: 'Login exitoso', 
+      token, 
+      usuario: usuarioSeguro,
+      tipoUsuario: tipoUsuario,
+      rol: rolFinal
+    });
+    
+    console.log('Login exitoso:', usuarioSeguro.email, '- Tipo:', tipoUsuario, '- Rol:', rolFinal);
   } catch (err) {
     console.error('Error en login:', err);
     res.status(500).json({ mensaje: 'Error en el servidor' });
@@ -308,5 +340,55 @@ exports.recuperarPassword = async (req, res) => {
     res.status(500).json({ 
       mensaje: 'Error al procesar la solicitud de recuperación de contraseña' 
     });
+  }
+};
+
+/**
+ * Verificar la sesión actual del usuario
+ */
+exports.verificarSesion = async (req, res) => {
+  try {
+    if (req.session && req.session.user) {
+      res.status(200).json({
+        autenticado: true,
+        usuario: req.session.user
+      });
+    } else {
+      res.status(401).json({
+        autenticado: false,
+        mensaje: 'No hay sesión activa'
+      });
+    }
+  } catch (error) {
+    console.error('Error al verificar sesión:', error);
+    res.status(500).json({
+      autenticado: false,
+      mensaje: 'Error al verificar sesión'
+    });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    // Destruir la sesión
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error al destruir sesión:', err);
+        return res.status(500).json({ mensaje: 'Error al cerrar sesión' });
+      }
+      
+      // Limpiar la cookie de sesión
+      res.clearCookie('connect.sid');
+      
+      res.status(200).json({ 
+        mensaje: 'Sesión cerrada exitosamente',
+        success: true 
+      });
+      
+      console.log('✅ Sesión cerrada exitosamente');
+    });
+  } catch (error) {
+    console.error('Error en logout:', error);
+    res.status(500).json({ mensaje: 'Error al cerrar sesión' });
   }
 };

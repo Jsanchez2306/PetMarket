@@ -459,3 +459,41 @@
     </div>
   </div>
 </div>
+
+<!-- Script para detectar tipo de usuario -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    checkUserTypeAndRedirect();
+});
+
+async function checkUserTypeAndRedirect() {
+    try {
+        const response = await fetch('/auth/verify', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.autenticado && data.usuario) {
+                // Obtener información del usuario desde sessionStorage
+                const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+                
+                // Si es empleado y estamos en páginas que deberían mostrar header de empleado
+                if (userInfo.tipoUsuario === 'empleado' || data.usuario.tipoUsuario === 'empleado') {
+                    // Solo redirigir si estamos en páginas específicas que requieren header de empleado
+                    const currentPath = window.location.pathname;
+                    const empleadoPages = ['/productos', '/panel', '/facturas/crear'];
+                    
+                    if (empleadoPages.some(page => currentPath.startsWith(page))) {
+                        // Ya estamos en una página de empleado, no necesitamos redirigir
+                        console.log('Usuario empleado en página apropiada');
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error al verificar tipo de usuario:', error);
+    }
+}
+</script>

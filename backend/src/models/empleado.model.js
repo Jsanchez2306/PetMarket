@@ -56,8 +56,8 @@ const empleadoSchema = new mongoose.Schema(
     rol: {
       type: String,
       enum: {
-        values: ["cliente", "admin", "empleado"],
-        message: 'El rol debe ser "cliente", "admin" o "empleado"',
+        values: ["admin", "empleado"],
+        message: 'El rol debe ser "admin" o "empleado"',
       },
       default: "empleado",
     },

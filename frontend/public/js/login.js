@@ -17,6 +17,14 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
 
     if (res.ok) {
       localStorage.setItem('token', data.token);
+      
+      // Guardar información del usuario incluyendo tipo y rol
+      const userInfo = {
+        usuario: data.usuario,
+        tipoUsuario: data.tipoUsuario,
+        rol: data.rol
+      };
+      sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
 
       // Cerrar modal de login
       const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
@@ -33,20 +41,28 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
 
       // Mostrar modal de éxito con mensaje personalizado
       const bienvenidaMensaje = document.getElementById('loginBienvenidaMensaje');
-      if (bienvenidaMensaje && window.authSystem && window.authSystem.userInfo) {
-        bienvenidaMensaje.textContent = `¡Bienvenido de vuelta, ${window.authSystem.userInfo.nombre || window.authSystem.userInfo.email}!`;
+      if (bienvenidaMensaje) {
+        const nombreUsuario = data.usuario.nombre || data.usuario.email;
+        const tipoTexto = data.tipoUsuario === 'empleado' ? 'empleado' : 'cliente';
+        bienvenidaMensaje.textContent = `¡Bienvenido ${tipoTexto}, ${nombreUsuario}!`;
       }
       
       const exitoModal = new bootstrap.Modal(document.getElementById('loginExitosoModal'));
       exitoModal.show();
 
-      // Solo redirigir si no estamos ya en la página de inicio
-      if (window.location.pathname !== '/') {
-        // Esperar un poco antes de redirigir para que el usuario vea el modal
-        setTimeout(() => {
+      // Redirigir según el tipo de usuario
+      setTimeout(() => {
+        if (data.tipoUsuario === 'empleado') {
+          // Redirigir a panel de empleado o página principal con header de empleado
+          window.location.href = '/panel';
+        } else if (data.rol === 'admin') {
+          // Redirigir a panel de admin
+          window.location.href = '/panel';
+        } else {
+          // Cliente normal - ir a página principal
           window.location.href = '/';
-        }, 2000);
-      }
+        }
+      }, 2000);
     } else {
       // Cerrar modal de login y mostrar modal de error
       const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));

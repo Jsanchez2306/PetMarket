@@ -16,6 +16,7 @@ router.get('/', validarAuthCarrito, cartController.renderizarCarrito);
 
 // API Routes
 router.get('/api', validarAuthCarrito, cartController.obtenerCarrito);
+router.get('/api/count', validarAuthCarrito, cartController.contarItems);
 
 // Ruta de prueba para agregar sin autenticación (TEMPORAL)
 router.post('/api/agregar-test', (req, res) => {
@@ -34,6 +35,7 @@ console.log('✅ Rutas del carrito definidas:');
 console.log('  GET /carrito/test (PRUEBA)');
 console.log('  GET /carrito/');
 console.log('  GET /carrito/api');
+console.log('  GET /carrito/api/count');
 console.log('  POST /carrito/api/agregar');
 console.log('  PUT /carrito/api/actualizar/:productId');
 console.log('  DELETE /carrito/api/eliminar/:productId');

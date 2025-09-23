@@ -1,0 +1,70 @@
+<!-- Header específico para empleados -->
+<header class="bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <!-- Logo y nombre -->
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/Imagenes/PetMarket_Logo.png" alt="PetMarket Logo" width="40" height="40" class="me-2">
+                <span class="fw-bold">PetMarket</span>
+                <span class="badge bg-warning text-dark ms-2 small">Empleado</span>
+            </a>
+
+            <!-- Toggle para móvil -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarEmpleado">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menú de navegación -->
+            <div class="collapse navbar-collapse" id="navbarEmpleado">
+                <!-- Enlaces del centro -->
+                <ul class="navbar-nav me-auto">
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/productos">
+                            <i class="fas fa-box me-1"></i>Gestión de Productos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/facturas/crear">
+                            <i class="fas fa-file-invoice me-1"></i>Crear Factura
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Área del usuario (derecha) -->
+                <ul class="navbar-nav">
+                    <!-- Dropdown del empleado -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="empleadoDropdown"
+                            role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-tie me-2"></i>
+                            <span id="empleadoEmail">empleado@petmarket.com</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    <i class="fas fa-user-tie me-2"></i>
+                                    <span id="empleadoNombre">Empleado</span>
+                                </h6>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                           
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <button class="dropdown-item text-danger" onclick="cerrarSesion()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<script src="/js/headerEmpleado.js"></script>

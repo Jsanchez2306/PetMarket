@@ -91,4 +91,25 @@ router.put('/:id', clienteController.actualizarCliente);
  */
 router.delete('/:id', validarAuth, clienteController.eliminarCliente);
 
+/**
+ * @swagger
+ * /clientes/api/buscar:
+ *   get:
+ *     summary: Busca un cliente por email
+ *     tags: [Clientes]
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         description: Email del cliente a buscar
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Cliente encontrado
+ *       404:
+ *         description: Cliente no encontrado
+ */
+router.get('/api/buscar', clienteController.buscarClientePorEmail);
+
 module.exports = router;

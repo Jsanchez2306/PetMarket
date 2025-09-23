@@ -102,7 +102,10 @@
                                             <p class="card-text text-muted small">
                                                 <%= producto.descripcion.length > 80 ? producto.descripcion.substring(0, 80) + '...' : producto.descripcion %>
                                             </p>
-                                            <a href="#" class="btn btn-primary btn-comprar" data-producto="<%= producto._id %>">Comprar</a>
+                                            <button class="btn btn-primary btn-comprar" data-producto="<%= producto._id %>">
+                                                <i class="fas fa-shopping-cart me-2"></i>
+                                                Agregar al carrito
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -270,6 +273,7 @@
             <script src="/js/validarAuth.js"></script>
             <script src="/js/perfil.js"></script>
             <script src="/js/recuperarPassword.js"></script>
+            <script src="/js/catalogo.js"></script>
 
             
 </body>

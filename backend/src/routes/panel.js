@@ -5,6 +5,6 @@ const panelController = require('../controllers/panel.controller');
 const { validarAuth } = require('../middlewares/validateAuth');
 
 
-router.get('/', panelController.mostrarPanel);
+router.get('/', validarAuth, panelController.mostrarPanel);
 
 module.exports = router;

@@ -1,24 +1,46 @@
 const mongoose = require("mongoose");
 
 const facturaSchema = new mongoose.Schema({
-  usuario: {
+  cliente: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Usuario",
+    ref: "Cliente",
     required: true
   },
-  items: [
+  nombreCliente: {
+    type: String,
+    required: true
+  },
+  emailCliente: {
+    type: String,
+    required: true
+  },
+  empleado: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Empleado",
+    required: false // Para facturas automáticas del carrito
+  },
+  productos: [
     {
       producto: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Producto",
         required: true
       },
+      nombre: {
+        type: String,
+        required: true
+      },
+      precio: {
+        type: Number,
+        required: true,
+        min: 0
+      },
       cantidad: {
         type: Number,
         required: true,
         min: 1
       },
-      precio: {
+      subtotal: {
         type: Number,
         required: true,
         min: 0
@@ -27,25 +49,36 @@ const facturaSchema = new mongoose.Schema({
   ],
   subtotal: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   iva: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   total: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   metodoPago: {
     type: String,
-    enum: ["Efectivo", "Tarjeta", "Transferencia"],
-    default: "Efectivo"
+    enum: ["efectivo", "tarjeta", "transferencia"],
+    default: "efectivo"
   },
   estado: {
     type: String,
-    enum: ["Pendiente", "Pagada", "Anulada"],
-    default: "Pendiente"
+    enum: ["pendiente", "pagada", "anulada"],
+    default: "pendiente"
+  },
+  observaciones: {
+    type: String,
+    default: ""
+  },
+  fecha: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true

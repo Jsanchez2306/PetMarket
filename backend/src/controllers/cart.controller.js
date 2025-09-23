@@ -362,3 +362,28 @@ exports.procesarPago = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al procesar el pago', error: error.message });
   }
 };
+
+/**
+ * Contar items en el carrito del usuario
+ */
+exports.contarItems = async (req, res) => {
+  try {
+    const userId = req.session.user?.id || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ mensaje: 'Usuario no autenticado' });
+    }
+
+    const cart = await Cart.findOne({ user: userId });
+    
+    if (!cart) {
+      return res.status(200).json({ itemCount: 0 });
+    }
+
+    const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    
+    res.status(200).json({ itemCount });
+  } catch (error) {
+    console.error('Error al contar items del carrito:', error);
+    res.status(500).json({ mensaje: 'Error al contar items del carrito', error: error.message });
+  }
+};

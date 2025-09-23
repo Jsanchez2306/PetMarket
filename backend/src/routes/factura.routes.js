@@ -3,9 +3,15 @@ const router = express.Router();
 const facturaController = require('../controllers/factura.controller');
 const { validarAuth } = require('../middlewares/validateAuth');
 
+// Rutas para vistas (EJS)
 router.get('/', facturaController.renderizarGestionFacturas);
+router.get('/crear', validarAuth, facturaController.renderizarCrearFactura);
+
+// Rutas para API
 router.get('/api', validarAuth, facturaController.obtenerFacturas);
+router.get('/api/:id', validarAuth, facturaController.obtenerFacturaPorId);
 router.post('/api', validarAuth, facturaController.crearFactura);
-router.put('/:id', validarAuth, facturaController.actualizarFactura);
-router.delete('/:id', validarAuth, facturaController.eliminarFactura);
+router.put('/api/:id', validarAuth, facturaController.actualizarFactura);
+router.delete('/api/:id', validarAuth, facturaController.eliminarFactura);
+
 module.exports = router;

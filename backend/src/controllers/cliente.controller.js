@@ -25,6 +25,34 @@ exports.obtenerClientes = async (req, res) => {
   }
 };
 
+exports.buscarClientePorEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email) {
+      return res.status(400).json({ mensaje: 'Email requerido' });
+    }
+
+    const emailLimpio = email.trim().toLowerCase();
+    const cliente = await Cliente.findOne({ email: emailLimpio });
+    
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
+
+    // Remover información sensible
+    const clienteSeguro = cliente.toObject();
+    delete clienteSeguro.contrasena;
+    
+    Log.generateLog("Buscar cliente", `Se encontró cliente: ${cliente.email}`);
+    res.status(200).json(clienteSeguro);
+  } catch (error) {
+    console.error('Error al buscar cliente:', error);
+    Log.generateLog("Error buscar cliente", `Error al buscar cliente: ${error.message}`);
+    res.status(500).json({ mensaje: 'Error al buscar cliente', error: error.message });
+  }
+};
+
 exports.actualizarCliente = async (req, res) => {
   try {
     const { id } = req.params;

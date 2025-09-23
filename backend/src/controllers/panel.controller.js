@@ -8,13 +8,50 @@ exports.mostrarPanel = async (req, res) => {
         const cantidadClientes = await Cliente.countDocuments();
         const cantidadEmpleados = await Empleado.countDocuments();
 
+        // Obtener información del usuario de la sesión
+        const usuario = req.session?.user || null;
+        const tipoUsuario = usuario?.tipoUsuario || null;
+        const esEmpleado = tipoUsuario === 'empleado';
+        const esCliente = tipoUsuario === 'cliente';
+        const esAdmin = usuario?.rol === 'admin';
+
         res.render('panel', { 
             cantidadProductos, 
             cantidadClientes, 
-            cantidadEmpleados 
+            cantidadEmpleados,
+            usuario,
+            tipoUsuario,
+            esEmpleado,
+            esCliente,
+            esAdmin
         });
     } catch (error) {
         console.error(error);
         res.status(500).send('Error al cargar el panel');
+    }
+};
+
+exports.obtenerEstadisticas = async (req, res) => {
+    try {
+        console.log('📊 Endpoint /api/estadisticas llamado');
+        
+        const cantidadProductos = await Producto.countDocuments();
+        const cantidadClientes = await Cliente.countDocuments();
+        const cantidadEmpleados = await Empleado.countDocuments();
+
+        console.log('📊 Estadísticas obtenidas:', {
+            productos: cantidadProductos,
+            clientes: cantidadClientes,
+            empleados: cantidadEmpleados
+        });
+
+        res.json({
+            productos: cantidadProductos,
+            clientes: cantidadClientes,
+            empleados: cantidadEmpleados
+        });
+    } catch (error) {
+        console.error('❌ Error al obtener estadísticas:', error);
+        res.status(500).json({ error: 'Error al obtener estadísticas' });
     }
 };
