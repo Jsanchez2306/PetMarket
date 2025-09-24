@@ -87,6 +87,92 @@ function validarAuthCarrito(req, res, next) {
   }
 }
 
-module.exports = { validarAuth, validarAuthCarrito };
+// Middleware para validar rol de administrador
+function validarAdmin(req, res, next) {
+  console.log('🔐 === VALIDANDO ROL ADMINISTRADOR ===');
+  console.log('🔐 Usuario:', req.user);
+  
+  // Verificar si el usuario está autenticado
+  if (!req.user) {
+    console.log('❌ Usuario no autenticado');
+    const isAjax = req.xhr || 
+                   req.headers.accept?.includes('application/json') || 
+                   req.headers['content-type']?.includes('application/json') ||
+                   req.headers['x-requested-with'] === 'XMLHttpRequest';
+    
+    if (isAjax) {
+      return res.status(401).json({ mensaje: 'No autenticado' });
+    } else {
+      return res.redirect('/?login=true');
+    }
+  }
+
+  // Verificar si el usuario es administrador
+  const esAdmin = req.user.rol === 'admin' || req.user.rol === 'administrador';
+  console.log('🔐 ¿Es admin?:', esAdmin);
+  console.log('🔐 Rol del usuario:', req.user.rol);
+  
+  if (!esAdmin) {
+    console.log('❌ Acceso denegado - No es administrador');
+    const isAjax = req.xhr || 
+                   req.headers.accept?.includes('application/json') || 
+                   req.headers['content-type']?.includes('application/json') ||
+                   req.headers['x-requested-with'] === 'XMLHttpRequest';
+    
+    if (isAjax) {
+      return res.status(403).json({ mensaje: 'Acceso denegado - Permisos insuficientes' });
+    } else {
+      return res.redirect('/restriccion');
+    }
+  }
+
+  console.log('✅ Usuario autorizado como administrador');
+  next();
+}
+
+// Middleware para validar rol de empleado o superior
+function validarEmpleado(req, res, next) {
+  console.log('🔐 === VALIDANDO ROL EMPLEADO ===');
+  console.log('🔐 Usuario:', req.user);
+  
+  // Verificar si el usuario está autenticado
+  if (!req.user) {
+    console.log('❌ Usuario no autenticado');
+    const isAjax = req.xhr || 
+                   req.headers.accept?.includes('application/json') || 
+                   req.headers['content-type']?.includes('application/json') ||
+                   req.headers['x-requested-with'] === 'XMLHttpRequest';
+    
+    if (isAjax) {
+      return res.status(401).json({ mensaje: 'No autenticado' });
+    } else {
+      return res.redirect('/?login=true');
+    }
+  }
+
+  // Verificar si el usuario es empleado o administrador
+  const esEmpleadoOAdmin = req.user.rol === 'empleado' || req.user.rol === 'admin' || req.user.rol === 'administrador';
+  console.log('🔐 ¿Es empleado o admin?:', esEmpleadoOAdmin);
+  console.log('🔐 Rol del usuario:', req.user.rol);
+  
+  if (!esEmpleadoOAdmin) {
+    console.log('❌ Acceso denegado - No es empleado ni administrador');
+    const isAjax = req.xhr || 
+                   req.headers.accept?.includes('application/json') || 
+                   req.headers['content-type']?.includes('application/json') ||
+                   req.headers['x-requested-with'] === 'XMLHttpRequest';
+    
+    if (isAjax) {
+      return res.status(403).json({ mensaje: 'Acceso denegado - Permisos insuficientes' });
+    } else {
+      return res.redirect('/restriccion');
+    }
+  }
+
+  console.log('✅ Usuario autorizado como empleado o administrador');
+  next();
+}
+
+module.exports = { validarAuth, validarAuthCarrito, validarAdmin, validarEmpleado };
 
 

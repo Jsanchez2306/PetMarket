@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const panelController = require('../controllers/panel.controller');
-const { validarAuth } = require('../middlewares/validateAuth');
+const { validarAuth, validarAdmin } = require('../middlewares/validateAuth');
 
 
-router.get('/', validarAuth, panelController.mostrarPanel);
+router.get('/', validarAuth, validarAdmin, panelController.mostrarPanel);
 
 module.exports = router;

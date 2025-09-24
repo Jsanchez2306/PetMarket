@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router('../');
 const clienteController = require('../controllers/cliente.controller');
-const { validarAuth } = require('../middlewares/validateAuth');
+const { validarAuth, validarAdmin } = require('../middlewares/validateAuth');
 
 /**
  * @swagger
@@ -20,7 +20,7 @@ const { validarAuth } = require('../middlewares/validateAuth');
  *       200:
  *         description: Página HTML de gestión de clientes
  */
-router.get('/', clienteController.renderizarGestionClientes);
+router.get('/', validarAuth, validarAdmin, clienteController.renderizarGestionClientes);
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ router.get('/', clienteController.renderizarGestionClientes);
  *               items:
  *                 $ref: '#/components/schemas/Cliente'
  */
-router.get('/api', validarAuth, clienteController.obtenerClientes);
+router.get('/api', validarAuth, validarAdmin, clienteController.obtenerClientes);
 
 /**
  * @swagger
@@ -68,7 +68,7 @@ router.get('/api', validarAuth, clienteController.obtenerClientes);
  *       200:
  *         description: Cliente actualizado exitosamente
  */
-router.put('/:id', clienteController.actualizarCliente);
+router.put('/:id', validarAuth, validarAdmin, clienteController.actualizarCliente);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.put('/:id', clienteController.actualizarCliente);
  *       200:
  *         description: Cliente eliminado exitosamente
  */
-router.delete('/:id', validarAuth, clienteController.eliminarCliente);
+router.delete('/:id', validarAuth, validarAdmin, clienteController.eliminarCliente);
 
 /**
  * @swagger

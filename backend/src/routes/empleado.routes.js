@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const empleadoController = require('../controllers/empleado.controller');
-const { validarAuth } = require('../middlewares/validateAuth');
+const { validarAuth, validarAdmin } = require('../middlewares/validateAuth');
 
 /**
  * @swagger
@@ -11,18 +11,18 @@ const { validarAuth } = require('../middlewares/validateAuth');
  */
 
 // Vista principal de gestión de empleados
-router.get('/',validarAuth, empleadoController.renderizarGestionEmpleados);
+router.get('/',validarAuth, validarAdmin, empleadoController.renderizarGestionEmpleados);
 
 // API: Obtener todos los empleados
-router.get('/api',validarAuth, empleadoController.obtenerEmpleados);
+router.get('/api',validarAuth, validarAdmin, empleadoController.obtenerEmpleados);
 
 // API: Crear nuevo empleado
-router.post('/',validarAuth, empleadoController.crearEmpleado);
+router.post('/',validarAuth, validarAdmin, empleadoController.crearEmpleado);
 
 // API: Actualizar empleado por ID
-router.put('/:id',validarAuth, empleadoController.actualizarEmpleado);
+router.put('/:id',validarAuth, validarAdmin, empleadoController.actualizarEmpleado);
 
 // API: Eliminar empleado por ID
-router.delete('/:id',validarAuth, empleadoController.eliminarEmpleado);
+router.delete('/:id',validarAuth, validarAdmin, empleadoController.eliminarEmpleado);
 
 module.exports = router;
