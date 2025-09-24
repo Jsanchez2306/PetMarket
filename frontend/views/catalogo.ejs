@@ -1,102 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Catálogo completo de productos para mascotas - PetMarket"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-    <link rel="stylesheet" href="/css/header.css" />
-    <link rel="stylesheet" href="/css/footer.css" />
-    <link rel="stylesheet" href="/css/assets.css" />
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/buttons.css" />
-    <link rel="icon" href="/Imagenes/HuellaPerro.png" />
-    <title>Catálogo de Productos - PetMarket</title>
-    <style>
-      .filter-card {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-      .product-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        height: 100%;
-      }
-      .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      }
-      .product-image {
-        height: 250px;
-        object-fit: cover;
-      }
-      .categoria-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 10;
-      }
-      .loading-spinner {
-        display: none;
-        text-align: center;
-        margin: 20px 0;
-      }
-      .no-products {
-        text-align: center;
-        padding: 50px 20px;
-        color: #6c757d;
-      }
-      .search-container {
-        position: relative;
-      }
-      .search-icon {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-      }
-      .pagination {
-        margin-top: 30px;
-      }
-      .pagination .page-link {
-        border-radius: 50px;
-        margin: 0 3px;
-        border: 1px solid #dee2e6;
-        color: #495057;
-      }
-      .pagination .page-item.active .page-link {
-        background-color: #007bff;
-        border-color: #007bff;
-      }
-      .pagination .page-link:hover {
-        background-color: #e9ecef;
-        border-color: #dee2e6;
-      }
-      .pagination .page-item.disabled .page-link {
-        color: #6c757d;
-        background-color: #fff;
-        border-color: #dee2e6;
-      }
-    </style>
-  </head>
 
-  <body>
-    <%- include('partials/header') %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Catálogo completo de productos para mascotas - PetMarket" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+  <link rel="stylesheet" href="/css/header.css" />
+  <link rel="stylesheet" href="/css/footer.css" />
+  <link rel="stylesheet" href="/css/assets.css" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/buttons.css" />
+  <link rel="icon" href="/Imagenes/HuellaPerro.png" />
+  <title>Catálogo de Productos - PetMarket</title>
+  <link rel="stylesheet" href="/css/catalogo.css">
+</head>
+
+<body>
+  <%- include('partials/header') %>
 
     <main>
       <div class="container my-5">
@@ -118,13 +41,8 @@
                 <i class="fas fa-search me-2"></i>Buscar productos
               </label>
               <div class="search-container">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="busqueda"
-                  placeholder="Buscar por nombre..."
-                  autocomplete="off"
-                />
+                <input type="text" class="form-control" id="busqueda" placeholder="Buscar por nombre..."
+                  autocomplete="off" />
                 <i class="fas fa-search search-icon"></i>
               </div>
             </div>
@@ -141,11 +59,7 @@
               </select>
             </div>
             <div class="col-md-4 mb-3">
-              <button
-                type="button"
-                class="btn btn-outline-secondary w-100"
-                id="limpiarFiltros"
-              >
+              <button type="button" class="btn btn-outline-secondary w-100" id="limpiarFiltros">
                 <i class="fas fa-times me-2"></i>Limpiar filtros
               </button>
             </div>
@@ -195,14 +109,17 @@
 
     <%- include('partials/footer') %>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/js/register.js"></script>
-    <script src="/js/login.js"></script>
-    <script src="/js/logout.js"></script>
-    <script src="/js/validarAuth.js"></script>
-    <script src="/js/perfil.js"></script>
-    <script src="/js/recuperarPassword.js"></script>
-    <script src="/js/catalogo.js"></script>
-  </body>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="/js/register.js"></script>
+      <script src="/js/login.js"></script>
+      <script src="/js/logout.js"></script>
+      <script src="/js/validarAuth.js"></script>
+      <script src="/js/perfil.js"></script>
+      <script src="/js/recuperarPassword.js"></script>
+      <script src="/js/catalogo.js"></script>
+
+      <script src="/js/AuthSystem.js"></script>
+</body>
+
 </html>

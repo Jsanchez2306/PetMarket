@@ -1,6 +1,10 @@
 const Factura = require('../models/factura.model');
 const Cliente = require('../models/cliente.model');
 const Producto = require('../models/producto.model');
+const Empleado = require('../models/empleado.model');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Renderiza la página de crear factura (vista EJS)
@@ -204,5 +208,232 @@ exports.eliminarFactura = async (req, res) => {
   } catch (error) {
     console.error('Error al eliminar factura:', error);
     res.sendStatus(500);
+  }
+};
+
+/**
+ * Configurar transporter de nodemailer
+ */
+const configureMailTransporter = () => {
+  return nodemailer.createTransporter({
+    service: 'gmail', // O el servicio que uses
+    auth: {
+      user: process.env.EMAIL_USER || 'tu-email@gmail.com',
+      pass: process.env.EMAIL_PASS || 'tu-password-app'
+    }
+  });
+};
+
+/**
+ * Generar HTML de la factura para correo
+ */
+const generarHTMLFactura = (factura, cliente, empleado) => {
+  const fechaFormateada = new Date(factura.fecha).toLocaleDateString('es-CO');
+  
+  let productosHTML = '';
+  factura.productos.forEach(item => {
+    productosHTML += `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.nombre}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${item.cantidad}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">$${item.precio.toLocaleString('es-CO')}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">$${item.subtotal.toLocaleString('es-CO')}</td>
+      </tr>
+    `;
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Factura PetMarket</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #007bff; padding-bottom: 20px; }
+        .logo { color: #007bff; font-size: 32px; font-weight: bold; margin-bottom: 10px; }
+        .info-section { display: flex; justify-content: space-between; margin: 20px 0; }
+        .info-box { flex: 1; margin: 0 10px; }
+        .info-box h4 { color: #333; margin-bottom: 10px; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background-color: #007bff; color: white; padding: 12px; text-align: left; }
+        .totals { text-align: right; margin-top: 20px; }
+        .totals table { width: 300px; margin-left: auto; }
+        .total-row { font-weight: bold; font-size: 18px; color: #007bff; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">🐾 PetMarket</div>
+          <h2>Factura de Venta</h2>
+          <p>Factura #${factura._id.toString().slice(-8).toUpperCase()}</p>
+        </div>
+
+        <div class="info-section">
+          <div class="info-box">
+            <h4>📋 Información de la Factura</h4>
+            <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+            <p><strong>Método de Pago:</strong> ${factura.metodoPago}</p>
+            <p><strong>Estado:</strong> ${factura.estado}</p>
+          </div>
+          
+          <div class="info-box">
+            <h4>👤 Datos del Cliente</h4>
+            <p><strong>Nombre:</strong> ${cliente.nombre}</p>
+            <p><strong>Email:</strong> ${cliente.email}</p>
+            <p><strong>Teléfono:</strong> ${cliente.telefono || 'No especificado'}</p>
+          </div>
+          
+          <div class="info-box">
+            <h4>👨‍💼 Vendedor</h4>
+            <p><strong>Nombre:</strong> ${empleado.nombre}</p>
+            <p><strong>Email:</strong> ${empleado.email}</p>
+          </div>
+        </div>
+
+        <h4>🛒 Productos Comprados</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="text-align: center;">Cantidad</th>
+              <th style="text-align: right;">Precio Unit.</th>
+              <th style="text-align: right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${productosHTML}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <table>
+            <tr>
+              <td><strong>Subtotal:</strong></td>
+              <td style="text-align: right;">$${factura.subtotal.toLocaleString('es-CO')}</td>
+            </tr>
+            <tr>
+              <td><strong>IVA (19%):</strong></td>
+              <td style="text-align: right;">$${factura.iva.toLocaleString('es-CO')}</td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>TOTAL:</strong></td>
+              <td style="text-align: right;"><strong>$${factura.total.toLocaleString('es-CO')}</strong></td>
+            </tr>
+          </table>
+        </div>
+
+        ${factura.observaciones ? `
+          <div style="margin-top: 20px;">
+            <h4>📝 Observaciones</h4>
+            <p style="background: #f8f9fa; padding: 15px; border-radius: 5px;">${factura.observaciones}</p>
+          </div>
+        ` : ''}
+
+        <div class="footer">
+          <p>¡Gracias por confiar en PetMarket! 🐾</p>
+          <p>Para cualquier consulta, contáctanos en info@petmarket.com</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Enviar factura por correo electrónico
+ */
+exports.enviarFacturaPorCorreo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Obtener la factura con datos completos
+    const factura = await Factura.findById(id);
+    if (!factura) {
+      return res.status(404).json({ mensaje: 'Factura no encontrada' });
+    }
+
+    // Obtener datos del cliente y empleado
+    const cliente = await Cliente.findById(factura.cliente);
+    const empleado = await Empleado.findById(factura.empleado);
+    
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
+
+    // Configurar transporter
+    const transporter = configureMailTransporter();
+    
+    // Generar HTML de la factura
+    const htmlFactura = generarHTMLFactura(factura, cliente, empleado);
+    
+    // Configurar email
+    const mailOptions = {
+      from: process.env.EMAIL_USER || 'noreply@petmarket.com',
+      to: cliente.email,
+      subject: `Factura PetMarket #${factura._id.toString().slice(-8).toUpperCase()}`,
+      html: htmlFactura
+    };
+
+    // Enviar email
+    await transporter.sendMail(mailOptions);
+    
+    console.log(`✅ Factura enviada por correo a ${cliente.email}`);
+    res.status(200).json({ 
+      mensaje: 'Factura enviada exitosamente por correo electrónico',
+      email: cliente.email
+    });
+
+  } catch (error) {
+    console.error('Error al enviar factura por correo:', error);
+    res.status(500).json({ 
+      mensaje: 'Error al enviar factura por correo', 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * Generar PDF de la factura para impresión
+ */
+exports.generarFacturaPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Obtener la factura con datos completos
+    const factura = await Factura.findById(id);
+    if (!factura) {
+      return res.status(404).json({ mensaje: 'Factura no encontrada' });
+    }
+
+    // Obtener datos del cliente y empleado
+    const cliente = await Cliente.findById(factura.cliente);
+    const empleado = await Empleado.findById(factura.empleado);
+    
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
+
+    // Generar HTML de la factura
+    const htmlFactura = generarHTMLFactura(factura, cliente, empleado);
+    
+    // Configurar respuesta para descarga
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Disposition', `inline; filename="factura-${factura._id.toString().slice(-8)}.html"`);
+    
+    res.send(htmlFactura);
+    
+    console.log(`✅ PDF de factura generado para impresión: ${factura._id}`);
+
+  } catch (error) {
+    console.error('Error al generar PDF de factura:', error);
+    res.status(500).json({ 
+      mensaje: 'Error al generar PDF de factura', 
+      error: error.message 
+    });
   }
 };

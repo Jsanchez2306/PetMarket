@@ -31,8 +31,35 @@ exports.registro = async (req, res) => {
     const clienteSeguro = clienteGuardado.toObject();
     delete clienteSeguro.contrasena;
 
-    res.status(201).json({ mensaje: 'Registro exitoso', cliente: clienteSeguro });
-    console.log('✅ Cliente registrado:', clienteSeguro);
+    // Generar token JWT para auto-login
+    const payload = {
+      id: clienteGuardado._id,
+      email: clienteGuardado.email,
+      nombre: clienteGuardado.nombre,
+      tipoUsuario: 'cliente',
+      rol: 'cliente'
+    };
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // Guardar en sesión
+    req.session.user = {
+      id: clienteGuardado._id,
+      email: clienteGuardado.email,
+      nombre: clienteGuardado.nombre,
+      tipoUsuario: 'cliente',
+      rol: 'cliente'
+    };
+
+    res.status(201).json({ 
+      mensaje: 'Registro exitoso', 
+      cliente: clienteSeguro,
+      token,
+      usuario: clienteSeguro,
+      tipoUsuario: 'cliente',
+      rol: 'cliente'
+    });
+    console.log('✅ Cliente registrado y autenticado:', clienteSeguro);
   } catch (error) {
     console.error('Error al registrar cliente:', error);
     res.status(500).json({ mensaje: 'Error al registrar cliente', error: error.message });

@@ -54,15 +54,15 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
       setTimeout(() => {
         if (data.tipoUsuario === 'empleado') {
           // Redirigir a panel de empleado o página principal con header de empleado
-          window.location.href = '/panel';
+          window.location.href = '/productos';
         } else if (data.rol === 'admin') {
           // Redirigir a panel de admin
           window.location.href = '/panel';
         } else {
           // Cliente normal - ir a página principal
-          window.location.href = '/';
+          // window.location.href = '/';
         }
-      }, 2000);
+      }, 1500);
     } else {
       // Cerrar modal de login y mostrar modal de error
       const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));

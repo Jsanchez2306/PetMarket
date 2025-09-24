@@ -27,8 +27,32 @@ document.getElementById('formRegistro').addEventListener('submit', async (e) => 
       // Cerrar el modal de registro
       bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
 
-      // Realizar auto-login después del registro exitoso
-      await autoLoginAfterRegister(email, contrasena);
+      // Guardar token y información del usuario (ya viene del registro)
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        
+        // Guardar información del usuario incluyendo tipo y rol
+        const userInfo = {
+          usuario: data.usuario || data.cliente,
+          tipoUsuario: data.tipoUsuario,
+          rol: data.rol
+        };
+        sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+        // Actualizar header si existe el sistema de autenticación
+        if (window.authSystem) {
+          window.authSystem.token = data.token;
+          window.authSystem.userInfo = window.authSystem.getUserInfo();
+          window.authSystem.updateHeader();
+        }
+
+        // Mostrar mensaje de éxito
+        const modal = new bootstrap.Modal(document.getElementById('registroExitosoModal'));
+        modal.show();
+      } else {
+        // Si no hay token, realizar auto-login
+        await autoLoginAfterRegister(email, contrasena);
+      }
     } else {
       // Cerrar modal de registro y mostrar modal de error
       bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
@@ -78,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Función para hacer auto-login después del registro exitoso
+// Función para hacer auto-login después del registro exitoso (respaldo)
 async function autoLoginAfterRegister(email, contrasena) {
   try {
     const res = await fetch('/auth/login', {
@@ -92,29 +116,29 @@ async function autoLoginAfterRegister(email, contrasena) {
     const data = await res.json();
 
     if (res.ok) {
-      // Guardar token
       localStorage.setItem('token', data.token);
+      
+      const userInfo = {
+        usuario: data.usuario,
+        tipoUsuario: data.tipoUsuario,
+        rol: data.rol
+      };
+      sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
 
-      // Actualizar header si existe el sistema de autenticación
       if (window.authSystem) {
         window.authSystem.token = data.token;
         window.authSystem.userInfo = window.authSystem.getUserInfo();
         window.authSystem.updateHeader();
       }
 
-      // Mostrar mensaje de éxito personalizado
       const modal = new bootstrap.Modal(document.getElementById('registroExitosoModal'));
       modal.show();
-
-      // Mantener en la página actual (landing page)
     } else {
-      // Si el auto-login falla, mostrar modal informativo
       const modal = new bootstrap.Modal(document.getElementById('autoLoginFailModal'));
       modal.show();
     }
   } catch (error) {
     console.error('Error en auto-login después del registro:', error);
-    // En caso de error, mostrar modal informativo
     const modal = new bootstrap.Modal(document.getElementById('autoLoginFailModal'));
     modal.show();
   }

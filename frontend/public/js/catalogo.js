@@ -203,13 +203,26 @@ async function agregarAlCarrito(productoId) {
     try {
         console.log('🛒 Intentando agregar producto al carrito:', productoId);
         
-        // Verificar si el usuario está autenticado
+        // Verificar si el usuario está autenticado (doble verificación)
+        const token = localStorage.getItem('token');
         const isAuthenticated = await verificarAutenticacion();
-        console.log('¿Usuario autenticado?:', isAuthenticated);
         
-        if (!isAuthenticated) {
-            console.log('❌ Usuario no autenticado, mostrando toast');
+        console.log('🔐 Token en localStorage:', token ? 'Existe' : 'No existe');
+        console.log('🔐 Verificación del servidor:', isAuthenticated);
+        
+        // Si no hay token O la verificación del servidor falla
+        if (!token || !isAuthenticated) {
+            console.log('❌ Usuario no autenticado - Token:', !!token, 'Servidor:', isAuthenticated);
             mostrarToast('Debes iniciar sesión para agregar productos al carrito', 'warning');
+            
+            // Mostrar modal de login después de un breve retraso
+            setTimeout(() => {
+                const loginModal = new bootstrap.Modal(document.getElementById('#loginModal'));
+                if (loginModal) {
+                    loginModal.show();
+                }
+            }, 1000);
+            
             return;
         }
 
@@ -258,7 +271,27 @@ async function agregarAlCarrito(productoId) {
         
         if (response.status === 401) {
             console.log('❌ Error 401: No autenticado');
-            mostrarToast('Debes iniciar sesión para agregar productos al carrito', 'warning');
+            mostrarToast('Tu sesión ha expirado. Por favor, inicia sesión nuevamente', 'warning');
+            
+            // Limpiar datos de autenticación
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('userInfo');
+            
+            // Mostrar modal de login
+            setTimeout(() => {
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                if (loginModal) {
+                    loginModal.show();
+                }
+            }, 1500);
+            
+            // Actualizar header para mostrar estado no autenticado
+            if (window.authSystem) {
+                window.authSystem.token = null;
+                window.authSystem.userInfo = null;
+                window.authSystem.updateHeader();
+            }
+            
             boton.disabled = false;
             boton.innerHTML = textoOriginal;
             return;
@@ -307,13 +340,16 @@ async function verificarAutenticacion() {
         });
         console.log('🔐 Respuesta de autenticación:', response.status);
         
+        // Solo considerar autenticado si el status es 200
         if (response.status === 200) {
             const data = await response.json();
             console.log('🔐 Datos de respuesta:', data);
-            console.log('🔐 ¿Autenticado?:', data.autenticado);
-            return data.autenticado === true;
+            const isAuthenticated = data.autenticado === true;
+            console.log('🔐 ¿Autenticado?:', isAuthenticated);
+            return isAuthenticated;
         } else {
-            console.log('🔐 No autenticado (status !== 200)');
+            // Status 401, 403, 500, etc. = No autenticado
+            console.log('🔐 No autenticado (status:', response.status, ')');
             return false;
         }
     } catch (error) {

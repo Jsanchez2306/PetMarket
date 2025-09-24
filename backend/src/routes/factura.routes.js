@@ -14,4 +14,8 @@ router.post('/api', validarAuth, facturaController.crearFactura);
 router.put('/api/:id', validarAuth, facturaController.actualizarFactura);
 router.delete('/api/:id', validarAuth, facturaController.eliminarFactura);
 
+// Rutas para funciones adicionales
+router.post('/api/:id/enviar-correo', validarAuth, facturaController.enviarFacturaPorCorreo);
+router.get('/api/:id/pdf', validarAuth, facturaController.generarFacturaPDF);
+
 module.exports = router;

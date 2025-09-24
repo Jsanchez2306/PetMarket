@@ -17,19 +17,19 @@ document.getElementById('btnBuscarCliente').addEventListener('click', async func
     }
 
     try {
-        const response = await fetch('/clientes/buscar-email', {
-            method: 'POST',
+        const response = await fetch(`/clientes/api/buscar?email=${encodeURIComponent(email)}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email })
+            credentials: 'include'
         });
 
         const data = await response.json();
 
-        if (response.ok && data.cliente) {
-            clienteSeleccionado = data.cliente;
-            mostrarClienteSeleccionado(data.cliente);
+        if (response.ok && data) {
+            clienteSeleccionado = data;
+            mostrarClienteSeleccionado(data);
             validarFormulario();
         } else {
             alert(data.mensaje || 'Cliente no encontrado');
@@ -239,13 +239,195 @@ document.getElementById('formCrearFactura').addEventListener('submit', async fun
         const data = await response.json();
 
         if (response.ok) {
-            alert('Factura creada exitosamente');
-            window.location.href = '/panel';
+            mostrarFacturaCreada(data.factura);
         } else {
             alert(data.mensaje || 'Error al crear la factura');
         }
     } catch (error) {
         console.error('Error al crear factura:', error);
-        alert('Error al crear factura');
+        alert('Error al crear la factura');
     }
 });
+
+// Función para mostrar la factura creada con opciones adicionales
+function mostrarFacturaCreada(factura) {
+    const container = document.querySelector('.container');
+    const fechaFormateada = new Date(factura.fecha).toLocaleDateString('es-CO');
+    
+    // Generar HTML de productos
+    let productosHTML = '';
+    factura.productos.forEach(item => {
+        productosHTML += `
+            <tr>
+                <td>${item.nombre}</td>
+                <td class="text-center">${item.cantidad}</td>
+                <td class="text-end">$${item.precio.toLocaleString('es-CO')}</td>
+                <td class="text-end">$${item.subtotal.toLocaleString('es-CO')}</td>
+            </tr>
+        `;
+    });
+
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-check-circle text-success"></i> Factura Creada Exitosamente</h2>
+                    <a href="/panel" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0"><i class="fas fa-file-invoice"></i> Factura #${factura._id.toString().slice(-8).toUpperCase()}</h4>
+                            <div>
+                                <button class="btn btn-light btn-sm me-2" onclick="enviarFacturaPorCorreo('${factura._id}')">
+                                    <i class="fas fa-envelope"></i> Enviar por Correo
+                                </button>
+                                <button class="btn btn-light btn-sm" onclick="imprimirFactura('${factura._id}')">
+                                    <i class="fas fa-print"></i> Imprimir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Información de la factura -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <h6 class="text-primary"><i class="fas fa-info-circle"></i> Información General</h6>
+                                <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+                                <p><strong>Método de Pago:</strong> ${factura.metodoPago}</p>
+                                <p><strong>Estado:</strong> <span class="badge bg-success">${factura.estado}</span></p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary"><i class="fas fa-user"></i> Cliente</h6>
+                                <p><strong>Nombre:</strong> ${factura.nombreCliente}</p>
+                                <p><strong>Email:</strong> ${factura.emailCliente}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary"><i class="fas fa-calculator"></i> Totales</h6>
+                                <p><strong>Subtotal:</strong> $${factura.subtotal.toLocaleString('es-CO')}</p>
+                                <p><strong>IVA (19%):</strong> $${factura.iva.toLocaleString('es-CO')}</p>
+                                <p><strong>Total:</strong> <span class="text-success fw-bold">$${factura.total.toLocaleString('es-CO')}</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Productos -->
+                        <h6 class="text-primary"><i class="fas fa-shopping-cart"></i> Productos</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-end">Precio Unit.</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${productosHTML}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        ${factura.observaciones ? `
+                            <div class="mt-3">
+                                <h6 class="text-primary"><i class="fas fa-sticky-note"></i> Observaciones</h6>
+                                <div class="alert alert-info">
+                                    ${factura.observaciones}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <div class="alert alert-success">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>¡Factura creada exitosamente!</strong>
+                    <br>Puedes enviar la factura al cliente por correo electrónico o imprimirla usando los botones de arriba.
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Función para enviar factura por correo
+async function enviarFacturaPorCorreo(facturaId) {
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        
+        // Cambiar botón a estado de carga
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        button.disabled = true;
+
+        const response = await fetch(`/facturas/api/${facturaId}/enviar-correo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(`✅ Factura enviada exitosamente a ${data.email}`);
+        } else {
+            alert(`❌ Error al enviar factura: ${data.mensaje}`);
+        }
+
+    } catch (error) {
+        console.error('Error al enviar factura:', error);
+        alert('❌ Error al enviar factura por correo');
+    } finally {
+        // Restaurar botón
+        const button = event.target;
+        button.innerHTML = '<i class="fas fa-envelope"></i> Enviar por Correo';
+        button.disabled = false;
+    }
+}
+
+// Función para imprimir factura
+async function imprimirFactura(facturaId) {
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        
+        // Cambiar botón a estado de carga
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparando...';
+        button.disabled = true;
+
+        // Abrir la factura en una nueva ventana para impresión
+        const printWindow = window.open(`/facturas/api/${facturaId}/pdf`, '_blank');
+        
+        if (printWindow) {
+            // Esperar a que cargue y luego activar impresión
+            printWindow.onload = function() {
+                setTimeout(() => {
+                    printWindow.print();
+                }, 1000);
+            };
+        } else {
+            alert('❌ Error: No se pudo abrir la ventana de impresión. Verifica que no esté bloqueada por el navegador.');
+        }
+
+    } catch (error) {
+        console.error('Error al imprimir factura:', error);
+        alert('❌ Error al preparar la factura para impresión');
+    } finally {
+        // Restaurar botón
+        const button = event.target;
+        button.innerHTML = '<i class="fas fa-print"></i> Imprimir';
+        button.disabled = false;
+    }
+}
