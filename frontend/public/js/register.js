@@ -1,24 +1,92 @@
 document.getElementById('formRegistro').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const nombre = document.getElementById('registroNombre').value;
-  const email = document.getElementById('registroCorreo').value;
+  // Obtener todos los valores del formulario
+  const nombre = document.getElementById('registroNombre').value.trim();
+  const email = document.getElementById('registroCorreo').value.trim();
+  const telefono = document.getElementById('registroTelefono').value.trim();
+  const direccion = document.getElementById('registroDireccion').value.trim();
   const contrasena = document.getElementById('registroPassword').value;
   const confirmar = document.getElementById('registroConfirmarPassword').value;
 
+  const errorElement = document.getElementById('registroMensajeError');
+  errorElement.classList.add('d-none');
+
+  // Validaciones del lado del cliente
+  if (!nombre) {
+    errorElement.textContent = 'El nombre es obligatorio';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (nombre.length < 2 || nombre.length > 50) {
+    errorElement.textContent = 'El nombre debe tener entre 2 y 50 caracteres';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+    errorElement.textContent = 'El nombre solo puede contener letras y espacios';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (!email) {
+    errorElement.textContent = 'El correo electrónico es obligatorio';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (!contrasena) {
+    errorElement.textContent = 'La contraseña es obligatoria';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (contrasena.length < 6) {
+    errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
   if (contrasena !== confirmar) {
-    document.getElementById('registroMensajeError').textContent = 'Las contraseñas no coinciden.';
-    document.getElementById('registroMensajeError').classList.remove('d-none');
+    errorElement.textContent = 'Las contraseñas no coinciden';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  // Validar teléfono si se proporciona
+  if (telefono && !/^[0-9]{7,15}$/.test(telefono)) {
+    errorElement.textContent = 'El teléfono debe tener entre 7 y 15 dígitos numéricos';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  // Validar dirección si se proporciona
+  if (direccion && (direccion.length < 5 || direccion.length > 100)) {
+    errorElement.textContent = 'La dirección debe tener entre 5 y 100 caracteres';
+    errorElement.classList.remove('d-none');
     return;
   }
 
   try {
+    // Preparar datos para enviar
+    const datosRegistro = {
+      nombre,
+      email,
+      contrasena
+    };
+
+    // Agregar campos opcionales solo si tienen valor
+    if (telefono) datosRegistro.telefono = telefono;
+    if (direccion) datosRegistro.direccion = direccion;
+
     const res = await fetch('/auth/registro', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ nombre, email, contrasena })
+      body: JSON.stringify(datosRegistro)
     });
 
     const data = await res.json();
@@ -143,3 +211,85 @@ async function autoLoginAfterRegister(email, contrasena) {
     modal.show();
   }
 }
+
+// Agregar validación en tiempo real para contraseñas
+document.addEventListener('DOMContentLoaded', function() {
+  const passwordRegistro = document.getElementById('registroPassword');
+  const passwordConfirmar = document.getElementById('registroConfirmarPassword');
+  
+  if (passwordRegistro && passwordConfirmar) {
+    const validarPasswords = () => {
+      if (passwordRegistro.value && passwordConfirmar.value) {
+        if (passwordRegistro.value !== passwordConfirmar.value) {
+          passwordConfirmar.setCustomValidity('Las contraseñas no coinciden');
+          passwordConfirmar.classList.add('is-invalid');
+          passwordConfirmar.classList.remove('is-valid');
+        } else {
+          passwordConfirmar.setCustomValidity('');
+          passwordConfirmar.classList.remove('is-invalid');
+          passwordConfirmar.classList.add('is-valid');
+        }
+      } else {
+        passwordConfirmar.setCustomValidity('');
+        passwordConfirmar.classList.remove('is-invalid', 'is-valid');
+      }
+    };
+
+    passwordRegistro.addEventListener('input', validarPasswords);
+    passwordConfirmar.addEventListener('input', validarPasswords);
+  }
+
+  // Validación para el teléfono
+  const telefonoInput = document.getElementById('registroTelefono');
+  if (telefonoInput) {
+    telefonoInput.addEventListener('input', function() {
+      const valor = this.value.trim();
+      if (valor && !/^[0-9]{7,15}$/.test(valor)) {
+        this.setCustomValidity('Debe tener entre 7 y 15 dígitos numéricos');
+        this.classList.add('is-invalid');
+        this.classList.remove('is-valid');
+      } else {
+        this.setCustomValidity('');
+        this.classList.remove('is-invalid');
+        if (valor) this.classList.add('is-valid');
+      }
+    });
+  }
+
+  // Validación para la dirección
+  const direccionInput = document.getElementById('registroDireccion');
+  if (direccionInput) {
+    direccionInput.addEventListener('input', function() {
+      const valor = this.value.trim();
+      if (valor && (valor.length < 5 || valor.length > 100)) {
+        this.setCustomValidity('Debe tener entre 5 y 100 caracteres');
+        this.classList.add('is-invalid');
+        this.classList.remove('is-valid');
+      } else {
+        this.setCustomValidity('');
+        this.classList.remove('is-invalid');
+        if (valor) this.classList.add('is-valid');
+      }
+    });
+  }
+
+  // Limpiar formulario cuando se abre el modal
+  const registerModal = document.getElementById('registerModal');
+  if (registerModal) {
+    registerModal.addEventListener('show.bs.modal', function() {
+      const form = document.getElementById('formRegistro');
+      if (form) {
+        form.reset();
+        // Limpiar clases de validación
+        const inputs = form.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+          input.classList.remove('is-valid', 'is-invalid');
+          input.setCustomValidity('');
+        });
+        // Ocultar mensajes de error
+        const errorElement = document.getElementById('registroMensajeError');
+        if (errorElement) errorElement.classList.add('d-none');
+      }
+    });
+  }
+});

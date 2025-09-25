@@ -18,14 +18,44 @@ exports.registro = async (req, res) => {
       return res.status(409).json({ mensaje: 'Este correo ya está registrado' });
     }
 
-    const nuevoCliente = new Cliente({
+    // Validaciones adicionales
+    if (nombre.trim().length < 2 || nombre.trim().length > 50) {
+      return res.status(400).json({ mensaje: 'El nombre debe tener entre 2 y 50 caracteres' });
+    }
+
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre.trim())) {
+      return res.status(400).json({ mensaje: 'El nombre solo puede contener letras y espacios' });
+    }
+
+    if (contrasena.trim().length < 6) {
+      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
+    }
+
+    if (telefono && !/^[0-9]{7,15}$/.test(telefono.trim())) {
+      return res.status(400).json({ mensaje: 'El teléfono debe tener entre 7 y 15 dígitos numéricos' });
+    }
+
+    if (direccion && (direccion.trim().length < 5 || direccion.trim().length > 100)) {
+      return res.status(400).json({ mensaje: 'La dirección debe tener entre 5 y 100 caracteres' });
+    }
+
+    const datosCliente = {
       nombre: nombre.trim(),
       email: emailLimpio,
       contrasena: contrasena.trim(),
-      telefono: telefono?.trim() || '0000000000',
-      direccion: direccion?.trim() || 'Sin dirección',
       rol: 'cliente'
-    });
+    };
+
+    // Agregar campos opcionales solo si tienen valor
+    if (telefono && telefono.trim()) {
+      datosCliente.telefono = telefono.trim();
+    }
+
+    if (direccion && direccion.trim()) {
+      datosCliente.direccion = direccion.trim();
+    }
+
+    const nuevoCliente = new Cliente(datosCliente);
 
     const clienteGuardado = await nuevoCliente.save();
     const clienteSeguro = clienteGuardado.toObject();
@@ -137,65 +167,130 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.actualizarPerfil = async (req, res) => {
+exports.obtenerPerfil = async (req, res) => {
   try {
-    const { nombre, email, passwordActual, passwordNueva } = req.body;
-    const clienteId = req.user.id;
-
-    if (!nombre || !email || !passwordActual) {
-      return res.status(400).json({ mensaje: 'Campos requeridos incompletos' });
+    const userId = req.user.id;
+    
+    // Buscar en clientes primero
+    let usuario = await Cliente.findById(userId).select('-contrasena');
+    let tipoUsuario = 'cliente';
+    
+    // Si no se encuentra en clientes, buscar en empleados
+    if (!usuario) {
+      const Empleado = require('../models/empleado.model');
+      usuario = await Empleado.findById(userId).select('-contrasena');
+      tipoUsuario = 'empleado';
     }
 
-    // Buscar el cliente
-    const cliente = await Cliente.findById(clienteId);
-    if (!cliente) {
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    // Agregar el tipo de usuario a la respuesta
+    const usuarioData = usuario.toObject();
+    usuarioData.tipoUsuario = tipoUsuario;
+
+    res.status(200).json(usuarioData);
+    console.log('✅ Perfil obtenido:', usuarioData.email, '- Tipo:', tipoUsuario);
+  } catch (error) {
+    console.error('Error al obtener perfil:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
+};
+
+exports.actualizarPerfil = async (req, res) => {
+  try {
+    const { nombre, telefono, direccion, passwordActual, passwordNueva } = req.body;
+    const userId = req.user.id;
+
+    if (!nombre || !passwordActual) {
+      return res.status(400).json({ mensaje: 'El nombre y la contraseña actual son obligatorios' });
+    }
+
+    // Buscar en clientes primero
+    let usuario = await Cliente.findById(userId);
+    let tipoUsuario = 'cliente';
+    let ModeloUsuario = Cliente;
+    
+    // Si no se encuentra en clientes, buscar en empleados
+    if (!usuario) {
+      const Empleado = require('../models/empleado.model');
+      usuario = await Empleado.findById(userId);
+      tipoUsuario = 'empleado';
+      ModeloUsuario = Empleado;
+    }
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
 
     // Verificar contraseña actual
-    if (cliente.contrasena !== passwordActual.trim()) {
+    if (usuario.contrasena !== passwordActual.trim()) {
       return res.status(401).json({ mensaje: 'Contraseña actual incorrecta' });
     }
 
-    // Verificar si el nuevo email ya existe (solo si es diferente al actual)
-    const emailLimpio = email.trim().toLowerCase();
-    if (emailLimpio !== cliente.email) {
-      const emailExiste = await Cliente.findOne({ email: emailLimpio });
-      if (emailExiste) {
-        return res.status(409).json({ mensaje: 'Este correo ya está en uso' });
-      }
+    // Validaciones específicas para cada campo
+    if (nombre.trim().length < 2 || nombre.trim().length > 50) {
+      return res.status(400).json({ mensaje: 'El nombre debe tener entre 2 y 50 caracteres' });
     }
 
-    // Actualizar datos
-    cliente.nombre = nombre.trim();
-    cliente.email = emailLimpio;
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre.trim())) {
+      return res.status(400).json({ mensaje: 'El nombre solo puede contener letras y espacios' });
+    }
+
+    if (telefono && !/^[0-9]{7,15}$/.test(telefono.trim())) {
+      return res.status(400).json({ mensaje: 'El teléfono debe tener entre 7 y 15 dígitos numéricos' });
+    }
+
+    if (direccion && (direccion.trim().length < 5 || direccion.trim().length > 100)) {
+      return res.status(400).json({ mensaje: 'La dirección debe tener entre 5 y 100 caracteres' });
+    }
+
+    // Actualizar datos básicos
+    usuario.nombre = nombre.trim();
+    
+    // Actualizar teléfono y dirección solo para clientes
+    if (tipoUsuario === 'cliente') {
+      if (telefono !== undefined) {
+        usuario.telefono = telefono ? telefono.trim() : undefined;
+      }
+      if (direccion !== undefined) {
+        usuario.direccion = direccion ? direccion.trim() : undefined;
+      }
+    }
     
     // Actualizar contraseña si se proporciona una nueva
     if (passwordNueva && passwordNueva.trim()) {
       if (passwordNueva.trim().length < 6) {
         return res.status(400).json({ mensaje: 'La nueva contraseña debe tener al menos 6 caracteres' });
       }
-      cliente.contrasena = passwordNueva.trim();
+      usuario.contrasena = passwordNueva.trim();
     }
 
-    await cliente.save();
+    await usuario.save();
 
     // Generar nuevo token con la información actualizada
     const nuevoToken = jwt.sign(
-      { id: cliente._id, email: cliente.email, nombre: cliente.nombre, rol: cliente.rol || 'cliente' },
+      { 
+        id: usuario._id, 
+        email: usuario.email, 
+        nombre: usuario.nombre, 
+        rol: usuario.rol || 'cliente',
+        tipo: tipoUsuario
+      },
       process.env.JWT_SECRET,
       { expiresIn: '2h' }
     );
 
-    const clienteSeguro = cliente.toObject();
-    delete clienteSeguro.contrasena;
+    const usuarioSeguro = usuario.toObject();
+    delete usuarioSeguro.contrasena;
 
     res.status(200).json({ 
       mensaje: 'Perfil actualizado correctamente', 
       token: nuevoToken, 
-      cliente: clienteSeguro 
+      usuario: usuarioSeguro 
     });
-    console.log('✅ Perfil actualizado:', clienteSeguro.email);
+    console.log('✅ Perfil actualizado:', usuarioSeguro.email, '- Tipo:', tipoUsuario);
   } catch (error) {
     console.error('Error al actualizar perfil:', error);
     res.status(500).json({ mensaje: 'Error al actualizar perfil', error: error.message });

@@ -161,6 +161,32 @@ function initHeaderProfileFunctions() {
     formActualizarPerfil.addEventListener('submit', (e) => {
       actualizarPerfilHeader(e);
     });
+
+    // Validación en tiempo real de contraseñas
+    const passwordNueva = document.getElementById('perfilPasswordNueva');
+    const passwordConfirmar = document.getElementById('perfilPasswordConfirmar');
+    
+    if (passwordNueva && passwordConfirmar) {
+      const validarPasswords = () => {
+        if (passwordNueva.value && passwordConfirmar.value) {
+          if (passwordNueva.value !== passwordConfirmar.value) {
+            passwordConfirmar.setCustomValidity('Las contraseñas no coinciden');
+            passwordConfirmar.classList.add('is-invalid');
+            passwordConfirmar.classList.remove('is-valid');
+          } else {
+            passwordConfirmar.setCustomValidity('');
+            passwordConfirmar.classList.remove('is-invalid');
+            passwordConfirmar.classList.add('is-valid');
+          }
+        } else {
+          passwordConfirmar.setCustomValidity('');
+          passwordConfirmar.classList.remove('is-invalid', 'is-valid');
+        }
+      };
+
+      passwordNueva.addEventListener('input', validarPasswords);
+      passwordConfirmar.addEventListener('input', validarPasswords);
+    }
   }
 
   // Manejar formulario de eliminar cuenta
@@ -177,12 +203,45 @@ async function cargarDatosUsuarioHeader() {
   if (!token) return;
 
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const perfilNombre = document.getElementById('perfilNombre');
-    const perfilCorreo = document.getElementById('perfilCorreo');
-    
-    if (perfilNombre) perfilNombre.value = payload.nombre || '';
-    if (perfilCorreo) perfilCorreo.value = payload.email || '';
+    // Obtener datos actualizados del servidor
+    const res = await fetch('/auth/perfil', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (res.ok) {
+      const userData = await res.json();
+      
+      // Llenar todos los campos del formulario
+      const perfilNombre = document.getElementById('perfilNombre');
+      const perfilCorreo = document.getElementById('perfilCorreo');
+      const perfilTelefono = document.getElementById('perfilTelefono');
+      const perfilDireccion = document.getElementById('perfilDireccion');
+      
+      if (perfilNombre) perfilNombre.value = userData.nombre || '';
+      if (perfilCorreo) perfilCorreo.value = userData.email || '';
+      if (perfilTelefono) perfilTelefono.value = userData.telefono || '';
+      if (perfilDireccion) perfilDireccion.value = userData.direccion || '';
+      
+      // Limpiar campos de contraseña
+      const perfilPasswordActual = document.getElementById('perfilPasswordActual');
+      const perfilPasswordNueva = document.getElementById('perfilPasswordNueva');
+      const perfilPasswordConfirmar = document.getElementById('perfilPasswordConfirmar');
+      
+      if (perfilPasswordActual) perfilPasswordActual.value = '';
+      if (perfilPasswordNueva) perfilPasswordNueva.value = '';
+      if (perfilPasswordConfirmar) perfilPasswordConfirmar.value = '';
+      
+      // Limpiar mensajes de error/éxito
+      const errorElement = document.getElementById('perfilMensajeError');
+      const exitoElement = document.getElementById('perfilMensajeExito');
+      if (errorElement) errorElement.classList.add('d-none');
+      if (exitoElement) exitoElement.classList.add('d-none');
+      
+    } else {
+      console.error('Error al cargar datos del usuario');
+    }
   } catch (error) {
     console.error('Error cargando datos del usuario:', error);
   }
@@ -191,22 +250,72 @@ async function cargarDatosUsuarioHeader() {
 async function actualizarPerfilHeader(e) {
   e.preventDefault();
 
-  const nombre = document.getElementById('perfilNombre').value;
-  const email = document.getElementById('perfilCorreo').value;
+  // Obtener todos los valores del formulario
+  const nombre = document.getElementById('perfilNombre').value.trim();
+  const email = document.getElementById('perfilCorreo').value.trim();
+  const telefono = document.getElementById('perfilTelefono').value.trim();
+  const direccion = document.getElementById('perfilDireccion').value.trim();
   const passwordActual = document.getElementById('perfilPasswordActual').value;
   const passwordNueva = document.getElementById('perfilPasswordNueva').value;
+  const passwordConfirmar = document.getElementById('perfilPasswordConfirmar').value;
 
   const errorElement = document.getElementById('perfilMensajeError');
+  const exitoElement = document.getElementById('perfilMensajeExito');
+  
+  // Limpiar mensajes anteriores
   errorElement.classList.add('d-none');
+  exitoElement.classList.add('d-none');
+
+  // Validaciones del lado del cliente
+  if (!nombre) {
+    errorElement.textContent = 'El nombre es obligatorio';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (!passwordActual) {
+    errorElement.textContent = 'Debes ingresar tu contraseña actual para confirmar los cambios';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  // Si se quiere cambiar contraseña, validar que coincidan
+  if (passwordNueva && passwordNueva !== passwordConfirmar) {
+    errorElement.textContent = 'Las contraseñas nuevas no coinciden';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  if (passwordNueva && passwordNueva.length < 6) {
+    errorElement.textContent = 'La nueva contraseña debe tener al menos 6 caracteres';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  // Validar teléfono si se proporciona
+  if (telefono && !/^[0-9]{7,15}$/.test(telefono)) {
+    errorElement.textContent = 'El teléfono debe tener entre 7 y 15 dígitos numéricos';
+    errorElement.classList.remove('d-none');
+    return;
+  }
+
+  // Validar dirección si se proporciona
+  if (direccion && (direccion.length < 5 || direccion.length > 100)) {
+    errorElement.textContent = 'La dirección debe tener entre 5 y 100 caracteres';
+    errorElement.classList.remove('d-none');
+    return;
+  }
 
   try {
     const token = localStorage.getItem('token');
     const body = {
       nombre,
-      email,
+      telefono: telefono || null,
+      direccion: direccion || null,
       passwordActual
     };
 
+    // Solo incluir nueva contraseña si se especificó
     if (passwordNueva) {
       body.passwordNueva = passwordNueva;
     }
@@ -228,21 +337,30 @@ async function actualizarPerfilHeader(e) {
         localStorage.setItem('token', data.token);
       }
 
-      alert('✅ Perfil actualizado correctamente');
-      bootstrap.Modal.getInstance(document.getElementById('perfilModal')).hide();
+      // Mostrar mensaje de éxito
+      exitoElement.textContent = '✅ Perfil actualizado correctamente';
+      exitoElement.classList.remove('d-none');
       
-      // Actualizar header con nuevo email
+      // Actualizar header con nuevos datos
       if (window.authSystem) {
-        window.authSystem.userInfo = JSON.parse(atob(localStorage.getItem('token').split('.')[1]));
+        const payload = JSON.parse(atob(localStorage.getItem('token').split('.')[1]));
+        window.authSystem.userInfo = payload;
         window.authSystem.updateHeader();
       }
+
+      // Cerrar modal después de 2 segundos
+      setTimeout(() => {
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('perfilModal'));
+        if (modalInstance) modalInstance.hide();
+      }, 2000);
+
     } else {
       errorElement.textContent = data.mensaje || 'Error al actualizar perfil';
       errorElement.classList.remove('d-none');
     }
   } catch (error) {
     console.error('Error al actualizar perfil:', error);
-    errorElement.textContent = 'Error de conexión';
+    errorElement.textContent = 'Error de conexión. Intenta de nuevo.';
     errorElement.classList.remove('d-none');
   }
 }

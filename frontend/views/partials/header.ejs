@@ -36,28 +36,34 @@
         <!-- Botón del carrito -->
         <a href="/carrito" class="btn btn-outline-light btn-primary me-2 position-relative" id="carritoBtn">
           <i class="fas fa-shopping-cart"></i>
-          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="carritoContador">
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+            id="carritoContador">
             0
           </span>
         </a>
-        
-        <button class="btn btn-outline-light btn-primary dropdown-toggle" type="button" 
-                data-bs-toggle="dropdown" aria-expanded="false">
+
+        <button class="btn btn-outline-light btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+          aria-expanded="false">
           <i class="fas fa-user me-2"></i>
           <span id="userEmail">Usuario</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#perfilModal">
-            <i class="fas fa-user-edit me-2"></i>Actualizar datos
-          </a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#eliminarCuentaModal">
-            <i class="fas fa-user-times me-2"></i>Eliminar cuenta
-          </a></li>
-          <li><hr class="dropdown-divider"></li>
+              <i class="fas fa-user-edit me-2"></i>Actualizar datos
+            </a></li>
+          <li>
+            <hr class="dropdown-divider">
+          </li>
+          <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+              data-bs-target="#eliminarCuentaModal">
+              <i class="fas fa-user-times me-2"></i>Eliminar cuenta
+            </a></li>
+          <li>
+            <hr class="dropdown-divider">
+          </li>
           <li><a class="dropdown-item" href="#" id="logoutBtn">
-            <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
-          </a></li>
+              <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+            </a></li>
         </ul>
       </div>
     </div>
@@ -73,42 +79,95 @@
       </div>
       <div class="modal-body">
         <form id="formRegistro">
-          <div class="mb-3">
-            <label for="registroNombre" class="form-label">Nombre y Apellido</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-user"></i></span>
-              <input type="text" class="form-control" id="registroNombre" required>
+          <!-- Información Personal -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3"><i class="fas fa-user-circle me-2"></i>Información Personal</h6>
+            
+            <div class="mb-3">
+              <label for="registroNombre" class="form-label">Nombre y Apellido *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" id="registroNombre" required
+                       minlength="2" maxlength="50" 
+                       pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                       title="Solo se permiten letras y espacios">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="registroCorreo" class="form-label">Correo electrónico *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input type="email" class="form-control" id="registroCorreo" required>
+              </div>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="registroCorreo" class="form-label">Correo electrónico</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-              <input type="email" class="form-control" id="registroCorreo" required>
+
+          <!-- Información de Contacto -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3"><i class="fas fa-phone me-2"></i>Información de Contacto</h6>
+            
+            <div class="mb-3">
+              <label for="registroTelefono" class="form-label">Teléfono</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input type="tel" class="form-control" id="registroTelefono" 
+                       pattern="[0-9]{7,15}" 
+                       title="Debe tener entre 7 y 15 dígitos numéricos"
+                       placeholder="Ej: 1234567890">
+              </div>
+              <div class="form-text">Entre 7 y 15 dígitos numéricos (opcional)</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="registroDireccion" class="form-label">Dirección</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                <textarea class="form-control" id="registroDireccion" rows="2" 
+                          minlength="5" maxlength="100"
+                          placeholder="Ej: Calle 123 #45-67, Barrio Centro"></textarea>
+              </div>
+              <div class="form-text">Entre 5 y 100 caracteres (opcional)</div>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="registroPassword" class="form-label">Contraseña</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="registroPassword" minlength="6" required>
+
+          <!-- Seguridad -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3"><i class="fas fa-shield-alt me-2"></i>Contraseña</h6>
+            
+            <div class="mb-3">
+              <label for="registroPassword" class="form-label">Contraseña *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input type="password" class="form-control" id="registroPassword" minlength="6" required
+                       placeholder="Mínimo 6 caracteres">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="registroConfirmarPassword" class="form-label">Confirmar contraseña *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                <input type="password" class="form-control" id="registroConfirmarPassword" minlength="6" required
+                       placeholder="Repite la contraseña">
+              </div>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="registroConfirmarPassword" class="form-label">Confirmar contraseña</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="registroConfirmarPassword" minlength="6" required>
-            </div>
-          </div>
+
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="terminos" required>
             <label class="form-check-label" for="terminos">
-              Acepto los <a href="#">términos y condiciones</a>
+              Acepto los <a href="#" class="text-decoration-none">términos y condiciones</a> *
             </label>
           </div>
+          
           <div id="registroMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
-          <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+          
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-user-plus me-2"></i>Crear cuenta
+            </button>
+          </div>
         </form>
         <div class="text-center mt-4">
           <p class="mb-2">También puedes registrarte con</p>
@@ -126,7 +185,8 @@
 </div>
 
 <!-- Modal de advertencia para errores de registro -->
-<div class="modal fade" id="registroErrorModal" tabindex="-1" aria-labelledby="registroErrorModalLabel" aria-hidden="true">
+<div class="modal fade" id="registroErrorModal" tabindex="-1" aria-labelledby="registroErrorModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header bg-warning text-dark">
@@ -145,7 +205,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+          data-bs-target="#registerModal">
           Intentar nuevamente
         </button>
       </div>
@@ -153,7 +214,8 @@
   </div>
 </div>
 
-<div class="modal fade" id="registroExitosoModal" tabindex="-1" aria-labelledby="registroExitosoLabel" aria-hidden="true">
+<div class="modal fade" id="registroExitosoModal" tabindex="-1" aria-labelledby="registroExitosoLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header">
@@ -187,7 +249,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+          data-bs-target="#loginModal">
           Intentar nuevamente
         </button>
       </div>
@@ -196,7 +259,8 @@
 </div>
 
 <!-- Modal de éxito para login -->
-<div class="modal fade" id="loginExitosoModal" tabindex="-1" aria-labelledby="loginExitosoModalLabel" aria-hidden="true">
+<div class="modal fade" id="loginExitosoModal" tabindex="-1" aria-labelledby="loginExitosoModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header bg-success text-white">
@@ -210,7 +274,8 @@
           <strong>✅ Has iniciado sesión correctamente</strong>
         </div>
         <p class="mb-0">
-          <span id="loginBienvenidaMensaje">¡Bienvenido de vuelta!</span> Ya puedes disfrutar de todas las funcionalidades de PetMarket.
+          <span id="loginBienvenidaMensaje">¡Bienvenido de vuelta!</span> Ya puedes disfrutar de todas las
+          funcionalidades de PetMarket.
         </p>
       </div>
       <div class="modal-footer">
@@ -221,7 +286,8 @@
 </div>
 
 <!-- Modal de información para auto-login fallido -->
-<div class="modal fade" id="autoLoginFailModal" tabindex="-1" aria-labelledby="autoLoginFailModalLabel" aria-hidden="true">
+<div class="modal fade" id="autoLoginFailModal" tabindex="-1" aria-labelledby="autoLoginFailModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header bg-info text-white">
@@ -240,7 +306,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+          data-bs-target="#loginModal">
           Iniciar sesión
         </button>
       </div>
@@ -274,7 +341,8 @@
           <div id="loginMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
           <button type="submit" class="btn btn-primary w-100">Ingresar</button>
           <div class="text-center mt-3">
-          <a href="#" id="olvidoPasswordLink" data-bs-toggle="modal" data-bs-target="#recuperarPasswordModal" data-bs-dismiss="modal">¿Olvidaste tu contraseña?</a>
+            <a href="#" id="olvidoPasswordLink" data-bs-toggle="modal" data-bs-target="#recuperarPasswordModal"
+              data-bs-dismiss="modal">¿Olvidaste tu contraseña?</a>
           </div>
           <div class="text-center mt-4">
             <p class="mb-2">También puedes iniciar sesión con</p>
@@ -302,36 +370,106 @@
       </div>
       <div class="modal-body">
         <form id="formActualizarPerfil">
-          <div class="mb-3">
-            <label for="perfilNombre" class="form-label">Nombre y Apellido</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-user"></i></span>
-              <input type="text" class="form-control" id="perfilNombre" required>
+          <!-- Información Personal -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3"><i class="fas fa-user-circle me-2"></i>Información Personal</h6>
+            
+            <div class="mb-3">
+              <label for="perfilNombre" class="form-label">Nombre y Apellido *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" id="perfilNombre" required 
+                       minlength="2" maxlength="50" 
+                       pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                       title="Solo se permiten letras y espacios">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="perfilCorreo" class="form-label">Correo electrónico *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input type="email" class="form-control" id="perfilCorreo" required readonly>
+              </div>
+              <div class="form-text">El correo electrónico no se puede modificar</div>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="perfilCorreo" class="form-label">Correo electrónico</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-              <input type="email" class="form-control" id="perfilCorreo" required>
+
+          <!-- Información de Contacto -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3"><i class="fas fa-phone me-2"></i>Información de Contacto</h6>
+            
+            <div class="mb-3">
+              <label for="perfilTelefono" class="form-label">Teléfono</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input type="tel" class="form-control" id="perfilTelefono" 
+                       pattern="[0-9]{7,15}" 
+                       title="Debe tener entre 7 y 15 dígitos numéricos"
+                       placeholder="Ej: 1234567890">
+              </div>
+              <div class="form-text">Entre 7 y 15 dígitos numéricos</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="perfilDireccion" class="form-label">Dirección</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                <textarea class="form-control" id="perfilDireccion" rows="2" 
+                          minlength="5" maxlength="100"
+                          placeholder="Ej: Calle 123 #45-67, Barrio Centro"></textarea>
+              </div>
+              <div class="form-text">Entre 5 y 100 caracteres</div>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="perfilPasswordActual" class="form-label">Contraseña actual</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="perfilPasswordActual">
+
+          <!-- Seguridad -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3"><i class="fas fa-shield-alt me-2"></i>Seguridad</h6>
+            
+            <div class="mb-3">
+              <label for="perfilPasswordActual" class="form-label">Contraseña actual *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input type="password" class="form-control" id="perfilPasswordActual" required
+                       placeholder="Ingresa tu contraseña actual para confirmar los cambios">
+              </div>
+              <div class="form-text">Requerida para confirmar cualquier cambio</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="perfilPasswordNueva" class="form-label">Nueva contraseña (opcional)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                <input type="password" class="form-control" id="perfilPasswordNueva" 
+                       minlength="6"
+                       placeholder="Deja en blanco si no quieres cambiarla">
+              </div>
+              <div class="form-text">Mínimo 6 caracteres (deja vacío si no quieres cambiarla)</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="perfilPasswordConfirmar" class="form-label">Confirmar nueva contraseña</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                <input type="password" class="form-control" id="perfilPasswordConfirmar" 
+                       minlength="6"
+                       placeholder="Confirma la nueva contraseña">
+              </div>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="perfilPasswordNueva" class="form-label">Nueva contraseña (opcional)</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="perfilPasswordNueva" minlength="6">
-            </div>
-          </div>
+
           <div id="perfilMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
-          <button type="submit" class="btn btn-primary w-100">Actualizar datos</button>
+          <div id="perfilMensajeExito" class="alert alert-success d-none text-center" role="alert"></div>
+          
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-2"></i>Actualizar datos
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-2"></i>Cancelar
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -339,7 +477,8 @@
 </div>
 
 <!-- Modal para confirmar eliminación de cuenta -->
-<div class="modal fade" id="eliminarCuentaModal" tabindex="-1" aria-labelledby="eliminarCuentaModalLabel" aria-hidden="true">
+<div class="modal fade" id="eliminarCuentaModal" tabindex="-1" aria-labelledby="eliminarCuentaModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header bg-danger text-white">
@@ -350,7 +489,8 @@
       </div>
       <div class="modal-body">
         <div class="alert alert-warning">
-          <strong>¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente de la base de datos.
+          <strong>¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente de
+          la base de datos.
         </div>
         <form id="formEliminarCuenta">
           <div class="mb-3">
@@ -377,7 +517,8 @@
 </div>
 
 <!-- Modal de Recuperación de Contraseña -->
-<div class="modal fade" id="recuperarPasswordModal" tabindex="-1" aria-labelledby="recuperarPasswordModalLabel" aria-hidden="true">
+<div class="modal fade" id="recuperarPasswordModal" tabindex="-1" aria-labelledby="recuperarPasswordModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header">
@@ -396,7 +537,8 @@
           </div>
           <div class="alert alert-danger d-none" id="recuperarMensajeError" role="alert"></div>
           <button type="submit" class="btn btn-primary w-100" id="btnRecuperar">
-            <span class="spinner-border spinner-border-sm d-none me-2" id="recuperarSpinner" role="status" aria-hidden="true"></span>
+            <span class="spinner-border spinner-border-sm d-none me-2" id="recuperarSpinner" role="status"
+              aria-hidden="true"></span>
             Enviar Nueva Contraseña
           </button>
         </form>
@@ -406,7 +548,8 @@
 </div>
 
 <!-- Modal de Éxito Recuperación -->
-<div class="modal fade" id="recuperarExitosoModal" tabindex="-1" aria-labelledby="recuperarExitosoModalLabel" aria-hidden="true">
+<div class="modal fade" id="recuperarExitosoModal" tabindex="-1" aria-labelledby="recuperarExitosoModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header">
@@ -422,7 +565,7 @@
         </p>
         <h6>¡Revisa tu correo electrónico!</h6>
         <p id="recuperarExitoMensaje" class="text-muted">
-          Hemos enviado una nueva contraseña temporal a tu correo electrónico. 
+          Hemos enviado una nueva contraseña temporal a tu correo electrónico.
           Úsala para iniciar sesión y luego cámbiala desde tu perfil.
         </p>
       </div>
@@ -434,7 +577,8 @@
 </div>
 
 <!-- Modal de Error Recuperación -->
-<div class="modal fade" id="recuperarErrorModal" tabindex="-1" aria-labelledby="recuperarErrorModalLabel" aria-hidden="true">
+<div class="modal fade" id="recuperarErrorModal" tabindex="-1" aria-labelledby="recuperarErrorModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content custom-modal">
       <div class="modal-header custom-modal-header">
@@ -454,7 +598,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#recuperarPasswordModal">Intentar Nuevamente</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+          data-bs-target="#recuperarPasswordModal">Intentar Nuevamente</button>
       </div>
     </div>
   </div>
@@ -462,38 +607,38 @@
 
 <!-- Script para detectar tipo de usuario -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     checkUserTypeAndRedirect();
-});
+  });
 
-async function checkUserTypeAndRedirect() {
+  async function checkUserTypeAndRedirect() {
     try {
-        const response = await fetch('/auth/verify', {
-            method: 'GET',
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.autenticado && data.usuario) {
-                // Obtener información del usuario desde sessionStorage
-                const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
-                
-                // Si es empleado y estamos en páginas que deberían mostrar header de empleado
-                if (userInfo.tipoUsuario === 'empleado' || data.usuario.tipoUsuario === 'empleado') {
-                    // Solo redirigir si estamos en páginas específicas que requieren header de empleado
-                    const currentPath = window.location.pathname;
-                    const empleadoPages = ['/productos', '/panel', '/facturas/crear'];
-                    
-                    if (empleadoPages.some(page => currentPath.startsWith(page))) {
-                        // Ya estamos en una página de empleado, no necesitamos redirigir
-                        console.log('Usuario empleado en página apropiada');
-                    }
-                }
+      const response = await fetch('/auth/verify', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.autenticado && data.usuario) {
+          // Obtener información del usuario desde sessionStorage
+          const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+
+          // Si es empleado y estamos en páginas que deberían mostrar header de empleado
+          if (userInfo.tipoUsuario === 'empleado' || data.usuario.tipoUsuario === 'empleado') {
+            // Solo redirigir si estamos en páginas específicas que requieren header de empleado
+            const currentPath = window.location.pathname;
+            const empleadoPages = ['/productos', '/panel', '/facturas/crear'];
+
+            if (empleadoPages.some(page => currentPath.startsWith(page))) {
+              // Ya estamos en una página de empleado, no necesitamos redirigir
+              console.log('Usuario empleado en página apropiada');
             }
+          }
         }
+      }
     } catch (error) {
-        console.error('Error al verificar tipo de usuario:', error);
+      console.error('Error al verificar tipo de usuario:', error);
     }
-}
+  }
 </script>

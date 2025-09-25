@@ -18,6 +18,7 @@ router.get('/verify', authController.verificarSesion);
 router.post('/logout', authController.logout);
 
 // Rutas protegidas para gestión de perfil
+router.get('/perfil', validarAuth, authController.obtenerPerfil);
 router.put('/actualizar-perfil', validarAuth, authController.actualizarPerfil);
 router.delete('/eliminar-cuenta', validarAuth, authController.eliminarCuenta);
 
