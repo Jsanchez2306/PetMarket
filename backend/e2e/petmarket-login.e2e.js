@@ -6,7 +6,7 @@ describe('Login de PetMarket', function () {
       'http://localhost:3191/';
 
     const STEP_PAUSE = parseInt(process.env.E2E_STEP_PAUSE || '1200', 10);
-    const END_PAUSE = parseInt(process.env.E2E_END_PAUSE || '3000', 10); 
+    const END_PAUSE = parseInt(process.env.E2E_END_PAUSE || '2000', 10); 
 
     const BTN_OPEN_LOGIN = 'button[data-bs-target="#loginModal"]';
     const MODAL_LOGIN    = '#loginModal';
