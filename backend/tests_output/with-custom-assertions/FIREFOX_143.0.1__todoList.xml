@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="0"
+            tests="1">
+
+  <testsuite name="To-Do List End-to-End Test" id="with-custom-assertions.todoList"
+    errors="0" failures="0" hostname="" package="with-custom-assertions" skipped="0"
+    tests="1" time="4.460" timestamp="">
+  
+    <testcase name="should add a new todo element" classname="To-Do List End-to-End Test" time="4.435" assertions="2">
+
+    
+
+    
+    </testcase>
+  
+
+  
+    <system-err>
+       An error occurred while creating a new GeckoDriver session: [Error] Unable to obtain browser driver.
+        For more information on how to install drivers see
+        https://www.selenium.dev/documentation/webdriver/troubleshooting/errors/driver_location/. Error: Error executing command for C:\Users\Sanch\OneDrive\Escritorio\PetMarket\backend\node_modules\selenium-webdriver\bin\windows\selenium-manager.exe with --browser,firefox,--language-binding,javascript,--output,json: Acceso denegado. (os error 5)
+  Verify if GeckoDriver is configured correctly; using:
+  {
+     start_process: true,
+     server_path: &#39;&#39;,
+     port: undefined,
+     host: &#39;localhost&#39;,
+     ssl: false,
+     default_path_prefix: &#39;&#39;,
+     proxy: undefined,
+     cli_args: []
+  }
+
+ 
+  Set webdriver.log_path in your Nightwatch config to retrieve more logs from GeckoDriver.
+ An error occurred while creating a new GeckoDriver session: [Error] Unable to obtain browser driver.
+        For more information on how to install drivers see
+        https://www.selenium.dev/documentation/webdriver/troubleshooting/errors/driver_location/. Error: Error executing command for C:\Users\Sanch\OneDrive\Escritorio\PetMarket\backend\node_modules\selenium-webdriver\bin\windows\selenium-manager.exe with --browser,firefox,--language-binding,javascript,--output,json: Acceso denegado. (os error 5)
+  Verify if GeckoDriver is configured correctly; using:
+  {
+     start_process: true,
+     server_path: &#39;&#39;,
+     port: undefined,
+     host: &#39;localhost&#39;,
+     ssl: false,
+     default_path_prefix: &#39;&#39;,
+     proxy: undefined,
+     cli_args: []
+  }
+
+ 
+  Set webdriver.log_path in your Nightwatch config to retrieve more logs from GeckoDriver.
+ An error occurred while creating a new GeckoDriver session: [Error] Unable to obtain browser driver.
+        For more information on how to install drivers see
+        https://www.selenium.dev/documentation/webdriver/troubleshooting/errors/driver_location/. Error: Error executing command for C:\Users\Sanch\OneDrive\Escritorio\PetMarket\backend\node_modules\selenium-webdriver\bin\windows\selenium-manager.exe with --browser,firefox,--language-binding,javascript,--output,json: Acceso denegado. (os error 5)
+  Verify if GeckoDriver is configured correctly; using:
+  {
+     start_process: true,
+     server_path: &#39;&#39;,
+     port: undefined,
+     host: &#39;localhost&#39;,
+     ssl: false,
+     default_path_prefix: &#39;&#39;,
+     proxy: undefined,
+     cli_args: []
+  }
+
+ 
+  Set webdriver.log_path in your Nightwatch config to retrieve more logs from GeckoDriver.
+    </system-err>
+  
+
+    
+
+  
+  </testsuite>
+</testsuites>

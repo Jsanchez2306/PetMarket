@@ -10,7 +10,7 @@
     "backup": "node src/config/backup.js",
     "test": "echo \"no test\" && exit 0",
     "backfill:publicid": "node scripts/backfillPublicIds.js",
-  "setup:once": "npm run backfill:publicid && npm run dev"
+    "setup:once": "npm run backfill:publicid && npm run dev"
   },
   "engines": {
     "node": ">=18 <23"
@@ -38,8 +38,10 @@
   },
   "devDependencies": {
     "autocannon": "^8.0.0",
+    "geckodriver": "^6.0.1",
     "jsdoc": "^4.0.4",
     "minami": "^1.2.3",
+    "nightwatch": "^3.12.2",
     "nodemon": "^3.1.10",
     "taffydb": "^2.7.3"
   }

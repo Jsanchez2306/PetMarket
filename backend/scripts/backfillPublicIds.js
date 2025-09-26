@@ -10,7 +10,6 @@
 require('dotenv').config();
 
 // Ajusta esta ruta según tu proyecto.
-// Si tu conexión está en config/connection.js exportando mongoose (mongoose = require('mongoose'))
 const mongoose = require('../src/config/connection');
 const Producto = require('../src/models/producto.model');
 
