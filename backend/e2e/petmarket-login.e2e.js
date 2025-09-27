@@ -80,7 +80,7 @@ describe('Login de PetMarket', function () {
       .pause(STEP_PAUSE)
 
       .pause(END_PAUSE)
-
+      
       .end();
   });
 });
