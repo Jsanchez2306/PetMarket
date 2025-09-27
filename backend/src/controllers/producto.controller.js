@@ -3,6 +3,9 @@ const cloudinary = require('../config/cloudinary');
 const multer = require('multer');
 const streamifier = require('streamifier');
 
+// Tope configurable (por defecto 3’000.000 COP si no hay .env)
+const MAX_PRECIO = Number(process.env.MAX_PRECIO_COP) || 3000000;
+
 // ================== Config Multer ==================
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -18,19 +21,11 @@ const upload = multer({
     cb(null, true);
   }
 });
-
 exports.uploadImagen = upload.single('imagen');
 
 // ================== Helpers ==================
 const debug = (...args) => {
   if (process.env.DEBUG_CLOUDINARY) console.log('[CLOUDINARY]', ...args);
-};
-
-const tmark = (label) => {
-  if (process.env.DEBUG_TIMING) console.time(label);
-};
-const tend = (label) => {
-  if (process.env.DEBUG_TIMING) console.timeEnd(label);
 };
 
 function parseNumeroPositivo(value) {
@@ -54,7 +49,6 @@ function esNombreSoloNumeros(nombre) {
 
 async function subirCloudinaryDesdeBuffer(buffer) {
   return new Promise((resolve, reject) => {
-    // Transformación básica para reducir peso
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: 'productos',
@@ -79,7 +73,8 @@ const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos'];
 exports.renderizarGestionProductos = async (req, res) => {
   try {
     const productos = await Producto.find().sort({ fechaRegistro: -1 });
-    res.render('gestionProductos', { productos });
+    // Pasamos el tope a la vista
+    res.render('gestionProductos', { productos, maxPrecio: MAX_PRECIO });
   } catch (err) {
     console.error('Error al obtener productos:', err);
     res.status(500).send('Error al obtener productos');
@@ -100,27 +95,32 @@ exports.obtenerProductos = async (_req, res) => {
 // =================== Crear Producto ===================
 exports.crearProducto = async (req, res) => {
   try {
-    console.time?.('CREATE_TOTAL');
     const { nombre, descripcion, precio, stock, categoria } = req.body;
     let errores = {};
 
+    // Nombre
     if (!nombre || nombre.trim().length < 2) {
       errores.nombre = 'Nombre mínimo 2 caracteres';
     } else if (esNombreSoloNumeros(nombre)) {
       errores.nombre = 'El nombre no puede ser solo números; agrega una descripción.';
     }
 
+    // Descripción
     if (!descripcion || descripcion.trim().length < 10) {
       errores.descripcion = 'Descripción mínima 10 caracteres';
     }
 
+    // Precio con tope
     const precioParsed = parseNumeroPositivo(precio);
     if (precioParsed.error) {
       errores.precio = `Precio ${precioParsed.error.toLowerCase()}`;
     } else if (precioParsed.value < 0) {
       errores.precio = 'Precio no puede ser negativo';
+    } else if (precioParsed.value > MAX_PRECIO) {
+      errores.precio = `El precio no puede exceder ${MAX_PRECIO.toLocaleString('es-CO')}`;
     }
 
+    // Stock
     const stockParsed = parseNumeroPositivo(stock);
     if (stockParsed.error) {
       errores.stock = `Stock ${stockParsed.error.toLowerCase()}`;
@@ -132,12 +132,14 @@ exports.crearProducto = async (req, res) => {
       errores.stock = 'Stock no puede superar 1000 unidades';
     }
 
+    // Categoría
     if (!categoria) {
       errores.categoria = 'Categoría obligatoria';
     } else if (!CATEGORIAS_VALIDAS.includes(categoria)) {
       errores.categoria = 'Categoría inválida';
     }
 
+    // Imagen requerida
     if (!req.file) {
       errores.imagen = 'Debes subir una imagen';
     }
@@ -146,13 +148,8 @@ exports.crearProducto = async (req, res) => {
       return res.status(400).json({ errores });
     }
 
-    debug('Subiendo imagen nueva...');
-    console.time?.('UPLOAD_CREATE');
     const subida = await subirCloudinaryDesdeBuffer(req.file.buffer);
-    console.timeEnd?.('UPLOAD_CREATE');
-    debug('Subida OK:', subida.public_id);
 
-    console.time?.('MONGO_CREATE');
     const producto = await Producto.create({
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
@@ -162,13 +159,10 @@ exports.crearProducto = async (req, res) => {
       imagen: subida.secure_url,
       public_id: subida.public_id
     });
-    console.timeEnd?.('MONGO_CREATE');
 
-    console.timeEnd?.('CREATE_TOTAL');
     res.status(201).json(producto);
   } catch (err) {
     console.error('ERROR CREAR PRODUCTO:', err);
-
     if (err.message && err.message.includes('Formato no permitido')) {
       return res.status(400).json({ errores: { imagen: err.message } });
     }
@@ -188,7 +182,6 @@ exports.crearProducto = async (req, res) => {
 
 // =================== Actualizar Producto ===================
 exports.actualizarProducto = async (req, res) => {
-  tmark('TOTAL_UPDATE');
   try {
     const { id } = req.params;
     let updateData = { ...req.body };
@@ -218,12 +211,15 @@ exports.actualizarProducto = async (req, res) => {
       }
     }
 
+    // Precio con tope
     if (updateData.precio !== undefined) {
       const precioParsed = parseNumeroPositivo(updateData.precio);
       if (precioParsed.error) {
         errores.precio = `Precio ${precioParsed.error.toLowerCase()}`;
       } else if (precioParsed.value < 0) {
         errores.precio = 'Precio no puede ser negativo';
+      } else if (precioParsed.value > MAX_PRECIO) {
+        errores.precio = `El precio no puede exceder ${MAX_PRECIO.toLocaleString('es-CO')}`;
       } else {
         updateData.precio = precioParsed.value;
       }
@@ -254,59 +250,36 @@ exports.actualizarProducto = async (req, res) => {
       return res.status(400).json({ errores });
     }
 
+    // Imagen nueva (si se envió)
     let oldPublicId = producto.public_id;
-    let replacingImage = false;
-
     if (req.file) {
-      try {
-        replacingImage = true;
-        debug('Subiendo nueva imagen...');
-        tmark('UPLOAD_NEW');
-        const nueva = await subirCloudinaryDesdeBuffer(req.file.buffer);
-        tend('UPLOAD_NEW');
-        debug('Nueva subida OK:', nueva.public_id);
-        updateData.imagen = nueva.secure_url;
-        updateData.public_id = nueva.public_id;
-      } catch (e) {
-        console.error('Error al subir nueva imagen:', e);
-        return res.status(500).json({ errores: { imagen: 'Error al subir la nueva imagen' } });
-      }
-    }
+      const nueva = await subirCloudinaryDesdeBuffer(req.file.buffer);
+      updateData.imagen = nueva.secure_url;
+      updateData.public_id = nueva.public_id;
 
-    tmark('MONGO_UPDATE');
-    const actualizado = await Producto.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-    tend('MONGO_UPDATE');
+      // Responder rápido
+      const actualizado = await Producto.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+      res.json(actualizado);
 
-    // Responder rápido al cliente
-    res.json(actualizado);
-
-    // Limpieza asíncrona (no retrasa al usuario)
-    if (replacingImage) {
+      // Borrado async de la vieja
       setImmediate(async () => {
-        let pidEliminar = oldPublicId;
-        if (!pidEliminar && producto.imagen) {
-          pidEliminar = extractPublicIdFromUrl(producto.imagen);
-        }
+        let pidEliminar = oldPublicId || extractPublicIdFromUrl(producto.imagen);
         if (pidEliminar) {
           try {
-            tmark('DESTROY_OLD');
             await cloudinary.uploader.destroy(pidEliminar);
-            tend('DESTROY_OLD');
             debug('Imagen anterior eliminada async:', pidEliminar);
           } catch (e) {
             console.warn('No se pudo eliminar imagen anterior (async):', pidEliminar, e.message);
           }
         }
       });
+      return;
     }
 
-    tend('TOTAL_UPDATE');
+    // Sin imagen
+    const actualizado = await Producto.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    res.json(actualizado);
   } catch (err) {
-    tend('TOTAL_UPDATE');
     console.error('ERROR ACTUALIZAR PRODUCTO:', err);
     if (err.message && err.message.includes('Formato no permitido')) {
       return res.status(400).json({ errores: { imagen: err.message } });
@@ -321,9 +294,6 @@ exports.actualizarProducto = async (req, res) => {
       }
       return res.status(400).json({ errores });
     }
-    if (err.name === 'CastError') {
-      return res.status(400).json({ errores: { [err.path]: 'Formato inválido' } });
-    }
     res.status(500).json({ mensaje: 'Error al actualizar', error: err.message });
   }
 };
@@ -335,17 +305,10 @@ exports.eliminarProducto = async (req, res) => {
     const producto = await Producto.findByIdAndDelete(id);
     if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });
 
-    let pid = producto.public_id;
-    if (!pid && producto.imagen) {
-      pid = extractPublicIdFromUrl(producto.imagen);
-    }
-
+    let pid = producto.public_id || extractPublicIdFromUrl(producto.imagen);
     if (pid) {
-      // No hace falta esperar; pero aquí sí esperamos para asegurar limpieza
       try {
-        tmark('DESTROY_DELETE');
         await cloudinary.uploader.destroy(pid);
-        tend('DESTROY_DELETE');
         debug('Imagen eliminada en Cloudinary:', pid);
       } catch (e) {
         console.warn('No se pudo eliminar imagen en Cloudinary:', pid, e.message);
@@ -359,7 +322,7 @@ exports.eliminarProducto = async (req, res) => {
   }
 };
 
-// =================== Productos Aleatorios ===================
+// =================== Aleatorios y Filtros (igual) ===================
 exports.obtenerProductosAleatorios = async (req, res) => {
   try {
     const { cantidad = 3 } = req.query;
@@ -371,25 +334,15 @@ exports.obtenerProductosAleatorios = async (req, res) => {
   }
 };
 
-// =================== Productos con Filtros ===================
 exports.obtenerProductosConFiltros = async (req, res) => {
   try {
     const { categoria, busqueda, pagina = 1, limite = 9 } = req.query;
     let filtros = {};
-
-    if (categoria && categoria !== 'todas') {
-      filtros.categoria = categoria;
-    }
-    if (busqueda) {
-      filtros.nombre = { $regex: busqueda, $options: 'i' };
-    }
+    if (categoria && categoria !== 'todas') filtros.categoria = categoria;
+    if (busqueda) filtros.nombre = { $regex: busqueda, $options: 'i' };
 
     const saltar = (parseInt(pagina) - 1) * parseInt(limite);
-    const productos = await Producto.find(filtros)
-      .sort({ fechaRegistro: -1 })
-      .skip(saltar)
-      .limit(parseInt(limite));
-
+    const productos = await Producto.find(filtros).sort({ fechaRegistro: -1 }).skip(saltar).limit(parseInt(limite));
     const totalProductos = await Producto.countDocuments(filtros);
     const totalPaginas = Math.ceil(totalProductos / parseInt(limite));
     const paginaActual = parseInt(pagina);

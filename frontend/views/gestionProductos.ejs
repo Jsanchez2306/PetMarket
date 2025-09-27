@@ -17,33 +17,14 @@
   <link rel="stylesheet" href="/css/buttons.css">
   <link rel="icon" href="/Imagenes/HuellaPerro.png">
   <style>
-    .img-preview {
-      max-width: 100%;
-      max-height: 180px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #dee2e6;
-    }
-    .dato-label {
-      font-weight: 600;
-    }
-    .table td, .table th {
-      vertical-align: middle;
-    }
-    .modal-body small.text-muted {
-      font-size: .75rem;
-    }
+    .img-preview { max-width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6; }
+    .dato-label { font-weight: 600; }
+    .table td, .table th { vertical-align: middle; }
+    .modal-body small.text-muted { font-size: .75rem; }
   </style>
 </head>
 <body>
-     <!-- Headers: se mostrará solo uno según el rol -->
-    <div id="headerEmpleado" style="display: none;">
-      <%- include('partials/headerEmpleado') %>
-    </div>
-    
-    <div id="headerAdmin" style="display: none;">
-      <%- include('partials/headerAdmin') %>
-    </div>
+  <%- include('partials/headerAdmin') %>
 
   <main class="container my-5 main-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -103,13 +84,13 @@
             <img id="verImagen" class="img-preview mb-2" alt="Imagen producto">
             <div><small class="text-muted" id="verFecha"></small></div>
           </div>
-            <div class="col-md-7">
-              <p><span class="dato-label">Nombre:</span> <span id="verNombre"></span></p>
-              <p><span class="dato-label">Descripción:</span> <span id="verDescripcion"></span></p>
-              <p><span class="dato-label">Precio:</span> $<span id="verPrecio"></span></p>
-              <p><span class="dato-label">Stock:</span> <span id="verStock"></span></p>
-              <p><span class="dato-label">Categoría:</span> <span id="verCategoria" class="badge bg-secondary"></span></p>
-            </div>
+          <div class="col-md-7">
+            <p><span class="dato-label">Nombre:</span> <span id="verNombre"></span></p>
+            <p><span class="dato-label">Descripción:</span> <span id="verDescripcion"></span></p>
+            <p><span class="dato-label">Precio:</span> $<span id="verPrecio"></span></p>
+            <p><span class="dato-label">Stock:</span> <span id="verStock"></span></p>
+            <p><span class="dato-label">Categoría:</span> <span id="verCategoria" class="badge bg-secondary"></span></p>
+          </div>
         </div>
       </div>
     </div>
@@ -129,22 +110,24 @@
               <div class="col-md-6">
                 <label class="form-label">Nombre</label>
                 <div id="error-add-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="text" class="form-control" id="add-nombre" required>
+                <input type="text" class="form-control" id="add-nombre" name="nombre" required>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Precio (COL)</label>
                 <div id="error-add-precio" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" step="0.01" min="0" class="form-control" id="add-precio" required>
+                <input type="number" step="0.01" min="0" max="3000000" class="form-control" id="add-precio" name="precio" required>
+                <small class="text-muted">Máximo permitido: $ 3.000.000</small>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Stock</label>
                 <div id="error-add-stock" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" min="0" class="form-control" id="add-stock" required>
+                <input type="number" min="0" max="1000" class="form-control" id="add-stock" name="stock" required>
+                <small class="text-muted">Máximo: 1000 unidades</small>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Categoría</label>
                 <div id="error-add-categoria" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <select class="form-select" id="add-categoria" required>
+                <select class="form-select" id="add-categoria" name="categoria" required>
                   <option value="">Seleccione...</option>
                   <option value="accesorios">Accesorios</option>
                   <option value="ropa">Ropa</option>
@@ -155,13 +138,13 @@
               <div class="col-12">
                 <label class="form-label">Descripción</label>
                 <div id="error-add-descripcion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <textarea class="form-control" rows="3" id="add-descripcion" required></textarea>
+                <textarea class="form-control" rows="3" id="add-descripcion" name="descripcion" required></textarea>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Imagen</label>
                 <div id="error-add-imagen" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="file" accept="image/*" class="form-control" id="add-imagen" required>
-                <small class="text-muted">Formatos: jpg, jpeg, png, webp, gif</small>
+                <input type="file" accept="image/*" class="form-control" id="add-imagen" name="imagen" required>
+                <small class="text-muted">Formatos: jpg, jpeg, png, webp, gif. Máx: 5MB</small>
               </div>
               <div class="col-md-6 d-flex flex-column align-items-center">
                 <img id="previewAdd" class="img-preview d-none mt-2" alt="Preview">
@@ -189,22 +172,24 @@
               <div class="col-md-6">
                 <label class="form-label">Nombre</label>
                 <div id="error-edit-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="text" class="form-control" id="edit-nombre" required>
+                <input type="text" class="form-control" id="edit-nombre" name="nombre" required>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Precio (COL)</label>
                 <div id="error-edit-precio" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" step="0.01" min="0" class="form-control" id="edit-precio" required>
+                <input type="number" step="0.01" min="0" max="3000000" class="form-control" id="edit-precio" name="precio" required>
+                <small class="text-muted">Máximo permitido: $ 3.000.000</small>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Stock</label>
                 <div id="error-edit-stock" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" min="0" class="form-control" id="edit-stock" required>
+                <input type="number" min="0" max="1000" class="form-control" id="edit-stock" name="stock" required>
+                <small class="text-muted">Máximo: 1000 unidades</small>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Categoría</label>
                 <div id="error-edit-categoria" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <select class="form-select" id="edit-categoria" required>
+                <select class="form-select" id="edit-categoria" name="categoria" required>
                   <option value="">Seleccione...</option>
                   <option value="accesorios">Accesorios</option>
                   <option value="ropa">Ropa</option>
@@ -215,13 +200,13 @@
               <div class="col-12">
                 <label class="form-label">Descripción</label>
                 <div id="error-edit-descripcion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <textarea class="form-control" rows="3" id="edit-descripcion" required></textarea>
+                <textarea class="form-control" rows="3" id="edit-descripcion" name="descripcion" required></textarea>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Imagen (opcional)</label>
                 <div id="error-edit-imagen" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="file" accept="image/*" class="form-control" id="edit-imagen">
-                <small class="text-muted">Si no seleccionas una nueva, se mantiene la actual.</small>
+                <input type="file" accept="image/*" class="form-control" id="edit-imagen" name="imagen">
+                <small class="text-muted">Si no seleccionas una nueva, se mantiene la actual. Máx: 5MB</small>
               </div>
               <div class="col-md-6 d-flex flex-column align-items-center">
                 <img id="previewEdit" class="img-preview mt-2" alt="Preview">
@@ -281,11 +266,9 @@
 
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-
   <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
   <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/cargarHeaderSegunRol.js"></script>
   <script src="/js/gestionProductos.js"></script>
 </body>
 </html>
