@@ -11,7 +11,6 @@ module.exports = {
     },
 
     firefox: {
-      // NO arrancamos geckodriver; nos conectamos a uno ya iniciado (127.0.0.1:4446)
       webdriver: {
         start_process: false,
         host: '127.0.0.1',
@@ -21,9 +20,7 @@ module.exports = {
       desiredCapabilities: {
         browserName: 'firefox',
         'moz:firefoxOptions': {
-          // Para headless en servidores sin GUI, puedes activar con env HEADLESS=1
           args: process.env.HEADLESS === '1' ? ['-headless'] : [],
-          // Solo en Windows forzamos la ruta de Firefox
           ...(isWin ? { binary: 'C:\\\\Program Files\\\\Mozilla Firefox\\\\firefox.exe' } : {})
         }
       }

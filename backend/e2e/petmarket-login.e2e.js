@@ -24,13 +24,11 @@ describe('Login de PetMarket', function () {
     const PASSWORD = process.env.E2E_PASS || '123456';
 
     browser
-      // Landing
       .url(BASE_URL)
       .waitForElementVisible('body', 10000)
       .assert.titleContains('PetMarket')
       .pause(STEP_PAUSE)
 
-      // Abrir modal de login
       .waitForElementVisible(BTN_OPEN_LOGIN, 8000)
       .pause(STEP_PAUSE)
       .click(BTN_OPEN_LOGIN)
@@ -38,7 +36,6 @@ describe('Login de PetMarket', function () {
       .waitForElementVisible(MODAL_LOGIN, 8000)
       .pause(STEP_PAUSE)
 
-      // Completar y enviar
       .waitForElementVisible(FORM_LOGIN, 8000)
       .pause(STEP_PAUSE)
       .setValue(INPUT_EMAIL, USERNAME)
@@ -48,7 +45,6 @@ describe('Login de PetMarket', function () {
       .click(BTN_SUBMIT)
       .pause(STEP_PAUSE)
 
-      // Esperar éxito o error
       .perform((browser, done) => {
         browser.waitForElementVisible(MODAL_SUCCESS, 8000, false, res => {
           if (res.status === 0) return done();
@@ -80,7 +76,7 @@ describe('Login de PetMarket', function () {
       .pause(STEP_PAUSE)
 
       .pause(END_PAUSE)
-      
+
       .end();
   });
 });

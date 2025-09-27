@@ -6,7 +6,7 @@ describe('Smoke E2E', function () {
       .url(baseUrl)
       .waitForElementVisible('body', 10000)
       .assert.titleContains('PetMarket')
-      .pause(1000) // opcional para observar
+      .pause(1000)
       .end();
   });
 });
