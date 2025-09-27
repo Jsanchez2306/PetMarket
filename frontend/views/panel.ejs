@@ -24,14 +24,7 @@
   </head>
 
   <body>
-    <!-- Headers: se mostrará solo uno según el rol -->
-    <div id="headerEmpleado" style="display: none;">
-      <%- include('partials/headerEmpleado') %>
-    </div>
-    
-    <div id="headerAdmin" style="display: none;">
-      <%- include('partials/headerAdmin') %>
-    </div>
+    <%- include('partials/headerUnificado') %>
 
     <main class="container my-5">
       <section id="estadisticas" class="mb-5">
@@ -54,7 +47,8 @@
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
       defer
     ></script>
-    <script src="/js/cargarHeaderSegunRol.js"></script>
+    <!-- Header unificado maneja toda la lógica de roles -->
+    <script src="/js/headerUnificado.js"></script>
     
   </body>
 </html>

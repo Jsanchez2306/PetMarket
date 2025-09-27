@@ -17,7 +17,7 @@
     
     </head>
 <body>
-    <%- include('partials/header') %>
+    <%- include('partials/headerUnificado') %>
 
     <main class="d-flex flex-column justify-content-center align-items-center vh-100 text-center">
         <img src="/Imagenes/restriccion.png" alt="Acceso Denegado" class="mb-4" style="max-width: 300px;">
@@ -30,13 +30,7 @@ it p
 
     <%- include('partials/footer') %>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/register.js"></script>
-    <script src="/js/login.js"></script>
-    <script src="/js/logout.js"></script>
-    <script src="/js/validarAuth.js"></script>
-    <script src="/js/perfil.js"></script>
-    <script src="/js/recuperarPassword.js"></script>
-    <script src="/js/catalogo.js"></script>
-    <script src="/js/AuthSystem.js"></script>
+    <!-- Header unificado maneja toda la autenticación -->
+    <script src="/js/headerUnificado.js"></script>
 </body>
 </html>
