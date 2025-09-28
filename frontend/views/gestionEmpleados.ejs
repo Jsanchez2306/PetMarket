@@ -1,253 +1,245 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PetMarket - Gestión de Empleados.">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.css">
-    <link rel="stylesheet" href="/css/header.css">
-    <link rel="stylesheet" href="/css/footer.css">
-    <link rel="stylesheet" href="/css/assets.css">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/buttons.css">
-    <link rel="icon" href="/Imagenes/HuellaPerro.png">
-    <title>Gestión de Empleados</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="PetMarket - Gestión de Empleados."/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.css"/>
+  <link rel="stylesheet" href="/css/header.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <link rel="stylesheet" href="/css/assets.css"/>
+  <link rel="stylesheet" href="/css/main.css"/>
+  <link rel="stylesheet" href="/css/buttons.css"/>
+  <link rel="icon" href="/Imagenes/HuellaPerro.png"/>
+  <title>Gestión de Empleados</title>
 </head>
-
 <body>
-    <%- include('partials/headerUnificado') %>
+  <%- include('partials/headerUnificado') %>
 
-        <main class="container my-5 main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold">Gestión de Empleados <i class="fas fa-tools"></i></h2>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarEmpleado">
-                    <i class="fas fa-plus"></i> Agregar Empleado
-                </button>
-            </div>
+  <main class="container my-5 main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">Gestión de Empleados <i class="fas fa-tools"></i></h2>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarEmpleado">
+        <i class="fas fa-plus"></i> Agregar Empleado
+      </button>
+    </div>
 
-            <div class="table-responsive">
-                <table id="tablaEmpleados" class="table table-striped table-bordered dt-responsive nowrap text-center"
-                    style="width:100%;">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>Cédula</th>
-                            <th>Nombre</th>
-                            <th>Cargo</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% empleados.forEach(empleado=> { %>
-                            <tr data-id="<%= empleado._id %>" data-nombre="<%= empleado.nombre %>"
-                                data-email="<%= empleado.email %>" data-telefono="<%= empleado.telefono || '' %>"
-                                data-direccion="<%= empleado.direccion || '' %>" data-cargo="<%= empleado.cargo %>">
-                                <td>
-                                    <%= empleado.cedula %>
-                                </td>
-                                <td>
-                                    <%= empleado.nombre %>
-                                </td>
-                                <td>
-                                    <%= empleado.cargo %>
-                                </td>
-                                <td>
-                                    <button class="btn btn-info btn-sm btn-ver"><i class="fas fa-eye"></i></button>
-                                    <button class="btn btn-warning btn-sm btn-editar"><i
-                                            class="fas fa-edit"></i></button>
-                                    <button class="btn btn-danger btn-sm btn-eliminar"><i
-                                            class="fas fa-trash-alt"></i></button>
-                                </td>
-                            </tr>
-                            <% }) %>
-                    </tbody>
-                </table>
-            </div>
-        </main>
+    <div class="table-responsive">
+      <table id="tablaEmpleados" class="table table-striped table-bordered dt-responsive nowrap text-center" style="width:100%;">
+        <thead class="table-primary">
+          <tr>
+            <th>Cédula</th>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% empleados.forEach(empleado => { %>
+            <tr
+              data-id="<%= empleado._id %>"
+              data-nombre="<%= empleado.nombre %>"
+              data-email="<%= empleado.email %>"
+              data-telefono="<%= empleado.telefono || '' %>"
+              data-direccion="<%= empleado.direccion || '' %>"
+              data-cargo="<%= empleado.cargo %>"
+            >
+              <td><%= empleado.cedula %></td>
+              <td><%= empleado.nombre %></td>
+              <td><%= empleado.cargo %></td>
+              <td>
+                <button class="btn btn-info btn-sm btn-ver" title="Ver"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-warning btn-sm btn-editar" title="Editar"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm btn-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </main>
 
-        <!-- Modal Ver Empleado -->
-        <div class="modal fade" id="modalVerEmpleado" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">Detalles del Empleado</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p><strong>Cédula:</strong> <span id="verCedula"></span></p>
-                        <p><strong>Nombre:</strong> <span id="verNombre"></span></p>
-                        <p><strong>Email:</strong> <span id="verEmail"></span></p>
-                        <p><strong>Teléfono:</strong> <span id="verTelefono"></span></p>
-                        <p><strong>Dirección:</strong> <span id="verDireccion"></span></p>
-                        <p><strong>Cargo:</strong> <span id="verCargo"></span></p>
-                    </div>
-                </div>
-            </div>
+  <!-- Modal Ver Empleado -->
+  <div class="modal fade" id="modalVerEmpleado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">Detalles del Empleado</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-
-        <!-- Modal Editar Empleado -->
-        <div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">Editar Empleado</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="formEditarEmpleado">
-                            <input type="hidden" id="editarId">
-                            <div class="mb-3">
-                                <label for="edit-nombre" class="form-label">Nombre</label>
-                                <div id="error-edit-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-nombre" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-cedula" class="form-label">Cédula</label>
-                                <div id="error-edit-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-cedula" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-email" class="form-label">Email</label>
-                                <div id="error-edit-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="email" class="form-control" id="edit-email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-telefono" class="form-label">Teléfono</label>
-                                <div id="error-edit-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-telefono" placeholder="0000000000">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-direccion" class="form-label">Dirección</label>
-                                <div id="error-edit-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-direccion" placeholder="Sin dirección">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-cargo" class="form-label">Cargo</label>
-                                <div id="error-edit-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-cargo" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-password" class="form-label">Contraseña</label>
-                                <div id="error-edit-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-password"
-                                    placeholder="Dejar vacío para no cambiar">
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+        <div class="modal-body">
+          <p><strong>Cédula:</strong> <span id="verCedula"></span></p>
+          <p><strong>Nombre:</strong> <span id="verNombre"></span></p>
+          <p><strong>Email:</strong> <span id="verEmail"></span></p>
+          <p><strong>Teléfono:</strong> <span id="verTelefono"></span></p>
+          <p><strong>Dirección:</strong> <span id="verDireccion"></span></p>
+          <p><strong>Cargo:</strong> <span id="verCargo"></span></p>
         </div>
+      </div>
+    </div>
+  </div>
 
-
-
-        <!-- Modales de confirmación -->
-        <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">¡Éxito!</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <p>El empleado ha sido actualizado correctamente.</p>
-                    </div>
-                </div>
-            </div>
+  <!-- Modal Editar Empleado -->
+  <div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">Editar Empleado</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-
-        <div class="modal fade" id="confirmarEliminacionModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">Confirmar eliminación</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">¿Estás seguro que deseas eliminar este empleado?</div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
-                    </div>
-                </div>
+        <div class="modal-body">
+          <form id="formEditarEmpleado">
+            <input type="hidden" id="editarId" />
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <div id="error-edit-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="edit-nombre" required />
             </div>
-        </div>
-
-        <div class="modal fade" id="eliminacionExitosaModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">¡Eliminado!</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">El empleado ha sido eliminado exitosamente.</div>
-                </div>
+            <div class="mb-3">
+              <label class="form-label">Cédula</label>
+              <div id="error-edit-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="edit-cedula" required />
+              <small class="text-muted">6 a 15 dígitos numéricos</small>
             </div>
-        </div>
-
-        <div class="modal fade" id="modalAgregarEmpleado" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content custom-modal">
-                    <div class="modal-header custom-modal-header">
-                        <h5 class="modal-title">Agregar Nuevo Empleado</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="formAgregarEmpleado">
-                            <div class="mb-3">
-                                <label for="add-nombre" class="form-label">Nombre</label>
-                                <div id="error-add-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="add-nombre" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-cedula" class="form-label">Cédula</label>
-                                <div id="error-add-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="add-cedula" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-email" class="form-label">Email</label>
-                                <div id="error-add-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="email" class="form-control" id="add-email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-telefono" class="form-label">Teléfono</label>
-                                <div id="error-add-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="add-telefono" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-direccion" class="form-label">Dirección</label>
-                                <div id="error-add-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="add-direccion" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-cargo" class="form-label">Cargo</label>
-                                <div id="error-add-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="add-cargo" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-password" class="form-label">Contraseña</label>
-                                <div id="error-add-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="password" class="form-control" id="add-password" required>
-                            </div>
-                            <button type="submit" class="btn btn-success w-100">Agregar Empleado</button>
-                        </form>
-                    </div>
-                </div>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <div id="error-edit-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="email" class="form-control" id="edit-email" required />
             </div>
+            <div class="mb-3">
+              <label class="form-label">Teléfono</label>
+              <div id="error-edit-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="edit-telefono" placeholder="0000000000" />
+              <small class="text-muted">7 a 15 dígitos numéricos</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Dirección</label>
+              <div id="error-edit-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="edit-direccion" placeholder="Sin dirección" />
+              <small class="text-muted">Entre 5 y 100 caracteres</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Cargo</label>
+              <div id="error-edit-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="edit-cargo" required />
+              <small class="text-muted">Mínimo 3 caracteres</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Contraseña</label>
+              <div id="error-edit-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="edit-password" placeholder="Dejar vacío para no cambiar" />
+              <small class="text-muted">Mínimo 6 caracteres, con letras y números</small>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
+          </form>
         </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Modal Agregar Empleado -->
+  <div class="modal fade" id="modalAgregarEmpleado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">Agregar Nuevo Empleado</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formAgregarEmpleado">
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <div id="error-add-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="add-nombre" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Cédula</label>
+              <div id="error-add-cedula" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="add-cedula" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <div id="error-add-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="email" class="form-control" id="add-email" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Teléfono</label>
+              <div id="error-add-telefono" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="add-telefono" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Dirección</label>
+              <div id="error-add-direccion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="add-direccion" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Cargo</label>
+              <div id="error-add-cargo" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="text" class="form-control" id="add-cargo" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Contraseña</label>
+              <div id="error-add-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+              <input type="password" class="form-control" id="add-password" required />
+            </div>
+            <button type="submit" class="btn btn-success w-100">Agregar Empleado</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Modales de confirmación -->
+  <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">¡Éxito!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p>Operación realizada correctamente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <%- include('partials/footer') %>
+  <div class="modal fade" id="confirmarEliminacionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">Confirmar eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">¿Estás seguro que deseas eliminar este empleado?</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-            <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
-            <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-            <!-- Header unificado maneja toda la autenticación -->
-            <script src="/js/headerUnificado.js"></script>
-            <script src="/js/gestionEmpleados.js"></script>
+  <div class="modal fade" id="eliminacionExitosaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">¡Eliminado!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">El empleado ha sido eliminado exitosamente.</div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+  <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/gestionEmpleados.js"></script>
 </body>
-
 </html>
