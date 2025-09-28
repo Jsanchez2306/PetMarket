@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="1"
+            failures="0"
+            tests="0">
+
+  <testsuite name="Login de PetMarket" id="petmarket-login.e2e"
+    errors="1" failures="0" hostname="" package="petmarket-login.e2e" skipped="1"
+    tests="0" time="0.003000" timestamp="">
+  
+
+  
+    <system-err>
+       An error occurred while creating a new GeckoDriver session: Connection refused to 127.0.0.1:4446. If the Webdriver/Selenium service is managed by Nightwatch, check if &#34;start_process&#34; is set to &#34;true&#34;.
+    </system-err>
+  
+
+    
+    <error message="An error occurred while creating a new GeckoDriver session: Connection refused to 127.0.0.1:4446. If the Webdriver/Selenium service is managed by Nightwatch, check if &#34;start_process&#34; is set to &#34;true&#34;."><![CDATA[
+      Error: An error occurred while creating a new GeckoDriver session: Connection refused to 127.0.0.1:4446. If the Webdriver/Selenium service is managed by Nightwatch, check if &#34;start_process&#34; is set to &#34;true&#34;.
+    at Timeout._onTimeout (/home/finde/Escritorio/PetMarket/backend/node_modules/nightwatch/lib/transport/selenium-webdriver/httpclient.js:90:27)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
+      ]]></error>  
+
+  
+    
+    <testcase
+      name="abre landing, abre login, inicia sesión, valida éxito y acepta modal" classname="Login de PetMarket">
+      <skipped />
+    </testcase>
+    
+  
+  </testsuite>
+</testsuites>

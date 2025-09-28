@@ -52,6 +52,7 @@ function validarAuth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('🔐 Token decodificado:', JSON.stringify(decoded, null, 2));
     req.user = decoded;
     next();
   } catch (error) {
@@ -63,12 +64,12 @@ function validarAuth(req, res, next) {
   }
 }
 
-// Middleware específico para el carrito que soporta sesiones
+// Middleware específico para el carrito que soporta sesiones y JWT
 function validarAuthCarrito(req, res, next) {
   console.log('🔐 Validando autenticación para carrito');
   console.log('Session exists:', !!req.session);
   console.log('Session user:', req.session?.user);
-  console.log('Session user ID:', req.session?.user?.id);
+  console.log('Authorization header:', req.headers.authorization);
   
   // Verificar primero si hay una sesión activa
   if (req.session && req.session.user && req.session.user.id) {
@@ -77,20 +78,35 @@ function validarAuthCarrito(req, res, next) {
     return next();
   }
 
+  // Si no hay sesión, verificar JWT
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ Usuario autenticado via JWT:', decoded.email);
+      req.user = decoded;
+      return next();
+    } catch (error) {
+      console.log('❌ Token JWT inválido:', error.message);
+    }
+  }
+
   console.log('❌ Usuario no autenticado');
   // Si es una petición AJAX, devolver JSON
-  if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+  if (req.xhr || req.headers.accept.indexOf('json') > -1 || req.headers['content-type'] === 'application/json') {
     return res.status(401).json({ mensaje: 'Usuario no autenticado' });
   } else {
     // Si es una petición normal, redirigir al index
-    return res.redirect('/');
+    return res.redirect('/?login=true');
   }
 }
 
 // Middleware para validar rol de administrador
 function validarAdmin(req, res, next) {
   console.log('🔐 === VALIDANDO ROL ADMINISTRADOR ===');
-  console.log('🔐 Usuario:', req.user);
+  console.log('🔐 Usuario completo:', JSON.stringify(req.user, null, 2));
+  console.log('🔐 Sesión:', JSON.stringify(req.session?.user, null, 2));
   
   // Verificar si el usuario está autenticado
   if (!req.user) {
@@ -110,10 +126,14 @@ function validarAdmin(req, res, next) {
   // Verificar si el usuario es administrador
   const esAdmin = req.user.rol === 'admin' || req.user.rol === 'administrador';
   console.log('🔐 ¿Es admin?:', esAdmin);
-  console.log('🔐 Rol del usuario:', req.user.rol);
+  console.log('🔐 Rol del usuario:', `"${req.user.rol}"`);
+  console.log('🔐 Tipo de usuario:', req.user.tipoUsuario);
+  console.log('🔐 Comparación admin:', req.user.rol === 'admin');
+  console.log('🔐 Comparación administrador:', req.user.rol === 'administrador');
   
   if (!esAdmin) {
     console.log('❌ Acceso denegado - No es administrador');
+    console.log('❌ Redirigiendo a /restriccion');
     const isAjax = req.xhr || 
                    req.headers.accept?.includes('application/json') || 
                    req.headers['content-type']?.includes('application/json') ||
