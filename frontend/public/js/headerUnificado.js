@@ -324,11 +324,29 @@ class HeaderUnificado {
     }
   }
 
+  // Helper para parsear JSON seguro
+  async parseJSONSafe(response) {
+    try {
+      const text = await response.text();
+      if (!text) return {};
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  }
+
   async handleLogin(e) {
     e.preventDefault();
     
     const email = document.getElementById('loginCorreo').value;
     const contrasena = document.getElementById('loginPassword').value;
+
+    // Ocultar error previo en el modal de login
+    const errorAlert = document.getElementById('loginMensajeError');
+    if (errorAlert) {
+      errorAlert.classList.add('d-none');
+      errorAlert.textContent = '';
+    }
 
     try {
       const response = await fetch('/auth/login', {
@@ -336,33 +354,78 @@ class HeaderUnificado {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include', // Importante: incluir cookies para mantener sesión
+        credentials: 'include', // mantener cookies de sesión
         body: JSON.stringify({ email, contrasena })
       });
 
-      const data = await response.json();
+      const data = await this.parseJSONSafe(response);
 
       if (response.ok) {
         // Guardar token y actualizar header
         this.token = data.token;
-        localStorage.setItem('token', data.token);
+        if (data.token) localStorage.setItem('token', data.token);
         this.loadUserInfo();
         this.updateHeader();
 
-        // Cerrar modal y mostrar éxito
+        // Cerrar modal de login
         const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
         if (loginModal) loginModal.hide();
 
-        this.showSuccessMessage('¡Bienvenido!', `Has iniciado sesión correctamente, ${data.usuario.nombre}`);
+        // Mensaje de bienvenida y URL de redirección
+        const nombreUsuario = (data.usuario && (data.usuario.nombre || data.usuario.email)) || email;
+        const tipoTexto = data.tipoUsuario === 'empleado' ? 'empleado' : (data.rol === 'admin' ? 'admin' : 'cliente');
 
-        // Redirigir según rol si es necesario
-        this.handlePostLoginRedirect(data);
+        let redirectUrl = '/';
+        if (data.rol === 'admin') {
+          redirectUrl = '/panel';
+        } else if (data.tipoUsuario === 'empleado') {
+          redirectUrl = '/productos';
+        } else {
+          redirectUrl = '/';
+        }
+
+        // Configurar y mostrar modal bonito de login
+        const msg = document.getElementById('loginBienvenidaMensaje');
+        if (msg) msg.textContent = `¡Bienvenido ${tipoTexto}, ${nombreUsuario}!`;
+
+        const bonitoEl = document.getElementById('loginExitosoModal');
+        if (bonitoEl) {
+          const bonitoModal = new bootstrap.Modal(bonitoEl);
+          bonitoModal.show();
+
+          const btnContinuar = document.getElementById('loginContinuarBtn');
+          let timerId = setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1200); // igual que tus CRUD
+
+          if (btnContinuar) {
+            btnContinuar.onclick = () => {
+              if (timerId) clearTimeout(timerId);
+              window.location.href = redirectUrl;
+            };
+          }
+
+          // Si quieres cancelar la redirección automática al cerrar con la "X", descomenta:
+          // bonitoEl.addEventListener('hide.bs.modal', () => { if (timerId) clearTimeout(timerId); });
+        } else {
+          // Fallback si no existe el modal
+          window.location.href = redirectUrl;
+        }
       } else {
-        this.showErrorMessage('Error de login', data.mensaje);
+        // Mostrar error dentro del modal de login
+        const loginError = document.getElementById('loginMensajeError');
+        if (loginError) {
+          loginError.textContent = data.mensaje || 'Verifica tu correo y contraseña e intenta nuevamente.';
+          loginError.classList.remove('d-none');
+        }
       }
     } catch (error) {
       console.error('Error en login:', error);
-      this.showErrorMessage('Error de conexión', 'No se pudo conectar con el servidor');
+      const loginError = document.getElementById('loginMensajeError');
+      if (loginError) {
+        loginError.textContent = 'Error de conexión. No se pudo conectar con el servidor.';
+        loginError.classList.remove('d-none');
+      }
     }
   }
 
@@ -378,7 +441,7 @@ class HeaderUnificado {
       return;
     }
 
-    // Limpiar campos vacijos para campos opcionales
+    // Limpiar campos vacíos para campos opcionales
     if (!registerData.telefono) delete registerData.telefono;
     if (!registerData.direccion) delete registerData.direccion;
     
@@ -393,11 +456,11 @@ class HeaderUnificado {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include', // Importante: incluir cookies para mantener sesión
+        credentials: 'include',
         body: JSON.stringify(registerData)
       });
 
-      const data = await response.json();
+      const data = await this.parseJSONSafe(response);
       console.log('📨 Respuesta del servidor:', data);
 
       if (response.ok) {
@@ -409,14 +472,15 @@ class HeaderUnificado {
           this.updateHeader();
         }
 
-        // Cerrar modal y mostrar éxito
+        // Cerrar modal y mostrar éxito (notificación toast)
         const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
         if (registerModal) registerModal.hide();
 
         this.showSuccessMessage('¡Cuenta creada!', 'Tu cuenta ha sido creada exitosamente');
         
         // Limpiar formulario
-        document.getElementById('formRegistro').reset();
+        const form = document.getElementById('formRegistro');
+        if (form) form.reset();
         this.hideErrorInElement('registroMensajeError');
       } else {
         this.showErrorInElement('registroMensajeError', data.mensaje || 'Error en el registro');
@@ -427,16 +491,8 @@ class HeaderUnificado {
     }
   }
 
-  handlePostLoginRedirect(data) {
-    // Solo redirigir empleados a su área de trabajo
-    setTimeout(() => {
-      if (data.tipoUsuario === 'empleado') {
-        window.location.href = '/productos';
-      } else if (data.rol === 'admin') {
-        window.location.href = '/panel';
-      }
-      // Los clientes se quedan en la página actual
-    }, 1500);
+  handlePostLoginRedirect(_data) {
+    // Ya no se usa: la redirección se maneja con el modal de éxito (1200 ms)
   }
 
   async loadProfileData() {
@@ -583,7 +639,7 @@ class HeaderUnificado {
       const data = await response.json();
 
       if (response.ok) {
-        // Mostrar mensaje de éxito
+        // Mostrar mensaje de éxito (podemos luego migrar a un modal si quieres)
         alert('Tu cuenta ha sido eliminada exitosamente. Serás redirigido a la página principal.');
         
         // Cerrar modal
@@ -674,7 +730,8 @@ class HeaderUnificado {
         exitoModal.show();
 
         // Limpiar formulario
-        document.getElementById('formRecuperarPassword').reset();
+        const form = document.getElementById('formRecuperarPassword');
+        if (form) form.reset();
       } else {
         // Mostrar error en el mismo modal
         this.showErrorInElement('recuperarMensajeError', data.mensaje || 'El correo electrónico no está registrado en nuestro sistema.');
@@ -776,7 +833,7 @@ class HeaderUnificado {
       if (notification.parentNode) {
         notification.remove();
       }
-    }, 5000);
+    }, 2000);
   }
 
   showErrorInElement(elementId, message) {
@@ -921,7 +978,7 @@ class HeaderUnificado {
           button.classList.remove('btn-success');
           button.classList.add('btn-primary');
           button.disabled = false;
-        }, 2000);
+        }, 100);
       } else {
         throw new Error(data.mensaje || 'Error al agregar producto');
       }
