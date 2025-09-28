@@ -320,7 +320,7 @@
               <label for="perfilNombre" class="form-label">Nombre y Apellido *</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-user"></i></span>
-                <input type="text" class="form-control" id="perfilNombre" required 
+                <input type="text" class="form-control" id="perfilNombre" name="nombre" required 
                        minlength="2" maxlength="50" 
                        pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
                        title="Solo se permiten letras y espacios">
@@ -331,7 +331,7 @@
               <label for="perfilCorreo" class="form-label">Correo electrónico *</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                <input type="email" class="form-control" id="perfilCorreo" required readonly>
+                <input type="email" class="form-control" id="perfilCorreo" name="email" required readonly>
               </div>
               <div class="form-text">El correo electrónico no se puede modificar</div>
             </div>
@@ -345,7 +345,7 @@
               <label for="perfilTelefono" class="form-label">Teléfono</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                <input type="tel" class="form-control" id="perfilTelefono" 
+                <input type="tel" class="form-control" id="perfilTelefono" name="telefono"
                        pattern="[0-9]{7,15}" 
                        title="Debe tener entre 7 y 15 dígitos numéricos"
                        placeholder="Ej: 1234567890">
@@ -357,7 +357,7 @@
               <label for="perfilDireccion" class="form-label">Dirección</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                <textarea class="form-control" id="perfilDireccion" rows="2" 
+                <textarea class="form-control" id="perfilDireccion" name="direccion" rows="2" 
                           minlength="5" maxlength="100"
                           placeholder="Ej: Calle 123 #45-67, Barrio Centro"></textarea>
               </div>
@@ -373,7 +373,7 @@
               <label for="perfilPasswordActual" class="form-label">Contraseña actual *</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                <input type="password" class="form-control" id="perfilPasswordActual" required
+                <input type="password" class="form-control" id="perfilPasswordActual" name="contrasenaActual" required
                        placeholder="Ingresa tu contraseña actual para confirmar los cambios">
               </div>
               <div class="form-text">Requerida para confirmar cualquier cambio</div>
@@ -383,7 +383,7 @@
               <label for="perfilPasswordNueva" class="form-label">Nueva contraseña (opcional)</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-key"></i></span>
-                <input type="password" class="form-control" id="perfilPasswordNueva" 
+                <input type="password" class="form-control" id="perfilPasswordNueva" name="contrasenaNueva"
                        minlength="6"
                        placeholder="Deja en blanco si no quieres cambiarla">
               </div>
@@ -394,7 +394,7 @@
               <label for="perfilPasswordConfirmar" class="form-label">Confirmar nueva contraseña</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-key"></i></span>
-                <input type="password" class="form-control" id="perfilPasswordConfirmar" 
+                <input type="password" class="form-control" id="perfilPasswordConfirmar" name="confirmarContrasena"
                        minlength="6"
                        placeholder="Confirma la nueva contraseña">
               </div>
@@ -441,10 +441,10 @@
         <form id="formEliminarCuenta">
           <div class="mb-3">
             <label for="eliminarPassword" class="form-label">Confirma tu contraseña para continuar</label>
-            <input type="password" class="form-control" id="eliminarPassword" required>
+            <input type="password" class="form-control" id="eliminarPassword" name="contrasena" required>
           </div>
           <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="confirmarEliminacion" required>
+            <input class="form-check-input" type="checkbox" id="confirmarEliminacion" name="confirmar" required>
             <label class="form-check-label" for="confirmarEliminacion">
               Entiendo que esta acción es irreversible
             </label>
@@ -458,6 +458,95 @@
 </div>
 
 <!-- Incluir otros modales necesarios aquí -->
+
+<!-- Modal de Recuperación de Contraseña -->
+<div class="modal fade" id="recuperarPasswordModal" tabindex="-1" aria-labelledby="recuperarPasswordModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header">
+        <h5 class="modal-title" id="recuperarPasswordModalLabel">Recuperar Contraseña</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formRecuperarPassword">
+          <div class="mb-3">
+            <label for="recuperarEmail" class="form-label">Correo Electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              <input type="email" class="form-control" id="recuperarEmail" required>
+            </div>
+            <div class="form-text">Ingresa tu correo registrado para enviar una nueva contraseña.</div>
+          </div>
+          <div class="alert alert-danger d-none" id="recuperarMensajeError" role="alert"></div>
+          <button type="submit" class="btn btn-primary w-100" id="btnRecuperar">
+            <span class="spinner-border spinner-border-sm d-none me-2" id="recuperarSpinner" role="status"
+              aria-hidden="true"></span>
+            Enviar Nueva Contraseña
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Éxito Recuperación -->
+<div class="modal fade" id="recuperarExitosoModal" tabindex="-1" aria-labelledby="recuperarExitosoModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header">
+        <h5 class="modal-title" id="recuperarExitosoModalLabel">
+          <i class="fas fa-check-circle text-success me-2"></i>
+          Contraseña Enviada
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="mb-3">
+          <i class="fas fa-envelope text-primary" style="font-size: 3rem;"></i>
+        </p>
+        <h6>¡Revisa tu correo electrónico!</h6>
+        <p id="recuperarExitoMensaje" class="text-muted">
+          Hemos enviado una nueva contraseña temporal a tu correo electrónico.
+          Úsala para iniciar sesión y luego cámbiala desde tu perfil.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Error Recuperación -->
+<div class="modal fade" id="recuperarErrorModal" tabindex="-1" aria-labelledby="recuperarErrorModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="modal-header custom-modal-header">
+        <h5 class="modal-title" id="recuperarErrorModalLabel">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+          Error en Recuperación
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="mb-3">
+          <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+        </p>
+        <p id="recuperarErrorMensaje" class="text-muted">
+          El correo electrónico no está registrado en nuestro sistema.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+          data-bs-target="#recuperarPasswordModal">Intentar Nuevamente</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Script del header unificado -->
 <script src="/js/headerUnificado.js"></script>

@@ -16,6 +16,13 @@ class HeaderUnificado {
     this.loadUserInfo();
     this.updateHeader();
     this.setupCartButtons();
+    
+    // Verificar sesión cada 30 segundos para mantenerla activa
+    setInterval(() => {
+      if (this.token && this.userInfo) {
+        this.verifyServerSession();
+      }
+    }, 30000);
   }
 
   setupEventListeners() {
@@ -44,6 +51,20 @@ class HeaderUnificado {
     if (registerForm) {
       registerForm.addEventListener('submit', (e) => this.handleRegister(e));
     }
+
+    // Formulario de recuperación de contraseña
+    const recuperarForm = document.getElementById('formRecuperarPassword');
+    if (recuperarForm) {
+      recuperarForm.addEventListener('submit', (e) => this.handlePasswordRecovery(e));
+    }
+
+    // Event listener para limpiar errores cuando se reabre el modal de recuperación
+    const recuperarModal = document.getElementById('recuperarPasswordModal');
+    if (recuperarModal) {
+      recuperarModal.addEventListener('show.bs.modal', () => {
+        this.clearRecoveryErrors();
+      });
+    }
   }
 
   setupProfileModal() {
@@ -58,6 +79,11 @@ class HeaderUnificado {
     if (profileForm) {
       profileForm.addEventListener('submit', (e) => this.handleProfileUpdate(e));
     }
+
+    const deleteForm = document.getElementById('formEliminarCuenta');
+    if (deleteForm) {
+      deleteForm.addEventListener('submit', (e) => this.handleDeleteAccount(e));
+    }
   }
 
   loadUserInfo() {
@@ -69,11 +95,69 @@ class HeaderUnificado {
     try {
       // Decodificar token JWT
       const payload = JSON.parse(atob(this.token.split('.')[1]));
+      
+      // Verificar si el token está expirado
+      const now = Date.now() / 1000;
+      if (payload.exp && payload.exp < now) {
+        console.log('❌ Token expirado');
+        this.clearAuth();
+        return;
+      }
+
       this.userInfo = payload;
       console.log('✅ Información del usuario cargada:', this.userInfo);
+      
+      // Verificar sesión del servidor también
+      this.verifyServerSession();
     } catch (error) {
       console.error('❌ Error al decodificar token:', error);
       this.clearAuth();
+    }
+  }
+
+  // Verificar que la sesión del servidor también esté activa
+  async verifyServerSession() {
+    try {
+      const response = await fetch('/auth/verify', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        console.log('⚠️ Sesión del servidor inactiva, revalidando...');
+        // Intentar revalidar la sesión con el token
+        await this.revalidateSession();
+      }
+    } catch (error) {
+      console.log('❌ Error verificando sesión del servidor:', error);
+    }
+  }
+
+  // Revalidar sesión del servidor usando el JWT
+  async revalidateSession() {
+    if (!this.token || !this.userInfo) return;
+
+    try {
+      const response = await fetch('/auth/revalidate-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: this.userInfo.id,
+          email: this.userInfo.email
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Sesión del servidor revalidada');
+      } else {
+        console.log('❌ No se pudo revalidar la sesión del servidor');
+      }
+    } catch (error) {
+      console.log('❌ Error revalidando sesión:', error);
     }
   }
 
@@ -252,6 +336,7 @@ class HeaderUnificado {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // Importante: incluir cookies para mantener sesión
         body: JSON.stringify({ email, contrasena })
       });
 
@@ -308,6 +393,7 @@ class HeaderUnificado {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // Importante: incluir cookies para mantener sesión
         body: JSON.stringify(registerData)
       });
 
@@ -388,9 +474,47 @@ class HeaderUnificado {
 
   async handleProfileUpdate(e) {
     e.preventDefault();
+    console.log('📝 Actualizando perfil de usuario');
+    
+    // Limpiar mensajes anteriores
+    this.hideErrorInElement('perfilMensajeError');
+    this.hideErrorInElement('perfilMensajeExito');
     
     const formData = new FormData(e.target);
     const profileData = Object.fromEntries(formData.entries());
+    
+    console.log('Datos del perfil a enviar:', profileData);
+
+    // Validaciones básicas
+    if (!profileData.nombre || profileData.nombre.trim() === '') {
+      this.showErrorInElement('perfilMensajeError', 'El nombre es obligatorio');
+      return;
+    }
+
+    if (!profileData.contrasenaActual || profileData.contrasenaActual.trim() === '') {
+      this.showErrorInElement('perfilMensajeError', 'La contraseña actual es obligatoria para confirmar los cambios');
+      return;
+    }
+
+    // Validación de contraseñas si se quiere cambiar
+    if (profileData.contrasenaNueva && profileData.contrasenaNueva.trim() !== '' || 
+        profileData.confirmarContrasena && profileData.confirmarContrasena.trim() !== '') {
+      
+      if (!profileData.contrasenaNueva || profileData.contrasenaNueva.trim() === '') {
+        this.showErrorInElement('perfilMensajeError', 'Para cambiar la contraseña, debe ingresar la nueva contraseña');
+        return;
+      }
+      
+      if (!profileData.confirmarContrasena || profileData.confirmarContrasena.trim() === '') {
+        this.showErrorInElement('perfilMensajeError', 'Para cambiar la contraseña, debe confirmar la nueva contraseña');
+        return;
+      }
+      
+      if (profileData.contrasenaNueva !== profileData.confirmarContrasena) {
+        this.showErrorInElement('perfilMensajeError', 'Las contraseñas nuevas no coinciden');
+        return;
+      }
+    }
 
     try {
       const response = await fetch('/auth/actualizar-perfil', {
@@ -403,6 +527,7 @@ class HeaderUnificado {
       });
 
       const data = await response.json();
+      console.log('Respuesta del servidor:', data);
 
       if (response.ok) {
         if (data.token) {
@@ -412,18 +537,68 @@ class HeaderUnificado {
           this.updateHeader();
         }
 
-        this.showSuccessMessage('Perfil actualizado', 'Tus datos han sido actualizados correctamente');
+        this.showSuccessInElement('perfilMensajeExito', 'Perfil actualizado correctamente');
         
         setTimeout(() => {
           const modal = bootstrap.Modal.getInstance(document.getElementById('perfilModal'));
           if (modal) modal.hide();
         }, 2000);
       } else {
-        this.showErrorInElement('perfilMensajeError', data.mensaje);
+        this.showErrorInElement('perfilMensajeError', data.mensaje || 'Error al actualizar el perfil');
       }
     } catch (error) {
       console.error('Error actualizando perfil:', error);
-      this.showErrorInElement('perfilMensajeError', 'Error de conexión');
+      this.showErrorInElement('perfilMensajeError', 'Error de conexión al actualizar el perfil');
+    }
+  }
+
+  async handleDeleteAccount(e) {
+    e.preventDefault();
+    console.log('🗑️ Iniciando eliminación de cuenta');
+    
+    const formData = new FormData(e.target);
+    const deleteData = Object.fromEntries(formData.entries());
+
+    // Validaciones básicas
+    if (!deleteData.contrasena || deleteData.contrasena.trim() === '') {
+      this.showErrorInElement('eliminarMensajeError', 'Debes ingresar tu contraseña');
+      return;
+    }
+
+    if (!deleteData.confirmar || deleteData.confirmar !== 'on') {
+      this.showErrorInElement('eliminarMensajeError', 'Debes confirmar que entiendes que esta acción es irreversible');
+      return;
+    }
+
+    try {
+      const response = await fetch('/auth/eliminar-cuenta', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        },
+        body: JSON.stringify({ contrasena: deleteData.contrasena })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Mostrar mensaje de éxito
+        alert('Tu cuenta ha sido eliminada exitosamente. Serás redirigido a la página principal.');
+        
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('eliminarCuentaModal'));
+        if (modal) modal.hide();
+        
+        // Limpiar autenticación y redirigir
+        this.clearAuth();
+        window.location.href = '/';
+      } else {
+        this.showErrorInElement('eliminarMensajeError', data.mensaje || 'Error al eliminar la cuenta');
+      }
+    } catch (error) {
+      console.error('Error eliminando cuenta:', error);
+      this.showErrorInElement('eliminarMensajeError', 'Error de conexión al eliminar la cuenta');
     }
   }
 
@@ -445,6 +620,89 @@ class HeaderUnificado {
     this.userInfo = null;
     localStorage.removeItem('token');
     sessionStorage.removeItem('userInfo');
+  }
+
+  async handlePasswordRecovery(e) {
+    e.preventDefault();
+    console.log('🔑 Iniciando recuperación de contraseña');
+
+    const email = document.getElementById('recuperarEmail').value.trim();
+    const btnRecuperar = document.getElementById('btnRecuperar');
+    const spinner = document.getElementById('recuperarSpinner');
+    const errorAlert = document.getElementById('recuperarMensajeError');
+
+    if (!email) {
+      this.showErrorInElement('recuperarMensajeError', 'Debes ingresar tu correo electrónico');
+      return;
+    }
+
+    // Mostrar spinner y deshabilitar botón
+    if (spinner) spinner.classList.remove('d-none');
+    if (btnRecuperar) btnRecuperar.disabled = true;
+    if (errorAlert) errorAlert.classList.add('d-none');
+
+    try {
+      const response = await fetch('/auth/recuperar-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      // Ocultar spinner y habilitar botón
+      if (spinner) spinner.classList.add('d-none');
+      if (btnRecuperar) btnRecuperar.disabled = false;
+
+      if (response.ok) {
+        // Cerrar modal de recuperación
+        const recuperarModal = bootstrap.Modal.getInstance(document.getElementById('recuperarPasswordModal'));
+        if (recuperarModal) {
+          recuperarModal.hide();
+        }
+
+        // Configurar mensaje de éxito
+        const exitoMensaje = document.getElementById('recuperarExitoMensaje');
+        if (exitoMensaje) {
+          exitoMensaje.textContent = data.mensaje || 'Hemos enviado una nueva contraseña temporal a tu correo electrónico. Úsala para iniciar sesión y luego cámbiala desde tu perfil.';
+        }
+
+        // Mostrar modal de éxito
+        const exitoModal = new bootstrap.Modal(document.getElementById('recuperarExitosoModal'));
+        exitoModal.show();
+
+        // Limpiar formulario
+        document.getElementById('formRecuperarPassword').reset();
+      } else {
+        // Mostrar error en el mismo modal
+        this.showErrorInElement('recuperarMensajeError', data.mensaje || 'El correo electrónico no está registrado en nuestro sistema.');
+      }
+    } catch (error) {
+      console.error('❌ Error al recuperar contraseña:', error);
+      
+      // Ocultar spinner y habilitar botón
+      if (spinner) spinner.classList.add('d-none');
+      if (btnRecuperar) btnRecuperar.disabled = false;
+      
+      // Mostrar error de conexión
+      this.showErrorInElement('recuperarMensajeError', 'Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.');
+    }
+  }
+
+  clearRecoveryErrors() {
+    // Limpiar cualquier mensaje de error previo
+    const errorAlert = document.getElementById('recuperarMensajeError');
+    if (errorAlert) {
+      errorAlert.classList.add('d-none');
+    }
+    
+    // Resetear spinner y botón
+    const spinner = document.getElementById('recuperarSpinner');
+    const btnRecuperar = document.getElementById('btnRecuperar');
+    if (spinner) spinner.classList.add('d-none');
+    if (btnRecuperar) btnRecuperar.disabled = false;
   }
 
   // Utilidades para mostrar/ocultar elementos
@@ -536,6 +794,14 @@ class HeaderUnificado {
     }
   }
 
+  showSuccessInElement(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = message;
+      element.classList.remove('d-none');
+    }
+  }
+
   // Configurar botones de carrito
   setupCartButtons() {
     console.log('🛒 Configurando botones de carrito');
@@ -566,6 +832,41 @@ class HeaderUnificado {
       const botonesComprar = document.querySelectorAll('.btn-comprar');
       console.log(`🛒 Botones de comprar encontrados: ${botonesComprar.length}`);
     }, 1000);
+
+    // Interceptar clicks en enlaces administrativos
+    this.setupAdminLinkInterceptor();
+  }
+
+  // Interceptor para enlaces administrativos
+  setupAdminLinkInterceptor() {
+    const adminLinks = [
+      '/panel', '/clientes', '/empleados', '/productos', '/facturas'
+    ];
+
+    document.addEventListener('click', async (e) => {
+      const link = e.target.closest('a');
+      if (!link) return;
+
+      const href = link.getAttribute('href');
+      if (!href || !adminLinks.some(adminPath => href.includes(adminPath))) return;
+
+      // Si es un enlace administrativo, verificar autenticación primero
+      if (this.token && this.userInfo) {
+        console.log('🔗 Navegación a ruta administrativa, verificando sesión...');
+        e.preventDefault();
+        
+        try {
+          await this.verifyServerSession();
+          // Dar un pequeño delay para que la sesión se revalide
+          setTimeout(() => {
+            window.location.href = href;
+          }, 500);
+        } catch (error) {
+          console.error('❌ Error verificando sesión antes de navegar:', error);
+          window.location.href = href; // Intentar navegar de todas formas
+        }
+      }
+    });
   }
 
   // Verificar autenticación antes de comprar

@@ -14,6 +14,9 @@ router.post('/recuperar-password', authController.recuperarPassword);
 // Ruta para verificar autenticación
 router.get('/verify', authController.verificarSesion);
 
+// Ruta para revalidar sesión del servidor con JWT
+router.post('/revalidate-session', validarAuth, authController.revalidarSesion);
+
 // Ruta para cerrar sesión
 router.post('/logout', authController.logout);
 

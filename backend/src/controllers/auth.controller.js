@@ -200,10 +200,10 @@ exports.obtenerPerfil = async (req, res) => {
 
 exports.actualizarPerfil = async (req, res) => {
   try {
-    const { nombre, telefono, direccion, passwordActual, passwordNueva } = req.body;
+    const { nombre, telefono, direccion, contrasenaActual, contrasenaNueva } = req.body;
     const userId = req.user.id;
 
-    if (!nombre || !passwordActual) {
+    if (!nombre || !contrasenaActual) {
       return res.status(400).json({ mensaje: 'El nombre y la contraseña actual son obligatorios' });
     }
 
@@ -225,7 +225,7 @@ exports.actualizarPerfil = async (req, res) => {
     }
 
     // Verificar contraseña actual
-    if (usuario.contrasena !== passwordActual.trim()) {
+    if (usuario.contrasena !== contrasenaActual.trim()) {
       return res.status(401).json({ mensaje: 'Contraseña actual incorrecta' });
     }
 
@@ -260,11 +260,11 @@ exports.actualizarPerfil = async (req, res) => {
     }
     
     // Actualizar contraseña si se proporciona una nueva
-    if (passwordNueva && passwordNueva.trim()) {
-      if (passwordNueva.trim().length < 6) {
+    if (contrasenaNueva && contrasenaNueva.trim()) {
+      if (contrasenaNueva.trim().length < 6) {
         return res.status(400).json({ mensaje: 'La nueva contraseña debe tener al menos 6 caracteres' });
       }
-      usuario.contrasena = passwordNueva.trim();
+      usuario.contrasena = contrasenaNueva.trim();
     }
 
     await usuario.save();
@@ -299,10 +299,10 @@ exports.actualizarPerfil = async (req, res) => {
 
 exports.eliminarCuenta = async (req, res) => {
   try {
-    const { password } = req.body;
+    const { contrasena } = req.body;
     const clienteId = req.user.id;
 
-    if (!password) {
+    if (!contrasena) {
       return res.status(400).json({ mensaje: 'Contraseña requerida para confirmar eliminación' });
     }
 
@@ -313,7 +313,7 @@ exports.eliminarCuenta = async (req, res) => {
     }
 
     // Verificar contraseña
-    if (cliente.contrasena !== password.trim()) {
+    if (cliente.contrasena !== contrasena.trim()) {
       return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
     }
 
@@ -512,5 +512,37 @@ exports.logout = async (req, res) => {
   } catch (error) {
     console.error('Error en logout:', error);
     res.status(500).json({ mensaje: 'Error al cerrar sesión' });
+  }
+};
+
+// Revalidar sesión del servidor usando JWT
+exports.revalidarSesion = async (req, res) => {
+  try {
+    console.log('🔄 Revalidando sesión del servidor...');
+    console.log('Usuario del token:', req.user);
+    
+    // El usuario ya viene del middleware de validación JWT
+    if (!req.user) {
+      return res.status(401).json({ mensaje: 'Token inválido' });
+    }
+
+    // Recrear la sesión del servidor
+    req.session.user = {
+      id: req.user.id,
+      email: req.user.email,
+      nombre: req.user.nombre,
+      rol: req.user.rol,
+      tipoUsuario: req.user.tipoUsuario
+    };
+
+    console.log('✅ Sesión del servidor revalidada para:', req.user.email);
+    
+    res.status(200).json({ 
+      mensaje: 'Sesión revalidada exitosamente',
+      usuario: req.session.user
+    });
+  } catch (error) {
+    console.error('❌ Error revalidando sesión:', error);
+    res.status(500).json({ mensaje: 'Error al revalidar sesión' });
   }
 };
