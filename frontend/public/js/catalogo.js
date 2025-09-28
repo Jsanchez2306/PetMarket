@@ -11,10 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar eventos
     inicializarEventos();
     
-    // Inicializar eventos de compra para productos ya existentes en el DOM (como en index.ejs)
-    inicializarEventosCompra();
-    
-    // Cargar contador del carrito
+    // Cargar contador del carrito (headerUnificado maneja los eventos de compra)
     cargarContadorCarrito();
     
     // Solo cargar productos si estamos en la página del catálogo
@@ -185,10 +182,12 @@ function mostrarProductos(productos) {
     
     container.innerHTML = productosHTML;
     
-    // Reinicializar eventos de compra
-    inicializarEventosCompra();
+    // Los eventos de compra se manejan automáticamente por headerUnificado.js
 }
 
+// FUNCIÓN COMENTADA: La funcionalidad de agregar al carrito se maneja en headerUnificado.js
+// para evitar duplicación de event listeners
+/*
 function inicializarEventosCompra() {
     const botonesComprar = document.querySelectorAll('.btn-comprar');
     botonesComprar.forEach(boton => {
@@ -198,7 +197,11 @@ function inicializarEventosCompra() {
         });
     });
 }
+*/
 
+// FUNCIÓN COMENTADA: La funcionalidad de agregar al carrito se maneja en headerUnificado.js
+// para evitar duplicación de requests al servidor
+/*
 async function agregarAlCarrito(productoId) {
     try {
         console.log('🛒 Intentando agregar producto al carrito:', productoId);
@@ -325,6 +328,7 @@ async function agregarAlCarrito(productoId) {
         }
     }
 }
+*/
 
 // Función para verificar autenticación
 async function verificarAutenticacion() {
