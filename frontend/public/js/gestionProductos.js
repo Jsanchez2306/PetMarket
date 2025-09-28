@@ -1,6 +1,10 @@
 $(document).ready(function () {
   const token = localStorage.getItem('token');
 
+  // Tope de precio local (ajústalo si necesitas: 3'000.000 COP)
+  const MAX_PRECIO = 3000000;
+  const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos'];
+
   /* ========== DataTable Inicial ========== */
   if ($('#tablaProductos').length && !$.fn.DataTable.isDataTable('#tablaProductos')) {
     $('#tablaProductos').DataTable({
@@ -36,9 +40,51 @@ $(document).ready(function () {
     });
   }
 
-  /* ========== Validación Local de Imagen ========== */
-  function validarImagenLocal(file) {
-    if (!file) return null;
+  /* ========== Validadores Locales (no retornan temprano, recolectan todo) ========== */
+  function esSoloNumeros(str) {
+    return /^[0-9]+$/.test((str || '').trim());
+  }
+
+  function validarNombre(nombre) {
+    if (!nombre || nombre.trim().length < 2) return 'Nombre mínimo 2 caracteres';
+    if (esSoloNumeros(nombre)) return 'El nombre no puede ser solo números; agrega una descripción.';
+    return null;
+  }
+
+  function validarDescripcion(descripcion) {
+    if (!descripcion || descripcion.trim().length < 10) return 'Descripción mínima 10 caracteres';
+    return null;
+  }
+
+  function validarPrecioLocal(valor, maxPrecio) {
+    if (valor === '' || valor === null || valor === undefined) return 'El precio es obligatorio';
+    const num = Number(valor);
+    if (!Number.isFinite(num)) return 'El precio debe ser numérico';
+    if (num < 0) return 'El precio no puede ser negativo';
+    if (num > maxPrecio) return `El precio no puede exceder ${maxPrecio.toLocaleString('es-CO')}`;
+    return null;
+  }
+
+  function validarStockLocal(valor) {
+    if (valor === '' || valor === null || valor === undefined) return 'El stock es obligatorio';
+    const num = Number(valor);
+    if (!Number.isFinite(num)) return 'Stock debe ser numérico';
+    if (!Number.isInteger(num)) return 'Stock debe ser un número entero';
+    if (num < 0) return 'Stock no puede ser negativo';
+    if (num > 1000) return 'Stock no puede superar 1000 unidades';
+    return null;
+  }
+
+  function validarCategoriaLocal(valor) {
+    if (!valor) return 'Categoría obligatoria';
+    if (!CATEGORIAS_VALIDAS.includes(valor)) return 'Categoría inválida';
+    return null;
+  }
+
+  function validarImagenLocal(file, requerida = false) {
+    if (!file) {
+      return requerida ? 'Debes subir una imagen' : null;
+    }
     const maxSize = 5 * 1024 * 1024; // 5MB
     const tipos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!tipos.includes(file.type)) return 'Formato no permitido (solo JPG, PNG, WEBP o GIF)';
@@ -82,17 +128,9 @@ $(document).ready(function () {
   /* ========== Parseo Seguro de Respuesta ========== */
   async function parseResponse(res) {
     let raw;
-    try {
-      raw = await res.text();
-    } catch {
-      return {};
-    }
+    try { raw = await res.text(); } catch { return {}; }
     if (!raw) return {};
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return {};
-    }
+    try { return JSON.parse(raw); } catch { return {}; }
   }
 
   /* ========== Estado Botones (loader) ========== */
@@ -157,11 +195,13 @@ $(document).ready(function () {
   $('[data-bs-target="#modalAgregarProducto"]').on('click', function () {
     $('#formAgregarProducto')[0].reset();
     limpiarErrores('add');
-    previewAdd.classList.add('d-none');
-    previewAdd.src = '';
+    if (previewAdd) {
+      previewAdd.classList.add('d-none');
+      previewAdd.src = '';
+    }
   });
 
-  /* ========== Enviar Agregar (con reload) ========== */
+  /* ========== Enviar Agregar (con validación agregada y reload) ========== */
   $('#formAgregarProducto').on('submit', async function (e) {
     e.preventDefault();
     limpiarErrores('add');
@@ -169,28 +209,31 @@ $(document).ready(function () {
     const btn = this.querySelector('button[type="submit"]');
     setLoading(btn, true, 'Agregar Producto', 'Subiendo...');
 
-    let nombre = $('#add-nombre').val().trim();
-    let descripcion = $('#add-descripcion').val().trim();
-    let precio = $('#add-precio').val().trim();
-    let stock = $('#add-stock').val().trim();
-    let categoria = $('#add-categoria').val();
+    const nombre = $('#add-nombre').val().trim();
+    const descripcion = $('#add-descripcion').val().trim();
+    const precio = $('#add-precio').val().trim();
+    const stock = $('#add-stock').val().trim();
+    const categoria = $('#add-categoria').val();
     let imagenFile = $('#add-imagen')[0].files[0];
 
-    // Validación imagen
-    const errImg = validarImagenLocal(imagenFile);
-    if (errImg) {
-      mostrarError('add', 'imagen', errImg);
+    // Validaciones locales (recolectar todas)
+    const errores = {};
+    const eNom = validarNombre(nombre); if (eNom) errores.nombre = eNom;
+    const eDes = validarDescripcion(descripcion); if (eDes) errores.descripcion = eDes;
+    const ePre = validarPrecioLocal(precio, MAX_PRECIO); if (ePre) errores.precio = ePre;
+    const eSto = validarStockLocal(stock); if (eSto) errores.stock = eSto;
+    const eCat = validarCategoriaLocal(categoria); if (eCat) errores.categoria = eCat;
+    const eImg = validarImagenLocal(imagenFile, true); if (eImg) errores.imagen = eImg;
+
+    if (Object.keys(errores).length > 0) {
+      Object.entries(errores).forEach(([campo, msg]) => mostrarError('add', campo, msg));
       setLoading(btn, false, 'Agregar Producto');
       return;
     }
 
-    // Compresión (opcional)
+    // Compresión (solo si pasó validación)
     if (imagenFile) {
-      try {
-        imagenFile = await comprimirImagen(imagenFile);
-      } catch (e2) {
-        console.warn('No se pudo comprimir, se envía original:', e2.message);
-      }
+      try { imagenFile = await comprimirImagen(imagenFile); } catch (_) {}
     }
 
     const formData = new FormData();
@@ -211,11 +254,9 @@ $(document).ready(function () {
 
       if (!res.ok) {
         if (result.errores) {
-          Object.entries(result.errores).forEach(([campo, msg]) => {
-            mostrarError('add', campo.toLowerCase(), msg);
-          });
+          Object.entries(result.errores).forEach(([campo, msg]) => mostrarError('add', campo.toLowerCase(), msg));
         } else {
-          mostrarError('add', 'imagen', result.mensaje || 'Error al crear producto');
+          mostrarError('add', 'nombre', result.mensaje || 'Error al crear producto');
         }
         setLoading(btn, false, 'Agregar Producto');
         return;
@@ -224,8 +265,6 @@ $(document).ready(function () {
       $('#modalAgregarProducto').modal('hide');
       $('#mensajeExitoProducto').text('Producto agregado correctamente.');
       new bootstrap.Modal(document.getElementById('confirmacionProductoModal')).show();
-
-      // Reload (mantengo pequeño delay para que usuario vea el modal)
       setTimeout(() => location.reload(), 1200);
 
     } catch (err) {
@@ -251,7 +290,7 @@ $(document).ready(function () {
     $('#modalEditarProducto').modal('show');
   });
 
-  /* ========== Enviar Edición (con reload) ========== */
+  /* ========== Enviar Edición (con validación agregada y reload) ========== */
   $('#formEditarProducto').on('submit', async function (e) {
     e.preventDefault();
     limpiarErrores('edit');
@@ -259,28 +298,42 @@ $(document).ready(function () {
     setLoading(btn, true, 'Guardar Cambios', 'Guardando...');
 
     const id = $('#editarId').val();
+    const nombre = $('#edit-nombre').val().trim();
+    const descripcion = $('#edit-descripcion').val().trim();
+    const precio = $('#edit-precio').val().trim();
+    const stock = $('#edit-stock').val().trim();
+    const categoria = $('#edit-categoria').val();
     let newImage = $('#edit-imagen')[0].files[0];
 
+    // Validaciones locales (recolectar todas)
+    const errores = {};
+    const eNom = validarNombre(nombre); if (eNom) errores.nombre = eNom;
+    const eDes = validarDescripcion(descripcion); if (eDes) errores.descripcion = eDes;
+    const ePre = validarPrecioLocal(precio, MAX_PRECIO); if (ePre) errores.precio = ePre;
+    const eSto = validarStockLocal(stock); if (eSto) errores.stock = eSto;
+    const eCat = validarCategoriaLocal(categoria); if (eCat) errores.categoria = eCat;
     if (newImage) {
-      const errImg = validarImagenLocal(newImage);
-      if (errImg) {
-        mostrarError('edit', 'imagen', errImg);
-        setLoading(btn, false, 'Guardar Cambios');
-        return;
-      }
-      try {
-        newImage = await comprimirImagen(newImage);
-      } catch (e2) {
-        console.warn('No se pudo comprimir (edit), se envía original:', e2.message);
-      }
+      const eImg = validarImagenLocal(newImage, false);
+      if (eImg) errores.imagen = eImg;
+    }
+
+    if (Object.keys(errores).length > 0) {
+      Object.entries(errores).forEach(([campo, msg]) => mostrarError('edit', campo, msg));
+      setLoading(btn, false, 'Guardar Cambios');
+      return;
+    }
+
+    // Compresión (solo si pasó validación)
+    if (newImage) {
+      try { newImage = await comprimirImagen(newImage); } catch (_) {}
     }
 
     const formData = new FormData();
-    formData.append('nombre', $('#edit-nombre').val().trim());
-    formData.append('descripcion', $('#edit-descripcion').val().trim());
-    formData.append('precio', $('#edit-precio').val().trim());
-    formData.append('stock', $('#edit-stock').val().trim());
-    formData.append('categoria', $('#edit-categoria').val());
+    formData.append('nombre', nombre);
+    formData.append('descripcion', descripcion);
+    formData.append('precio', precio);
+    formData.append('stock', stock);
+    formData.append('categoria', categoria);
     if (newImage) formData.append('imagen', newImage);
 
     try {
@@ -293,11 +346,9 @@ $(document).ready(function () {
 
       if (!res.ok) {
         if (result.errores) {
-          Object.entries(result.errores).forEach(([campo, msg]) => {
-            mostrarError('edit', campo.toLowerCase(), msg);
-          });
+          Object.entries(result.errores).forEach(([campo, msg]) => mostrarError('edit', campo.toLowerCase(), msg));
         } else {
-          mostrarError('edit', 'imagen', result.mensaje || 'Error al actualizar producto');
+          mostrarError('edit', 'nombre', result.mensaje || 'Error al actualizar producto');
         }
         setLoading(btn, false, 'Guardar Cambios');
         return;
@@ -306,7 +357,6 @@ $(document).ready(function () {
       $('#modalEditarProducto').modal('hide');
       $('#mensajeExitoProducto').text('Producto actualizado correctamente.');
       new bootstrap.Modal(document.getElementById('confirmacionProductoModal')).show();
-
       setTimeout(() => location.reload(), 1200);
 
     } catch (err) {
@@ -317,7 +367,7 @@ $(document).ready(function () {
     }
   });
 
-  /* ========== Eliminar Producto (mantengo reload si quieres coherencia) ========== */
+  /* ========== Eliminar Producto (con reload) ========== */
   let idEliminarProducto = null;
   $(document).on('click', '.btn-eliminar', function () {
     idEliminarProducto = $(this).closest('tr').data('id');

@@ -5,9 +5,9 @@
 
   <testsuite name="Login de PetMarket" id="petmarket-login.e2e"
     errors="0" failures="0" hostname="" package="petmarket-login.e2e" skipped="0"
-    tests="1" time="23.10" timestamp="">
+    tests="1" time="22.75" timestamp="">
   
-    <testcase name="abre landing, abre login, inicia sesión, valida éxito y acepta modal" classname="Login de PetMarket" time="23.09" assertions="9">
+    <testcase name="abre landing, abre login, inicia sesión, valida éxito y acepta modal" classname="Login de PetMarket" time="22.75" assertions="9">
 
     
 
