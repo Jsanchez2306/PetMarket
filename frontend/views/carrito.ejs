@@ -56,6 +56,7 @@
               <!-- Renderizar items del servidor -->
               <% if (cart.items && cart.items.length > 0) { %>
                 <% cart.items.forEach(item => { %>
+                  <% if (item.product && item.product._id) { %>
               <div class="cart-item" data-product-id="<%= item.product._id %>">
                 <div class="row align-items-center">
                   <div class="col-md-3">
@@ -109,6 +110,7 @@
                   </div>
                 </div>
               </div>
+                  <% } %>
                 <% }); %>
               <% } else { %>
               <div id="emptyCart" class="text-center py-5">

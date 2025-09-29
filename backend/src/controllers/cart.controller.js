@@ -12,7 +12,29 @@ exports.renderizarCarrito = async (req, res) => {
     }
 
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    const cartData = cart || { items: [], subtotal: 0, iva: 0, total: 0 };
+    let cartData = cart || { items: [], subtotal: 0, iva: 0, total: 0 };
+
+    // Filtrar items con productos eliminados (product es null)
+    if (cartData.items && cartData.items.length > 0) {
+      const validItems = cartData.items.filter(item => item.product !== null);
+      
+      // Si hay items con productos eliminados, actualizar el carrito
+      if (validItems.length !== cartData.items.length) {
+        console.log(`🧹 Limpiando ${cartData.items.length - validItems.length} productos eliminados del carrito`);
+        cartData.items = validItems;
+        
+        // Recalcular totales
+        cartData.subtotal = validItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        cartData.iva = Math.round(cartData.subtotal * 0.19);
+        cartData.total = cartData.subtotal + cartData.iva;
+        
+        // Guardar cambios en la base de datos
+        if (cart) {
+          cart.items = validItems;
+          await cart.save();
+        }
+      }
+    }
 
     res.render('carrito', { cart: cartData });
   } catch (error) {
@@ -41,6 +63,22 @@ exports.obtenerCarrito = async (req, res) => {
         total: 0,
         itemCount: 0
       });
+    }
+
+    // Filtrar items con productos eliminados (product es null)
+    const validItems = cart.items.filter(item => item.product !== null);
+    
+    // Si hay items con productos eliminados, actualizar el carrito
+    if (validItems.length !== cart.items.length) {
+      console.log(`🧹 Limpiando ${cart.items.length - validItems.length} productos eliminados del carrito API`);
+      cart.items = validItems;
+      
+      // Recalcular totales
+      cart.subtotal = validItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      cart.iva = Math.round(cart.subtotal * 0.19);
+      cart.total = cart.subtotal + cart.iva;
+      
+      await cart.save();
     }
 
     res.status(200).json({
