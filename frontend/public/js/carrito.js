@@ -253,7 +253,7 @@ async function limpiarCarrito() {
 
 async function procesarPago() {
     try {
-        // Verificar si hay productos en el DOM en lugar de en carritoData
+        // Verificar si hay productos en el DOM
         const cartItems = document.querySelectorAll('.cart-item');
         if (cartItems.length === 0) {
             mostrarToast('No hay productos en el carrito', 'warning');
@@ -264,32 +264,32 @@ async function procesarPago() {
         const totalElement = document.getElementById('totalAmount');
         const totalText = totalElement ? totalElement.textContent.replace('$', '').replace(/,/g, '') : '0';
         
-        const confirmacion = confirm(`¿Proceder con el pago por $${Number(totalText).toLocaleString('es-CO')}?`);
+        const confirmacion = confirm(`¿Proceder con el pago por $${Number(totalText).toLocaleString('es-CO')} con Mercado Pago?`);
         if (!confirmacion) return;
 
         mostrarCargando(true);
 
-        const response = await fetch('/carrito/api/pagar', {
+        // Crear preferencia en Mercado Pago
+        const response = await fetch('/mercadopago/create-preference', {
             method: 'POST',
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            mostrarToast('¡Pago procesado exitosamente!', 'success');
+            mostrarToast('Redirigiendo a Mercado Pago...', 'success');
             
-            // Mostrar información del pedido
+            // Redirigir a Mercado Pago
             setTimeout(() => {
-                alert(`¡Gracias por tu compra!\n\nNúmero de orden: ${data.numeroOrden}\nTotal pagado: $${Number(data.factura.total).toLocaleString('es-CO')}\n\nRecibirás un email con los detalles de tu pedido.`);
-                
-                // Recargar la página para sincronizar con el servidor
-                window.location.reload();
-                renderizarCarrito();
-                actualizarContadorCarrito(0);
-            }, 2000);
+                // Usar sandbox_init_point para modo prueba
+                window.location.href = data.sandboxInitPoint || data.initPoint;
+            }, 1500);
         } else {
-            mostrarToast(data.mensaje || 'Error al procesar el pago', 'error');
+            mostrarToast(data.mensaje || 'Error al crear preferencia de pago', 'error');
         }
     } catch (error) {
         console.error('Error al procesar pago:', error);

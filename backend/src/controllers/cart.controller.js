@@ -333,7 +333,7 @@ exports.limpiarCarrito = async (req, res) => {
 };
 
 /**
- * Procesar pago del carrito
+ * Procesar pago del carrito (redirige a Mercado Pago)
  */
 exports.procesarPago = async (req, res) => {
   try {
@@ -359,41 +359,11 @@ exports.procesarPago = async (req, res) => {
       }
     }
 
-    // Aquí puedes integrar con un procesador de pagos real
-    // Por ahora, simularemos el proceso de pago
-
-    // Crear factura (si tienes el modelo de factura)
-    const facturaData = {
-      cliente: userId,
-      productos: cart.items.map(item => ({
-        producto: item.product._id,
-        cantidad: item.quantity,
-        precio: item.price,
-        subtotal: item.price * item.quantity
-      })),
-      subtotal: cart.subtotal,
-      iva: cart.iva,
-      total: cart.total,
-      fecha: new Date(),
-      estado: 'pagada'
-    };
-
-    // Actualizar stock de productos
-    for (const item of cart.items) {
-      await Producto.findByIdAndUpdate(
-        item.product._id,
-        { $inc: { stock: -item.quantity } }
-      );
-    }
-
-    // Limpiar carrito después del pago exitoso
-    cart.clearCart();
-    await cart.save();
-
+    // Redirigir al proceso de creación de preferencia en Mercado Pago
     res.status(200).json({
-      mensaje: 'Pago procesado exitosamente',
-      factura: facturaData,
-      numeroOrden: `ORD-${Date.now()}`
+      mensaje: 'Redirigiendo a Mercado Pago',
+      redirectToMercadoPago: true,
+      total: cart.total
     });
   } catch (error) {
     console.error('Error al procesar pago:', error);
