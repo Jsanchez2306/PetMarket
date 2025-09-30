@@ -17,7 +17,7 @@ class HeaderUnificado {
     this.updateHeader();
     this.setupCartButtons();
     
-    // Verificar sesión cada 30 segundos para mantenerla activa
+    // Verificar sesión cada 30 segundos para mantenerla activa si el usuario está logueado
     setInterval(() => {
       if (this.token && this.userInfo) {
         this.verifyServerSession();
