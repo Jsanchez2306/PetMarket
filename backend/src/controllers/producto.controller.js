@@ -67,7 +67,7 @@ async function subirCloudinaryDesdeBuffer(buffer) {
   });
 }
 
-const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos'];
+const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos', 'higiene'];
 
 // =================== Renderizar Vista ===================
 exports.renderizarGestionProductos = async (req, res) => {

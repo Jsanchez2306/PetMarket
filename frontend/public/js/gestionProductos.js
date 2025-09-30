@@ -3,7 +3,7 @@ $(document).ready(function () {
 
   // Tope de precio local (ajústalo si necesitas: 3'000.000 COP)
   const MAX_PRECIO = 3000000;
-  const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos'];
+  const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos', 'higiene'];
 
   /* ========== DataTable Inicial ========== */
   if ($('#tablaProductos').length && !$.fn.DataTable.isDataTable('#tablaProductos')) {
@@ -92,36 +92,65 @@ $(document).ready(function () {
     return null;
   }
 
-  /* ========== Compresión Cliente (opcional) ========== */
-  async function comprimirImagen(file, maxW = 1200, maxH = 1200, quality = 0.75) {
+  /* ========== Compresión Cliente (mejorada para evitar fondo negro) ========== */
+  // Razón del fondo negro: al exportar a JPEG, cualquier transparencia (PNG/WebP) se vuelve negra.
+  // Solución: pintar fondo blanco en el canvas ANTES de dibujar la imagen.
+  async function comprimirImagen(file, maxW = 1200, maxH = 1200, quality = 0.82) {
     return new Promise((resolve, reject) => {
-      if (!file || !file.type.startsWith('image/')) return resolve(file);
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-        const ratio = Math.min(maxW / width, maxH / height, 1);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
+      try {
+        if (!file || !file.type.startsWith('image/')) return resolve(file);
+
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          const ratio = Math.min(maxW / width, maxH / height, 1);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d', { alpha: false });
+
+          // Pintar fondo blanco para que cualquier transparencia no quede negra
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+
+          // Dibujar la imagen encima
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Exportamos a JPEG (sin alfa). Si quisieras respetar transparencia, usa 'image/webp' y no pintes blanco.
+          const outputType = 'image/jpeg';
+
+          const finalize = (blob) => {
             if (!blob) return reject(new Error('No se pudo comprimir'));
-            const nuevo = new File([blob], file.name.replace(/\.(png|jpg|jpeg|webp|gif)$/i, '.jpg'), {
-              type: 'image/jpeg',
-              lastModified: Date.now()
-            });
+            // Si por alguna razón quedó más pesado, devolvemos el original
+            if (blob.size && file.size && blob.size > file.size) {
+              return resolve(file);
+            }
+            const newName = file.name.replace(/\.(png|jpg|jpeg|webp|gif)$/i, '.jpg');
+            const nuevo = new File([blob], newName, { type: outputType, lastModified: Date.now() });
             resolve(nuevo);
-          },
-          'image/jpeg',
-          quality
-        );
-      };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
+          };
+
+          if (canvas.toBlob) {
+            canvas.toBlob(finalize, outputType, quality);
+          } else {
+            // Fallback Safari antiguo
+            const dataURL = canvas.toDataURL(outputType, quality);
+            const bstr = atob(dataURL.split(',')[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) u8arr[n] = bstr.charCodeAt(n);
+            finalize(new Blob([u8arr], { type: outputType }));
+          }
+        };
+        img.onerror = (e) => reject(e);
+        img.src = URL.createObjectURL(file);
+      } catch (err) {
+        // Si algo falla, seguimos con el original para no bloquear
+        resolve(file);
+      }
     });
   }
 

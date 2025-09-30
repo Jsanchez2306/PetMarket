@@ -57,7 +57,7 @@ const productoSchema = new mongoose.Schema(
       type: String,
       required: [true, "La categoría es obligatoria"],
       enum: {
-        values: ["accesorios", "ropa", "juguetes", "alimentos"],
+        values: ["accesorios", "ropa", "juguetes", "alimentos", "higiene"],
         message: 'La categoría debe ser una de: "accesorios", "ropa", "juguetes" o "alimentos"',
       },
     },

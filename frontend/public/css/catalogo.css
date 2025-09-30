@@ -1,82 +1,144 @@
+/* ========== Tarjeta y filtros ========== */
+.filter-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px #0000001a;
+}
 
-    .filter-card {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 10px #0000001a;
-    }
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+}
 
-    .product-card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
-    }
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
 
-    .product-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
+/* ========== Miniatura con wrapper ==========
+   Mantiene tamaño estable, centra la imagen, SIN recortes y con fondo BLANCO. */
+.thumb-wrapper {
+  aspect-ratio: 4 / 3;         /* cambia a 1 / 1 si prefieres cuadrado */
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;            /* si la imagen se sale por error, se oculta */
+  position: relative;
+}
 
-    .product-image {
-      height: 90%;
-      object-fit: cover;
-    }
+.thumb-wrapper .thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;         /* NO recortar */
+  display: block;
+  padding: 10px;               /* respiración interior para que no pegue a los bordes */
+  background: #fff;            /* asegura blanco bajo la imagen */
+}
 
-    .categoria-badge {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 10;
-    }
+/* Badge de categoría en la esquina superior derecha del wrapper */
+.categoria-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  box-shadow: 0 2px 6px #00000022;
+}
 
-    .loading-spinner {
-      display: none;
-      text-align: center;
-      margin: 20px 0;
-    }
+/* ========== Forzar fondo BLANCO en cualquier contenedor/imagen heredada ========== */
+#productosContainer .card,
+#productosContainer .product-card,
+#productosContainer .thumb-wrapper,
+#productosContainer .thumb-img,
+#productosContainer .card-img-top,
+#productosContainer img.product-image {
+  background-color: #fff !important;
+}
 
-    .no-products {
-      text-align: center;
-      padding: 50px 20px;
-      color: #6c757d;
-    }
+/* IMPORTANTE: anula reglas antiguas que recortaban o daban porcentajes raros */
+#productosContainer img.product-image {
+  height: auto !important;
+  object-fit: contain !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
 
-    .search-container {
-      position: relative;
-    }
+/* ========== Título y descripción con altura fija (alineación perfecta del precio) ========== */
+/* Fijamos el título a 2 líneas */
+.product-card .card-title {
+  line-height: 1.2;                   /* altura de línea del título */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;              /* número de líneas visibles */
+  line-clamp: 2;                      /* soporte moderno */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.2em * 2);        /* reserva el alto de 2 líneas */
+  margin-bottom: 0.35rem;             /* espaciado compacto antes del precio */
+}
 
-    .search-icon {
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #6c757d;
-    }
+/* La descripción también con un máximo de líneas para mantener alturas parejas */
+.product-card .card-text.small {
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;              /* ajusta a 2 o 3 según prefieras */
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.4em * 2);        /* reserva el alto de 2 líneas */
+}
 
-    .pagination {
-      margin-top: 30px;
-    }
+/* ========== Utilidades varias del catálogo ========== */
+.loading-spinner {
+  display: none;
+  text-align: center;
+  margin: 20px 0;
+}
 
-    .pagination .page-link {
-      border-radius: 50px;
-      margin: 0 3px;
-      border: 1px solid #dee2e6;
-      color: #495057;
-    }
+.no-products {
+  text-align: center;
+  padding: 50px 20px;
+  color: #6c757d;
+}
 
-    .pagination .page-item.active .page-link {
-      background-color: #007bff;
-      border-color: #007bff;
-    }
+.search-container { position: relative; }
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
 
-    .pagination .page-link:hover {
-      background-color: #e9ecef;
-      border-color: #dee2e6;
-    }
+.pagination { margin-top: 30px; }
+.pagination .page-link {
+  border-radius: 50px;
+  margin: 0 3px;
+  border: 1px solid #dee2e6;
+  color: #495057;
+}
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+.pagination .page-link:hover {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #fff;
+  border-color: #dee2e6;
+}
 
-    .pagination .page-item.disabled .page-link {
-      color: #6c757d;
-      background-color: #fff;
-      border-color: #dee2e6;
-    }
-  
+.badge-higiene {
+  background-color: #0fda85; 
+  color: #fff;
+}
