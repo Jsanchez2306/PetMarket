@@ -53,13 +53,11 @@ class HeaderUnificado {
   }
 
   setupAuthForms() {
-    // Formulario de login
     const loginForm = document.getElementById('formLogin');
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => this.handleLogin(e));
     }
 
-    // Formulario de registro
     const registerForm = document.getElementById('formRegistro');
     if (registerForm) {
       registerForm.addEventListener('submit', (e) => this.handleRegister(e));
