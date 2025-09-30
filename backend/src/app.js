@@ -70,6 +70,7 @@ try {
     const panelRoutes = require('./routes/panel');
     const empleadoRoutes = require('./routes/empleado.routes');
     const facturaRoutes = require('./routes/factura.routes'); // ✅ agregado
+    const mercadopagoRoutes = require('./routes/mercadopago.routes'); // ✅ nuevo
 
     app.use('/', indexRoutes);
     app.use('/auth', authRoutes);
@@ -79,6 +80,7 @@ try {
     app.use('/panel', panelRoutes);
     app.use('/empleados', empleadoRoutes);
     app.use('/facturas', facturaRoutes); // ✅ agregado
+    app.use('/mercadopago', mercadopagoRoutes); // ✅ nuevo
 
     console.log('✅ Rutas básicas cargadas');
 } catch (error) {

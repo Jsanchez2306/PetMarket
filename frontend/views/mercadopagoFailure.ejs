@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Fallido - PetMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .failure-container {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+        }
+        .failure-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+        .payment-details {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('partials/headerUnificado') %>
+
+    <main class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="failure-container text-center">
+                    <div>
+                        <i class="fas fa-times-circle failure-icon"></i>
+                        <h1 class="display-4 mb-3">Pago No Procesado</h1>
+                        <p class="lead">Hubo un problema al procesar tu pago en Mercado Pago</p>
+                        
+                        <% if (typeof paymentId !== 'undefined' && paymentId) { %>
+                            <div class="payment-details">
+                                <h5><i class="fas fa-info-circle"></i> Detalles</h5>
+                                <p><strong>ID de Referencia:</strong> <%= paymentId %></p>
+                                <% if (typeof status !== 'undefined' && status) { %>
+                                    <p><strong>Estado:</strong> 
+                                        <span class="badge bg-danger"><%= status %></span>
+                                    </p>
+                                <% } %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div class="card mt-4 border-0 shadow">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-4">
+                            <i class="fas fa-question-circle text-warning"></i> 
+                            ¿Qué puedes hacer?
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="text-center">
+                                    <i class="fas fa-credit-card text-primary fs-2 mb-2"></i>
+                                    <h6>Verificar Datos</h6>
+                                    <ul class="list-unstyled text-muted small">
+                                        <li>• Verificar saldo disponible</li>
+                                        <li>• Comprobar datos de la tarjeta</li>
+                                        <li>• Revisar límites de compra</li>
+                                        <li>• Contactar tu banco</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="text-center">
+                                    <i class="fas fa-redo text-success fs-2 mb-2"></i>
+                                    <h6>Otras Opciones</h6>
+                                    <ul class="list-unstyled text-muted small">
+                                        <li>• Usar otra tarjeta</li>
+                                        <li>• Probar otro método de pago</li>
+                                        <li>• Intentar más tarde</li>
+                                        <li>• Contactar soporte</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="/carrito" class="btn btn-primary me-3">
+                                <i class="fas fa-redo"></i> Intentar Nuevamente
+                            </a>
+                            <a href="/catalogo" class="btn btn-outline-secondary">
+                                <i class="fas fa-shopping-bag"></i> Seguir Comprando
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Nota:</strong> No se realizó ningún cargo a tu tarjeta. 
+                    Puedes intentar nuevamente cuando lo desees.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

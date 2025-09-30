@@ -19,13 +19,6 @@ exports.mostrarCatalogo = (req, res) => {
   res.render('catalogo');
 };
 
-exports.nosotrosAdmin = (req, res) => {
-  res.render('nosotrosAdmin');
-};
-
-exports.nosotrosClientes = (req, res) => {
-  res.render('nosotrosCliente');
-};
 
 exports.nosotrosVisitantes = (req, res) => {
   res.render('nosotros');
