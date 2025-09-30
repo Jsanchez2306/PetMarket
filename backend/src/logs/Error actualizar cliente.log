@@ -1,0 +1,14 @@
+[2025-09-30T21:27:35.419Z] Error al actualizar cliente 68dc05774b29e636b092a2bb: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:27:38.590Z] Error al actualizar cliente 68dc05774b29e636b092a2bb: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:27:54.469Z] Error al actualizar cliente 68dc05774b29e636b092a2bb: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:27:57.751Z] Error al actualizar cliente 68dc05774b29e636b092a2bb: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:28:03.725Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:28:05.490Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:28:06.820Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres
+[2025-09-30T21:28:27.327Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres, email: El formato del correo electrónico no es válido
+[2025-09-30T21:28:28.908Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres, email: El formato del correo electrónico no es válido
+[2025-09-30T21:28:31.168Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres, email: El formato del correo electrónico no es válido
+[2025-09-30T21:28:32.651Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres, email: El formato del correo electrónico no es válido
+[2025-09-30T21:28:34.143Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: direccion: La dirección debe tener al menos 5 caracteres, email: El formato del correo electrónico no es válido
+[2025-09-30T21:28:39.665Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: email: El formato del correo electrónico no es válido
+[2025-09-30T21:28:44.105Z] Error al actualizar cliente 68dc44108310c28109dd8310: Validation failed: email: El formato del correo electrónico no es válido
