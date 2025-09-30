@@ -17,7 +17,7 @@ class HeaderUnificado {
     this.updateHeader();
     this.setupCartButtons();
     
-    // Verificar sesión cada 30 segundos para mantenerla activa
+    // Verificar sesión cada 30 segundos para mantenerla activa si el usuario está logueado
     setInterval(() => {
       if (this.token && this.userInfo) {
         this.verifyServerSession();
@@ -26,10 +26,23 @@ class HeaderUnificado {
   }
 
   setupEventListeners() {
-    // Event listener para logout
+    // Logout: abrir modal de confirmación (no cerrar de inmediato)
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => this.logout());
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const confirmEl = document.getElementById('confirmarLogoutModal');
+        if (confirmEl) {
+          new bootstrap.Modal(confirmEl).show();
+        } else {
+          this.logout(); // fallback
+        }
+      });
+    }
+    // Confirmar logout
+    const btnConfirmarLogout = document.getElementById('btnConfirmarLogout');
+    if (btnConfirmarLogout) {
+      btnConfirmarLogout.addEventListener('click', () => this.logout());
     }
 
     // Event listeners para formularios de login y registro
@@ -40,13 +53,11 @@ class HeaderUnificado {
   }
 
   setupAuthForms() {
-    // Formulario de login
     const loginForm = document.getElementById('formLogin');
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => this.handleLogin(e));
     }
 
-    // Formulario de registro
     const registerForm = document.getElementById('formRegistro');
     if (registerForm) {
       registerForm.addEventListener('submit', (e) => this.handleRegister(e));
@@ -464,24 +475,65 @@ class HeaderUnificado {
       console.log('📨 Respuesta del servidor:', data);
 
       if (response.ok) {
-        // Guardar token si viene (auto-login)
+        // Cerrar modal de registro
+        const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+        if (registerModal) registerModal.hide();
+
+        // Decidir mensaje y redirección
+        let redirectUrl = '/';
+        let mensaje = 'Tu cuenta ha sido creada. Ya puedes iniciar sesión.';
+
         if (data.token) {
+          // Auto-login: guardar token y actualizar header
           this.token = data.token;
           localStorage.setItem('token', data.token);
           this.loadUserInfo();
           this.updateHeader();
+
+          const nombreUsuario = (data.usuario && (data.usuario.nombre || data.usuario.email)) || registerData.email;
+          const tipoTexto = data.rol === 'admin' ? 'admin' : (data.tipoUsuario === 'empleado' ? 'empleado' : 'cliente');
+          mensaje = `¡Bienvenido ${tipoTexto}, ${nombreUsuario}!`;
+          if (data.rol === 'admin') redirectUrl = '/panel';
+          else if (data.tipoUsuario === 'empleado') redirectUrl = '/productos';
+          else redirectUrl = '/';
+        } else {
+          // Sin auto-login
+          redirectUrl = '/';
         }
 
-        // Cerrar modal y mostrar éxito (notificación toast)
-        const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-        if (registerModal) registerModal.hide();
+        // Mostrar modal bonito de registro
+        const msgEl = document.getElementById('registroExitosoMensaje');
+        if (msgEl) msgEl.textContent = mensaje;
 
-        this.showSuccessMessage('¡Cuenta creada!', 'Tu cuenta ha sido creada exitosamente');
-        
-        // Limpiar formulario
+        const regModalEl = document.getElementById('registroExitosoModal');
+        if (regModalEl) {
+          const modal = new bootstrap.Modal(regModalEl);
+          modal.show();
+
+          let timerId = setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1200);
+
+          const btn = document.getElementById('registroContinuarBtn');
+          if (btn) {
+            btn.onclick = () => {
+              if (timerId) clearTimeout(timerId);
+              window.location.href = redirectUrl;
+            };
+          }
+
+          // Si quieres cancelar la auto-redirección al cerrar con la "X", descomenta:
+          // regModalEl.addEventListener('hide.bs.modal', () => { if (timerId) clearTimeout(timerId); });
+        } else {
+          // Fallback si no existe el modal
+          window.location.href = redirectUrl;
+        }
+
+        // Limpiar formulario y errores
         const form = document.getElementById('formRegistro');
         if (form) form.reset();
         this.hideErrorInElement('registroMensajeError');
+
       } else {
         this.showErrorInElement('registroMensajeError', data.mensaje || 'Error en el registro');
       }
@@ -639,7 +691,7 @@ class HeaderUnificado {
       const data = await response.json();
 
       if (response.ok) {
-        // Mostrar mensaje de éxito (podemos luego migrar a un modal si quieres)
+        // Mostrar mensaje de éxito (puedes migrar a modal si lo deseas)
         alert('Tu cuenta ha sido eliminada exitosamente. Serás redirigido a la página principal.');
         
         // Cerrar modal
@@ -828,7 +880,7 @@ class HeaderUnificado {
 
     container.appendChild(notification);
 
-    // Auto-remover después de 5 segundos
+    // Auto-remover después de 2 segundos
     setTimeout(() => {
       if (notification.parentNode) {
         notification.remove();
