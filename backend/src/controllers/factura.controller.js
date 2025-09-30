@@ -215,7 +215,7 @@ exports.eliminarFactura = async (req, res) => {
  * Configurar transporter de nodemailer
  */
 const configureMailTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail', // O el servicio que uses
     auth: {
       user: process.env.EMAIL_USER || 'tu-email@gmail.com',

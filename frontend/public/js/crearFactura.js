@@ -362,10 +362,9 @@ function mostrarFacturaCreada(factura) {
 
 // Función para enviar factura por correo
 async function enviarFacturaPorCorreo(facturaId) {
+    const button = event.target;
+    
     try {
-        const button = event.target;
-        const originalText = button.innerHTML;
-        
         // Cambiar botón a estado de carga
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
         button.disabled = true;
@@ -381,19 +380,23 @@ async function enviarFacturaPorCorreo(facturaId) {
         const data = await response.json();
 
         if (response.ok) {
+            // Cambiar botón a estado de éxito
+            button.innerHTML = '<i class="fas fa-check"></i> Factura Enviada';
+            button.className = 'btn btn-success btn-sm me-2';
             alert(`✅ Factura enviada exitosamente a ${data.email}`);
         } else {
+            // Restaurar botón en caso de error
+            button.innerHTML = '<i class="fas fa-envelope"></i> Enviar por Correo';
+            button.disabled = false;
             alert(`❌ Error al enviar factura: ${data.mensaje}`);
         }
 
     } catch (error) {
         console.error('Error al enviar factura:', error);
-        alert('❌ Error al enviar factura por correo');
-    } finally {
-        // Restaurar botón
-        const button = event.target;
+        // Restaurar botón en caso de error
         button.innerHTML = '<i class="fas fa-envelope"></i> Enviar por Correo';
         button.disabled = false;
+        alert('❌ Error al enviar factura por correo');
     }
 }
 

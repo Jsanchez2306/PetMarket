@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const facturaSchema = new mongoose.Schema({
+  numero: {
+    type: Number,
+    unique: true
+  },
   cliente: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cliente",
@@ -82,6 +86,19 @@ const facturaSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+// Middleware para auto-generar número de factura
+facturaSchema.pre('save', async function(next) {
+  if (this.isNew && !this.numero) {
+    try {
+      const lastFactura = await this.constructor.findOne({}, {}, { sort: { 'numero': -1 } });
+      this.numero = lastFactura ? lastFactura.numero + 1 : 1001; // Empezar desde 1001
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
 });
 
 module.exports = mongoose.model("Factura", facturaSchema);
