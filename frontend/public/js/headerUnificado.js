@@ -548,6 +548,7 @@ class HeaderUnificado {
   // IMPORTANTE: cerrar sesión del servidor también
   async logout() {
     console.log('🚪 Cerrando sesión');
+    
     try {
       await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
     } catch (e) {
@@ -558,37 +559,69 @@ class HeaderUnificado {
     this.clearAuth();
     this.updateHeader();
     
-    // Limpiar caché del navegador y forzar recarga
+    // Limpiar caché del navegador
     if ('caches' in window) {
       caches.keys().then(names => {
         names.forEach(name => caches.delete(name));
       });
     }
     
-    // Marcar que se hizo logout para verificaciones futuras
-    sessionStorage.setItem('justLoggedOut', 'true');
+    // Limpiar historial del navegador para evitar el botón "atrás"
+    this.clearBrowserHistory();
     
-    // Reemplazar el historial para evitar el botón "atrás"
-    window.history.replaceState(null, null, '/');
+    // Marcar que se hizo logout
+    try {
+      sessionStorage.setItem('justLoggedOut', 'true');
+    } catch (e) {
+      console.warn('No se pudo marcar logout en sessionStorage:', e);
+    }
     
-    // Forzar recarga completa de la página
-    window.location.replace('/');
+    // Forzar recarga completa sin caché
+    this.forceCompleteReload('/');
   }
 
   clearAuth() {
+    console.log('🧹 Limpiando toda la autenticación...');
+    
+    // Limpiar propiedades de la clase
     this.token = null;
     this.userInfo = null;
     
-    // Limpiar TODO el localStorage y sessionStorage
-    localStorage.clear();
-    sessionStorage.clear();
+    // Limpiar TODO el localStorage
+    try {
+      localStorage.clear();
+      console.log('✅ localStorage limpiado');
+    } catch (e) {
+      console.warn('⚠️ Error limpiando localStorage:', e);
+      // Intentar limpiar elementos específicos conocidos
+      try {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('cartItems');
+        localStorage.removeItem('userData');
+      } catch (e2) {
+        console.warn('⚠️ Error limpiando elementos específicos de localStorage:', e2);
+      }
+    }
     
-    // Limpiar cookies manualmente si es necesario
-    document.cookie.split(";").forEach(cookie => {
-      const eqPos = cookie.indexOf("=");
-      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-    });
+    // Limpiar TODO el sessionStorage
+    try {
+      const justLoggedOut = sessionStorage.getItem('justLoggedOut');
+      sessionStorage.clear();
+      // Restaurar el flag de logout si existía
+      if (justLoggedOut) {
+        sessionStorage.setItem('justLoggedOut', 'true');
+      }
+      console.log('✅ sessionStorage limpiado');
+    } catch (e) {
+      console.warn('⚠️ Error limpiando sessionStorage:', e);
+    }
+    
+    // Limpiar TODAS las cookies de forma exhaustiva
+    this.clearAllCookies();
+    
+    // Limpiar IndexedDB si existe
+    this.clearIndexedDB();
   }
 
   async handlePasswordRecovery(e) {
@@ -906,6 +939,143 @@ class HeaderUnificado {
       if (!text) return {};
       return JSON.parse(text);
     } catch { return {}; }
+  }
+
+  // Función para limpiar todas las cookies de forma exhaustiva
+  clearAllCookies() {
+    try {
+      console.log('🍪 Limpiando todas las cookies...');
+      
+      // Obtener todas las cookies
+      const cookies = document.cookie.split(";");
+      
+      // Limpiar cada cookie con diferentes combinaciones de path y domain
+      cookies.forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        
+        if (name) {
+          // Limpiar con diferentes paths y domains
+          const pathsAndDomains = [
+            { path: '/' },
+            { path: '/', domain: window.location.hostname },
+            { path: '/', domain: '.' + window.location.hostname },
+            { path: '/auth' },
+            { path: '/auth/', domain: window.location.hostname },
+            { path: '', domain: window.location.hostname },
+            {}
+          ];
+          
+          pathsAndDomains.forEach(options => {
+            let cookieString = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+            if (options.path !== undefined) cookieString += `path=${options.path};`;
+            if (options.domain) cookieString += `domain=${options.domain};`;
+            cookieString += 'secure;samesite=strict;';
+            
+            document.cookie = cookieString;
+          });
+        }
+      });
+      
+      // Limpiar cookies específicas conocidas del sistema
+      const specificCookies = ['token', 'sessionId', 'auth', 'user', 'session', 'connect.sid'];
+      specificCookies.forEach(cookieName => {
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname};`;
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname};`;
+      });
+      
+      console.log('✅ Cookies limpiadas');
+    } catch (e) {
+      console.warn('⚠️ Error limpiando cookies:', e);
+    }
+  }
+
+  // Función para limpiar IndexedDB
+  clearIndexedDB() {
+    if (!window.indexedDB) return;
+    
+    try {
+      console.log('🗄️ Limpiando IndexedDB...');
+      
+      // Obtener todas las bases de datos y eliminarlas
+      if (indexedDB.databases) {
+        indexedDB.databases().then(databases => {
+          databases.forEach(db => {
+            if (db.name) {
+              const deleteReq = indexedDB.deleteDatabase(db.name);
+              deleteReq.onsuccess = () => console.log(`✅ Base de datos ${db.name} eliminada`);
+              deleteReq.onerror = () => console.warn(`⚠️ Error eliminando base de datos ${db.name}`);
+            }
+          });
+        }).catch(e => console.warn('⚠️ Error obteniendo bases de datos:', e));
+      }
+    } catch (e) {
+      console.warn('⚠️ Error limpiando IndexedDB:', e);
+    }
+  }
+
+  // Función para limpiar el historial del navegador
+  clearBrowserHistory() {
+    try {
+      console.log('📜 Limpiando historial del navegador...');
+      
+      // Reemplazar toda la historia con una entrada vacía
+      if (window.history && window.history.replaceState) {
+        // Limpiar el estado actual
+        window.history.replaceState(null, '', '/');
+        
+        // Intentar limpiar el historial anterior (limitado por seguridad del navegador)
+        if (window.history.pushState) {
+          window.history.pushState(null, '', '/');
+          window.history.replaceState(null, '', '/');
+        }
+      }
+      
+      // Prevenir el botón atrás
+      window.addEventListener('popstate', this.preventBackButton.bind(this));
+      
+      console.log('✅ Historial limpiado');
+    } catch (e) {
+      console.warn('⚠️ Error limpiando historial:', e);
+    }
+  }
+
+  // Función para prevenir el botón atrás después del logout
+  preventBackButton(event) {
+    const justLoggedOut = sessionStorage.getItem('justLoggedOut');
+    if (justLoggedOut) {
+      event.preventDefault();
+      event.stopPropagation();
+      window.history.pushState(null, '', '/');
+      console.log('🚫 Botón atrás bloqueado después del logout');
+      return false;
+    }
+  }
+
+  // Función para forzar recarga completa sin caché
+  forceCompleteReload(url = '/') {
+    try {
+      console.log('🔄 Forzando recarga completa...');
+      
+      // Limpiar todos los elementos del DOM que puedan contener datos
+      const elementsToClean = ['input', 'textarea', 'select'];
+      elementsToClean.forEach(tag => {
+        document.querySelectorAll(tag).forEach(el => {
+          el.value = '';
+          el.checked = false;
+          el.selected = false;
+        });
+      });
+      
+      // Reemplazar la ubicación actual para evitar historial
+      window.location.replace(url + '?t=' + Date.now());
+      
+    } catch (e) {
+      console.warn('⚠️ Error en recarga completa, usando método alternativo:', e);
+      // Método alternativo
+      window.location.href = url + '?t=' + Date.now();
+    }
   }
 }
 
