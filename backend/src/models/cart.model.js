@@ -58,9 +58,24 @@ const cartSchema = new mongoose.Schema({
 
 // Middleware para calcular totales antes de guardar
 cartSchema.pre('save', function(next) {
-  this.subtotal = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  this.iva = this.subtotal * 0.19; // 19% IVA
+  // Calcular subtotal
+  this.subtotal = this.items.reduce((sum, item) => {
+    const itemPrice = Number(item.price) || 0;
+    const itemQuantity = Number(item.quantity) || 0;
+    return sum + (itemPrice * itemQuantity);
+  }, 0);
+  
+  // Calcular IVA redondeado (19%)
+  this.iva = Math.round(this.subtotal * 0.19);
+  
+  // Calcular total
   this.total = this.subtotal + this.iva;
+  
+  console.log('🧮 Calculando totales del carrito:');
+  console.log('  - Subtotal:', this.subtotal);
+  console.log('  - IVA (19%):', this.iva);
+  console.log('  - Total:', this.total);
+  
   next();
 });
 
@@ -109,6 +124,42 @@ cartSchema.methods.removeItem = function(productId) {
 // Método para limpiar el carrito
 cartSchema.methods.clearCart = function() {
   this.items = [];
+};
+
+// Método para recalcular totales manualmente
+cartSchema.methods.recalculateTotals = function() {
+  // Filtrar items válidos (con precio y cantidad válidos)
+  const validItems = this.items.filter(item => {
+    const price = Number(item.price);
+    const quantity = Number(item.quantity);
+    return !isNaN(price) && !isNaN(quantity) && price >= 0 && quantity > 0;
+  });
+
+  // Recalcular subtotal
+  this.subtotal = validItems.reduce((sum, item) => {
+    const itemPrice = Number(item.price) || 0;
+    const itemQuantity = Number(item.quantity) || 0;
+    return sum + (itemPrice * itemQuantity);
+  }, 0);
+  
+  // Calcular IVA redondeado (19%)
+  this.iva = Math.round(this.subtotal * 0.19);
+  
+  // Calcular total
+  this.total = this.subtotal + this.iva;
+  
+  console.log('🔄 Totales recalculados:');
+  console.log('  - Items válidos:', validItems.length);
+  console.log('  - Subtotal:', this.subtotal);
+  console.log('  - IVA (19%):', this.iva);
+  console.log('  - Total:', this.total);
+  
+  return {
+    subtotal: this.subtotal,
+    iva: this.iva,
+    total: this.total,
+    validItems: validItems.length
+  };
 };
 
 module.exports = mongoose.model('Cart', cartSchema);

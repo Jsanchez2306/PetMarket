@@ -7,11 +7,11 @@ let carritoData = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    // No cargar carrito al inicio ya que viene del servidor
-    // cargarCarrito();
-    
     // Inicializar eventos
     inicializarEventos();
+    
+    // Sincronizar datos del carrito desde el servidor
+    sincronizarCarritoDesdeServidor();
 });
 
 function inicializarEventos() {
@@ -20,6 +20,43 @@ function inicializarEventos() {
     
     // Evento para limpiar carrito
     document.getElementById('limpiarCarritoBtn').addEventListener('click', limpiarCarrito);
+}
+
+function sincronizarCarritoDesdeServidor() {
+    try {
+        // Obtener totales desde el DOM (que vienen del servidor)
+        const subtotalElement = document.getElementById('subtotalAmount');
+        const ivaElement = document.getElementById('ivaAmount');
+        const totalElement = document.getElementById('totalAmount');
+        
+        if (subtotalElement && ivaElement && totalElement) {
+            // Limpiar y parsear los valores
+            const subtotal = parseInt(subtotalElement.textContent.replace(/[$.,]/g, '')) || 0;
+            const iva = parseInt(ivaElement.textContent.replace(/[$.,]/g, '')) || 0;
+            const total = parseInt(totalElement.textContent.replace(/[$.,]/g, '')) || 0;
+            
+            // Actualizar carritoData global
+            carritoData.subtotal = subtotal;
+            carritoData.iva = iva;
+            carritoData.total = total;
+            
+            // Contar items desde el DOM
+            const cartItems = document.querySelectorAll('.cart-item');
+            carritoData.items = Array.from(cartItems).map(item => ({
+                product: { _id: item.dataset.productId }
+            }));
+            
+            console.log('🔄 Carrito sincronizado desde servidor:', carritoData);
+            console.log('💰 Totales sincronizados:');
+            console.log('  - Subtotal:', subtotal);
+            console.log('  - IVA:', iva);
+            console.log('  - Total:', total);
+        } else {
+            console.warn('⚠️ No se encontraron elementos de total en el DOM');
+        }
+    } catch (error) {
+        console.error('❌ Error sincronizando carrito desde servidor:', error);
+    }
 }
 
 async function cargarCarrito() {
@@ -215,6 +252,202 @@ async function eliminarItem(productId) {
 // Hacer la función global para que funcione desde EJS
 window.eliminarItem = eliminarItem;
 
+async function mostrarFacturaModal() {
+    try {
+        console.log('📄 Preparando factura modal...');
+        
+        // Obtener información del usuario
+        const userInfo = await obtenerInformacionUsuario();
+        
+        // Llenar información del cliente
+        llenarInformacionCliente(userInfo);
+        
+        // Llenar productos de la factura
+        llenarProductosFactura();
+        
+        // Llenar totales
+        llenarTotalesFactura();
+        
+        // Generar número de factura y fecha
+        generarDatosFactura();
+        
+        // Configurar evento del botón confirmar
+        configurarBotonConfirmar();
+        
+        // Mostrar el modal
+        const facturaModal = new bootstrap.Modal(document.getElementById('facturaModal'));
+        facturaModal.show();
+        
+        console.log('✅ Factura modal mostrada');
+        
+    } catch (error) {
+        console.error('❌ Error mostrando factura modal:', error);
+        mostrarToast('Error al preparar la factura', 'error');
+    }
+}
+
+async function obtenerInformacionUsuario() {
+    try {
+        // Obtener info del usuario desde el token o API
+        const token = localStorage.getItem('token');
+        if (token) {
+            const response = await fetch('/auth/perfil', {
+                headers: { 'Authorization': `Bearer ${token}` },
+                credentials: 'include'
+            });
+            if (response.ok) {
+                return await response.json();
+            }
+        }
+        
+        // Fallback: obtener del DOM o headerUnificado
+        if (window.headerUnificado && window.headerUnificado.userInfo) {
+            return window.headerUnificado.userInfo;
+        }
+        
+        return {
+            nombre: 'Cliente',
+            email: 'cliente@example.com',
+            telefono: 'No disponible',
+            direccion: 'No disponible'
+        };
+    } catch (error) {
+        console.error('Error obteniendo información del usuario:', error);
+        return {
+            nombre: 'Cliente',
+            email: 'cliente@example.com',
+            telefono: 'No disponible',
+            direccion: 'No disponible'
+        };
+    }
+}
+
+function llenarInformacionCliente(userInfo) {
+    document.getElementById('customerName').textContent = userInfo.nombre || 'Cliente';
+    document.getElementById('customerEmail').textContent = userInfo.email || 'No disponible';
+    document.getElementById('customerPhone').textContent = userInfo.telefono || 'No disponible';
+    document.getElementById('customerAddress').textContent = userInfo.direccion || 'No disponible';
+}
+
+function llenarProductosFactura() {
+    const cartItems = document.querySelectorAll('.cart-item');
+    const tbody = document.getElementById('invoiceItemsBody');
+    tbody.innerHTML = '';
+    
+    cartItems.forEach(item => {
+        const productName = item.querySelector('h5')?.textContent || 'Producto';
+        const productCategory = item.querySelector('.text-muted')?.textContent || '';
+        const quantity = item.querySelector('.quantity-display')?.textContent || '1';
+        const priceElement = item.querySelector('.fw-bold');
+        const priceText = priceElement ? priceElement.textContent.replace('$', '').replace(/[.,]/g, '') : '0';
+        const unitPrice = parseInt(priceText) || 0;
+        const subtotal = unitPrice * parseInt(quantity);
+        
+        const row = document.createElement('tr');
+        row.className = 'invoice-item-row';
+        row.innerHTML = `
+            <td>
+                <div class="invoice-product-name">${productName}</div>
+                <div class="invoice-product-category">${productCategory}</div>
+            </td>
+            <td class="text-center">${quantity}</td>
+            <td class="text-end">$${unitPrice.toLocaleString('es-CO')}</td>
+            <td class="text-end fw-bold">$${subtotal.toLocaleString('es-CO')}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function llenarTotalesFactura() {
+    const subtotalElement = document.getElementById('subtotalAmount');
+    const ivaElement = document.getElementById('ivaAmount');
+    const totalElement = document.getElementById('totalAmount');
+    
+    const subtotal = subtotalElement ? subtotalElement.textContent : '$0';
+    const iva = ivaElement ? ivaElement.textContent : '$0';
+    const total = totalElement ? totalElement.textContent : '$0';
+    
+    document.getElementById('invoiceSubtotal').textContent = subtotal;
+    document.getElementById('invoiceIva').textContent = iva;
+    document.getElementById('invoiceTotal').textContent = total;
+}
+
+function generarDatosFactura() {
+    // Generar número de factura único
+    const now = new Date();
+    const invoiceNumber = `FAC-${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    
+    // Formatear fecha
+    const invoiceDate = now.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    document.getElementById('invoiceNumber').textContent = invoiceNumber;
+    document.getElementById('invoiceDate').textContent = invoiceDate;
+}
+
+function configurarBotonConfirmar() {
+    const confirmarBtn = document.getElementById('confirmarPagoBtn');
+    
+    // Remover listeners previos
+    const newBtn = confirmarBtn.cloneNode(true);
+    confirmarBtn.parentNode.replaceChild(newBtn, confirmarBtn);
+    
+    // Agregar nuevo listener
+    newBtn.addEventListener('click', async () => {
+        try {
+            // Cerrar modal
+            const facturaModal = bootstrap.Modal.getInstance(document.getElementById('facturaModal'));
+            facturaModal.hide();
+            
+            // Proceder con el pago en Mercado Pago
+            await procesarPagoMercadoPago();
+            
+        } catch (error) {
+            console.error('Error al confirmar pago:', error);
+            mostrarToast('Error al procesar el pago', 'error');
+        }
+    });
+}
+
+async function procesarPagoMercadoPago() {
+    try {
+        mostrarCargando(true);
+
+        // Crear preferencia en Mercado Pago
+        const response = await fetch('/mercadopago/create-preference', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            mostrarToast('Redirigiendo a Mercado Pago...', 'success');
+            
+            // Redirigir a Mercado Pago
+            setTimeout(() => {
+                // Usar sandbox_init_point para modo prueba
+                window.location.href = data.sandboxInitPoint || data.initPoint;
+            }, 1500);
+        } else {
+            mostrarToast(data.mensaje || 'Error al crear preferencia de pago', 'error');
+        }
+    } catch (error) {
+        console.error('Error al procesar pago en Mercado Pago:', error);
+        mostrarToast('Error al procesar el pago', 'error');
+    } finally {
+        mostrarCargando(false);
+    }
+}
+
 async function limpiarCarrito() {
     try {
         // Verificar si hay productos en el DOM en lugar de en carritoData
@@ -260,42 +493,46 @@ async function procesarPago() {
             return;
         }
 
-        // Obtener el total del DOM
+        // Obtener el total del DOM con debug mejorado
         const totalElement = document.getElementById('totalAmount');
-        const totalText = totalElement ? totalElement.textContent.replace('$', '').replace(/,/g, '') : '0';
+        console.log('🔍 Total element:', totalElement);
+        console.log('🔍 Total element content:', totalElement?.textContent);
         
-        const confirmacion = confirm(`¿Proceder con el pago por $${Number(totalText).toLocaleString('es-CO')} con Mercado Pago?`);
-        if (!confirmacion) return;
-
-        mostrarCargando(true);
-
-        // Crear preferencia en Mercado Pago
-        const response = await fetch('/mercadopago/create-preference', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            mostrarToast('Redirigiendo a Mercado Pago...', 'success');
-            
-            // Redirigir a Mercado Pago
-            setTimeout(() => {
-                // Usar sandbox_init_point para modo prueba
-                window.location.href = data.sandboxInitPoint || data.initPoint;
-            }, 1500);
-        } else {
-            mostrarToast(data.mensaje || 'Error al crear preferencia de pago', 'error');
+        let totalAmount = 0;
+        
+        if (totalElement && totalElement.textContent) {
+            // Limpiar el texto del total
+            const totalText = totalElement.textContent
+                .replace('$', '')           // Quitar símbolo de peso
+                .replace(/\./g, '')         // Quitar puntos de miles (formato colombiano)
+                .replace(/,/g, '')          // Quitar comas si las hay
+                .trim();                    // Quitar espacios
+                
+            console.log('🔍 Total text cleaned:', totalText);
+            totalAmount = parseInt(totalText) || 0;
+            console.log('🔍 Total amount parsed:', totalAmount);
         }
+        
+        // Verificar que el total sea válido
+        if (isNaN(totalAmount) || totalAmount <= 0) {
+            console.error('❌ Total inválido:', totalAmount);
+            
+            // Intentar obtener el total desde carritoData como fallback
+            if (carritoData && carritoData.total) {
+                totalAmount = carritoData.total;
+                console.log('🔄 Usando total desde carritoData:', totalAmount);
+            } else {
+                mostrarToast('Error: No se pudo calcular el total del carrito', 'error');
+                return;
+            }
+        }
+        
+        // Mostrar factura modal en lugar del confirm
+        await mostrarFacturaModal();
+
     } catch (error) {
         console.error('Error al procesar pago:', error);
         mostrarToast('Error al procesar el pago', 'error');
-    } finally {
-        mostrarCargando(false);
     }
 }
 

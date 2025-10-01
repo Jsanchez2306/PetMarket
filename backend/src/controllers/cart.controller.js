@@ -11,34 +11,57 @@ exports.renderizarCarrito = async (req, res) => {
       return res.redirect('/login');
     }
 
+    console.log('🛒 Renderizando carrito para usuario:', userId);
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    let cartData = cart || { items: [], subtotal: 0, iva: 0, total: 0 };
-
-    // Filtrar items con productos eliminados (product es null)
-    if (cartData.items && cartData.items.length > 0) {
-      const validItems = cartData.items.filter(item => item.product !== null);
-      
-      // Si hay items con productos eliminados, actualizar el carrito
-      if (validItems.length !== cartData.items.length) {
-        console.log(`🧹 Limpiando ${cartData.items.length - validItems.length} productos eliminados del carrito`);
-        cartData.items = validItems;
-        
-        // Recalcular totales
-        cartData.subtotal = validItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        cartData.iva = Math.round(cartData.subtotal * 0.19);
-        cartData.total = cartData.subtotal + cartData.iva;
-        
-        // Guardar cambios en la base de datos
-        if (cart) {
-          cart.items = validItems;
-          await cart.save();
-        }
-      }
+    
+    if (!cart) {
+      console.log('📭 No hay carrito para este usuario');
+      return res.render('carrito', { cart: { items: [], subtotal: 0, iva: 0, total: 0 } });
     }
 
+    console.log('🔍 Carrito encontrado con', cart.items.length, 'items');
+
+    // Filtrar items con productos eliminados (product es null)
+    const validItems = cart.items.filter(item => {
+      if (item.product === null) {
+        console.log('⚠️ Item con producto eliminado encontrado');
+        return false;
+      }
+      
+      // Verificar que price y quantity sean números válidos
+      const price = Number(item.price);
+      const quantity = Number(item.quantity);
+      
+      if (isNaN(price) || isNaN(quantity) || price < 0 || quantity <= 0) {
+        console.log('⚠️ Item con datos inválidos:', { price: item.price, quantity: item.quantity });
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Si hay items inválidos, limpiar y recalcular
+    if (validItems.length !== cart.items.length) {
+      console.log(`🧹 Limpiando ${cart.items.length - validItems.length} items inválidos del carrito`);
+      cart.items = validItems;
+      
+      // Usar el método del modelo para recalcular
+      cart.recalculateTotals();
+      await cart.save();
+    }
+
+    // Asegurarse de que los totales sean números válidos
+    const cartData = {
+      items: cart.items,
+      subtotal: Number(cart.subtotal) || 0,
+      iva: Number(cart.iva) || 0,
+      total: Number(cart.total) || 0
+    };
+
+    console.log('💰 Totales del carrito:', cartData);
     res.render('carrito', { cart: cartData });
   } catch (error) {
-    console.error('Error al renderizar carrito:', error);
+    console.error('❌ Error al renderizar carrito:', error);
     res.status(500).send('Error al cargar el carrito');
   }
 };
@@ -53,9 +76,11 @@ exports.obtenerCarrito = async (req, res) => {
       return res.status(401).json({ mensaje: 'Usuario no autenticado' });
     }
 
+    console.log('📡 API: Obteniendo carrito para usuario:', userId);
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
     
     if (!cart) {
+      console.log('📭 API: No hay carrito para este usuario');
       return res.status(200).json({
         items: [],
         subtotal: 0,
@@ -65,28 +90,48 @@ exports.obtenerCarrito = async (req, res) => {
       });
     }
 
-    // Filtrar items con productos eliminados (product es null)
-    const validItems = cart.items.filter(item => item.product !== null);
+    console.log('🔍 API: Carrito encontrado con', cart.items.length, 'items');
+
+    // Filtrar items válidos
+    const validItems = cart.items.filter(item => {
+      if (item.product === null) {
+        console.log('⚠️ API: Item con producto eliminado encontrado');
+        return false;
+      }
+      
+      // Verificar que price y quantity sean números válidos
+      const price = Number(item.price);
+      const quantity = Number(item.quantity);
+      
+      if (isNaN(price) || isNaN(quantity) || price < 0 || quantity <= 0) {
+        console.log('⚠️ API: Item con datos inválidos:', { price: item.price, quantity: item.quantity });
+        return false;
+      }
+      
+      return true;
+    });
     
-    // Si hay items con productos eliminados, actualizar el carrito
+    // Si hay items inválidos, limpiar y recalcular
     if (validItems.length !== cart.items.length) {
-      console.log(`🧹 Limpiando ${cart.items.length - validItems.length} productos eliminados del carrito API`);
+      console.log(`🧹 API: Limpiando ${cart.items.length - validItems.length} items inválidos del carrito`);
       cart.items = validItems;
-      
-      // Recalcular totales
-      cart.subtotal = validItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      cart.iva = Math.round(cart.subtotal * 0.19);
-      cart.total = cart.subtotal + cart.iva;
-      
+      cart.recalculateTotals();
       await cart.save();
     }
 
-    res.status(200).json({
-      ...cart.toObject(),
-      itemCount: cart.items.reduce((sum, item) => sum + item.quantity, 0)
-    });
+    // Preparar respuesta con números válidos
+    const response = {
+      items: cart.items,
+      subtotal: Number(cart.subtotal) || 0,
+      iva: Number(cart.iva) || 0,
+      total: Number(cart.total) || 0,
+      itemCount: cart.items.reduce((sum, item) => sum + Number(item.quantity), 0)
+    };
+
+    console.log('💰 API: Totales del carrito:', response);
+    res.status(200).json(response);
   } catch (error) {
-    console.error('Error al obtener carrito:', error);
+    console.error('❌ API: Error al obtener carrito:', error);
     res.status(500).json({ mensaje: 'Error al obtener el carrito', error: error.message });
   }
 };
