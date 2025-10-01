@@ -150,6 +150,11 @@ class HeaderUnificado {
   updateHeader() {
     if (!this.userInfo) this.showPublicHeader();
     else this.showAuthenticatedHeader();
+    
+    // Solo verificar ruta protegida si NO hay usuario autenticado
+    if (!this.userInfo) {
+      this.checkProtectedRoute();
+    }
   }
 
   showPublicHeader() {
@@ -548,16 +553,42 @@ class HeaderUnificado {
     } catch (e) {
       console.warn('No se pudo cerrar sesión en el servidor:', e);
     }
+    
+    // Limpiar completamente la autenticación
     this.clearAuth();
     this.updateHeader();
-    window.location.href = '/';
+    
+    // Limpiar caché del navegador y forzar recarga
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+    
+    // Marcar que se hizo logout para verificaciones futuras
+    sessionStorage.setItem('justLoggedOut', 'true');
+    
+    // Reemplazar el historial para evitar el botón "atrás"
+    window.history.replaceState(null, null, '/');
+    
+    // Forzar recarga completa de la página
+    window.location.replace('/');
   }
 
   clearAuth() {
     this.token = null;
     this.userInfo = null;
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('userInfo');
+    
+    // Limpiar TODO el localStorage y sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Limpiar cookies manualmente si es necesario
+    document.cookie.split(";").forEach(cookie => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    });
   }
 
   async handlePasswordRecovery(e) {
@@ -654,6 +685,96 @@ class HeaderUnificado {
 
     // Interceptor de enlaces protegidos
     this.setupAdminLinkInterceptor();
+  }
+
+  // Verificar si estamos en una ruta protegida sin autenticación válida
+  async checkProtectedRoute() {
+    const currentPath = window.location.pathname;
+    
+    // Solo verificar si estamos en una ruta protegida
+    if (!this.isProtectedPath(window.location.href)) {
+      return; // No es ruta protegida, no hacer nada
+    }
+    
+    console.log('🔒 Verificando acceso a ruta protegida:', currentPath);
+    
+    // Si acabamos de hacer logout, ser más estricto
+    const justLoggedOut = sessionStorage.getItem('justLoggedOut');
+    if (justLoggedOut) {
+      sessionStorage.removeItem('justLoggedOut');
+      console.log('🚪 Usuario acabó de hacer logout, redirigiendo...');
+      window.location.replace('/restriccion');
+      return;
+    }
+    
+    // Si no hay token, verificar si acabamos de cargar la página
+    if (!this.token || !this.userInfo) {
+      // Dar un poco de tiempo para que cargue la autenticación
+      setTimeout(() => {
+        if (!this.token || !this.userInfo) {
+          console.log('❌ Sin autenticación después del delay, redirigiendo...');
+          window.location.replace('/restriccion');
+        }
+      }, 500); // Dar 500ms para cargar
+      return;
+    }
+    
+    // Si hay información de usuario, verificar permisos localmente primero
+    if (this.userInfo && this.hasPermissionForRoute(window.location.href, this.userInfo)) {
+      console.log('✅ Permisos locales válidos para usuario:', this.userInfo.email, 'Rol:', this.userInfo.rol);
+      return; // Todo bien, no hacer más verificaciones agresivas
+    }
+    
+    // Si no hay permisos locales, redirigir
+    console.log('❌ Sin permisos locales, redirigiendo...');
+    window.location.replace('/restriccion');
+  }
+  
+  // Verificación silenciosa del servidor (no redirige inmediatamente)
+  async verifyServerSessionQuietly() {
+    try {
+      const response = await fetch('/auth/verify', { 
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      if (!response.ok) {
+        console.log('⚠️ Sesión del servidor inválida');
+        // No redirigir inmediatamente, solo limpiar auth
+        this.clearAuth();
+        this.updateHeader();
+      }
+    } catch (error) {
+      console.log('⚠️ Error verificando sesión del servidor:', error);
+    }
+  }
+
+  // Verificar permisos por ruta
+  hasPermissionForRoute(href, user) {
+    if (!user) return false;
+    
+    try {
+      const url = new URL(href, window.location.origin);
+      const path = url.pathname;
+      
+      console.log('🔍 Verificando permisos para:', path, 'Usuario:', user);
+      
+      // Solo admins pueden acceder a gestión
+      if (/^\/(panel|clientes|empleados|facturas|productos)\/?$/.test(path)) {
+        const isAdmin = user.rol === 'admin' || user.rol === 'administrador';
+        console.log('🔐 Ruta administrativa. Es admin?', isAdmin, 'Rol:', user.rol);
+        return isAdmin;
+      }
+      
+      // Otras rutas son públicas o tienen sus propias validaciones
+      return true;
+    } catch (error) {
+      console.error('Error verificando permisos:', error);
+      return false;
+    }
   }
 
   // Interceptor para enlaces administrativos (solo rutas protegidas reales)

@@ -48,6 +48,17 @@ app.use(session({
 
 console.log('📦 Sesiones configuradas');
 
+// Middleware para prevenir caché en rutas administrativas
+const noCache = (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+};
+
+// Aplicar no-cache a rutas administrativas
+app.use(['/panel', '/clientes', '/empleados', '/facturas', '/productos'], noCache);
+
 // RUTAS DEL CARRITO
 console.log('🛒 Cargando rutas completas del carrito...');
 try {
