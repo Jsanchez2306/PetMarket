@@ -49,13 +49,20 @@
                                     <%= cliente.telefono || '—' %>
                                 </td>
                                 <td>
-                                    <button class="btn btn-warning btn-sm me-1 btn-editar"><i
-                                            class="fas fa-edit"></i></button>
-                                    <button class="btn btn-danger btn-sm me-1 btn-eliminar"><i
-                                            class="fas fa-trash-alt"></i></button>
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal"
+                                    <!-- 👁 Ver -->
+                                    <button class="btn btn-info btn-sm me-1" data-bs-toggle="modal"
                                         data-bs-target="#modalDetalles<%= cliente._id %>">
                                         <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <!-- ✏️ Editar -->
+                                    <button class="btn btn-warning btn-sm me-1 btn-editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <!-- 🗑 Eliminar -->
+                                    <button class="btn btn-danger btn-sm btn-eliminar">
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -130,7 +137,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
