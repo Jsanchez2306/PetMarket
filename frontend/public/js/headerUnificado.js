@@ -16,6 +16,7 @@ class HeaderUnificado {
     this.loadUserInfo();
     this.updateHeader();
     this.setupCartButtons();
+    this.setupStickyHeader(); // Nuevo: configurar header fijo
     
     // Verificar sesión cada 30 segundos para mantenerla activa si el usuario está logueado
     setInterval(() => {
@@ -887,8 +888,10 @@ class HeaderUnificado {
       const data = await response.json();
 
       if (response.ok) {
-        this.showSuccessMessage('¡Agregado!', 'Producto agregado al carrito exitosamente');
+        //  NUEVA ANIMACIÓN: Disparar animación de vuelo al carrito
+        this.animarProductoAlCarrito(button, productoId);
         this.loadCartCount();
+        
         button.innerHTML = '<i class="fas fa-check me-2"></i>¡Agregado!';
         button.classList.remove('btn-primary');
         button.classList.add('btn-success');
@@ -897,7 +900,7 @@ class HeaderUnificado {
           button.classList.remove('btn-success');
           button.classList.add('btn-primary');
           button.disabled = false;
-        }, 100);
+        }, 2000); // Aumentamos el tiempo para que se vea la animación completa
       } else {
         throw new Error(data.mensaje || 'Error al agregar producto');
       }
@@ -1050,6 +1053,139 @@ class HeaderUnificado {
       window.history.pushState(null, '', '/');
       console.log('🚫 Botón atrás bloqueado después del logout');
       return false;
+    }
+  }
+
+  // Configurar header fijo - SIEMPRE VISIBLE
+  setupStickyHeader() {
+    const navbar = document.querySelector('.navbar');
+    
+    if (!navbar) return;
+    
+    // Agregar clase CSS para hacerlo fijo
+    navbar.classList.add('navbar-sticky');
+    
+    // GARANTIZAR que nunca se esconda
+    navbar.style.transform = 'translateY(0) !important';
+    navbar.style.position = 'fixed';
+    navbar.style.top = '0';
+    
+    // Solo efecto visual al hacer scroll - el header NUNCA se esconde
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // FORZAR que siempre esté visible
+      navbar.style.transform = 'translateY(0)';
+      navbar.classList.remove('navbar-hidden'); // Por si acaso
+      
+      if (scrollTop > 50) {
+        // Solo agregar efecto visual (fondo más sólido, sombra)
+        navbar.classList.add('navbar-scrolled');
+      } else {
+        // Quitar efecto visual cuando está arriba
+        navbar.classList.remove('navbar-scrolled');
+      }
+    });
+    
+    console.log('✅ Header fijo configurado - GARANTIZADO SIEMPRE VISIBLE');
+  }
+
+  // ✨ NUEVA FUNCIÓN: Animación de producto volando al carrito
+  animarProductoAlCarrito(button, productoId) {
+    try {
+      // Encontrar la tarjeta del producto
+      const productCard = button.closest('.card, .product-card');
+      if (!productCard) {
+        console.log('No se encontró la tarjeta del producto');
+        return;
+      }
+
+      // Encontrar el icono del carrito en el header
+      const carritoIcon = document.querySelector('.fa-shopping-cart, [href*="carrito"]');
+      if (!carritoIcon) {
+        console.log('No se encontró el icono del carrito');
+        return;
+      }
+
+      // Crear una versión miniatura del producto para la animación
+      const productImage = productCard.querySelector('img');
+      const productTitle = productCard.querySelector('.card-title, h5');
+      
+      // Crear elemento de animación más ligero
+      const flyingElement = document.createElement('div');
+      flyingElement.style.position = 'fixed';
+      flyingElement.style.zIndex = '9999';
+      flyingElement.style.pointerEvents = 'none';
+      flyingElement.style.borderRadius = '10px';
+      flyingElement.style.overflow = 'hidden';
+      flyingElement.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+      flyingElement.style.background = 'white';
+      flyingElement.style.border = '2px solid #007bff';
+      
+      // Crear contenido del elemento volador
+      if (productImage && productTitle) {
+        flyingElement.innerHTML = `
+          <div style="width: 80px; height: 80px; display: flex; flex-direction: column; align-items: center; padding: 5px;">
+            <img src="${productImage.src}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+            <div style="font-size: 8px; text-align: center; margin-top: 2px; font-weight: bold; color: #333;">
+              ${productTitle.textContent.substring(0, 20)}...
+            </div>
+          </div>
+        `;
+      } else {
+        flyingElement.innerHTML = `
+          <div style="width: 60px; height: 60px; background: #007bff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-box text-white"></i>
+          </div>
+        `;
+      }
+
+      // Posicionar el elemento al inicio
+      const cardRect = productCard.getBoundingClientRect();
+      const carritoRect = carritoIcon.getBoundingClientRect();
+      
+      flyingElement.style.left = (cardRect.left + cardRect.width / 2 - 40) + 'px';
+      flyingElement.style.top = (cardRect.top + cardRect.height / 2 - 40) + 'px';
+      flyingElement.style.transition = 'all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+      // Agregar al DOM
+      document.body.appendChild(flyingElement);
+
+      // Iniciar la animación después de un pequeño delay
+      setTimeout(() => {
+        // Calcular la posición final (carrito)
+        const finalX = carritoRect.left + carritoRect.width / 2 - 40;
+        const finalY = carritoRect.top + carritoRect.height / 2 - 40;
+
+        // Aplicar transformaciones de animación
+        flyingElement.style.left = finalX + 'px';
+        flyingElement.style.top = finalY + 'px';
+        flyingElement.style.transform = 'scale(0.3) rotate(360deg)';
+        flyingElement.style.opacity = '0.7';
+
+        // Agregar efecto de brillo al carrito
+        carritoIcon.style.animation = 'carritoGlow 1.2s ease-in-out';
+
+        // Crear efecto de "bounce" en el carrito
+        setTimeout(() => {
+          carritoIcon.style.animation = 'pulseCart 0.3s ease-in-out';
+        }, 800);
+
+      }, 150);
+
+      // Limpiar después de la animación
+      setTimeout(() => {
+        if (flyingElement.parentNode) {
+          flyingElement.parentNode.removeChild(flyingElement);
+        }
+        // Quitar animación del carrito
+        carritoIcon.style.animation = '';
+      }, 1200);
+
+      console.log('✨ Animación mejorada de producto al carrito iniciada');
+
+    } catch (error) {
+      console.error('Error en animación de producto al carrito:', error);
     }
   }
 

@@ -22,6 +22,38 @@
     <link rel="icon" href="/Imagenes/HuellaPerro.png" />
     <title>Carrito de Compras - PetMarket</title>
     <link rel="stylesheet" href="/css/carrito.css">
+    <style>
+      /* Estilos para modal de confirmación */
+      #confirmacionModal .modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      
+      #confirmacionModal .modal-icon {
+        animation: pulseIcon 2s infinite;
+      }
+      
+      @keyframes pulseIcon {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+      
+      #confirmacionModal .btn {
+        border-radius: 25px;
+        min-width: 120px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      
+      #confirmacionModal .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+      
+      #confirmacionModal .modal-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      }
+    </style>
   </head>
 
   <body>
@@ -327,6 +359,37 @@
             <button type="button" class="btn btn-success" id="confirmarPagoBtn">
               <i class="fas fa-credit-card me-2"></i>
               Confirmar y Pagar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Confirmación Elegante -->
+    <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header border-0 pb-0">
+            <div class="w-100 text-center">
+              <div class="modal-icon mb-3">
+                <i id="confirmacionIcon" class="fas fa-question-circle text-warning" style="font-size: 3rem;"></i>
+              </div>
+              <h4 class="modal-title fw-bold" id="confirmacionModalLabel">Confirmar Acción</h4>
+            </div>
+          </div>
+          <div class="modal-body text-center px-4 py-3">
+            <p class="mb-0 fs-6 text-muted" id="confirmacionMensaje">
+              ¿Estás seguro de que deseas realizar esta acción?
+            </p>
+          </div>
+          <div class="modal-footer border-0 pt-0 justify-content-center gap-3">
+            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+              <i class="fas fa-times me-2"></i>
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-danger px-4" id="confirmacionAceptar">
+              <i class="fas fa-check me-2"></i>
+              Confirmar
             </button>
           </div>
         </div>

@@ -52,6 +52,31 @@ function inicializarEventos() {
             limpiarFiltros();
         });
     }
+
+    // ✨ NUEVO: Evento para agregar efectos visuales al botón de compra
+    document.addEventListener('click', function(e) {
+        const button = e.target.closest('.btn-comprar');
+        if (button && !button.disabled) {
+            // Agregar efecto visual al botón
+            button.classList.add('adding');
+            
+            // Agregar efecto a la tarjeta
+            const card = button.closest('.product-card, .card');
+            if (card) {
+                card.classList.add('animating');
+                
+                // Quitar efectos después de la animación
+                setTimeout(() => {
+                    card.classList.remove('animating');
+                }, 1500);
+            }
+            
+            // Quitar efecto del botón
+            setTimeout(() => {
+                button.classList.remove('adding');
+            }, 600);
+        }
+    });
 }
 
 async function cargarProductos() {

@@ -96,7 +96,7 @@ async function testHomepage() {
     return runTest('TEST HOMEPAGE', config, 'Prueba de rendimiento en la página principal');
 }
 
-// Test 2: Catálogo de productos
+// Test 2: Catálogo de productos (ruta correcta)
 async function testCatalogo() {
     const config = {
         ...baseConfig,
@@ -148,11 +148,13 @@ async function testAuthLogin() {
         ...baseConfig,
         url: baseConfig.url + '/auth/login',
         method: 'POST',
+        connections: 3, // Reducir para evitar crear muchas sesiones
+        duration: 5,
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            email: 'test@petmarket.com',
+            email: 'test@test.com',
             password: 'test123'
         })
     };
@@ -166,16 +168,15 @@ async function testAuthRegistro() {
         ...baseConfig,
         url: baseConfig.url + '/auth/registro',
         method: 'POST',
-        connections: 3, // Reducir conexiones para evitar spam en DB
-        duration: 5,    // Duración más corta
+        connections: 2, // Muy reducido para evitar spam en DB
+        duration: 3,    // Duración muy corta
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             nombre: 'TestUser' + Date.now(),
             email: 'test' + Date.now() + '@test.com',
-            password: '123456',
-            rol: 'cliente'
+            password: '123456'
         })
     };
     
@@ -188,8 +189,8 @@ async function testAuthRecuperar() {
         ...baseConfig,
         url: baseConfig.url + '/auth/recuperar-password',
         method: 'POST',
-        connections: 3, // Reducir para evitar spam
-        duration: 5,
+        connections: 2, // Muy reducido para evitar spam de emails
+        duration: 3,
         headers: {
             'Content-Type': 'application/json'
         },
@@ -201,9 +202,82 @@ async function testAuthRecuperar() {
     return runTest('TEST AUTH RECUPERAR', config, 'Prueba de rendimiento para recuperar contraseña');
 }
 
+// Test 9: Logout (POST)
+async function testAuthLogout() {
+    const config = {
+        ...baseConfig,
+        url: baseConfig.url + '/auth/logout',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    
+    return runTest('TEST AUTH LOGOUT', config, 'Prueba de rendimiento para cerrar sesión');
+}
+
+// ======================== TESTS DE PRODUCTOS ROUTES ========================
+
+// Test 10: API Productos (público)
+async function testProductosAPI() {
+    const config = {
+        ...baseConfig,
+        url: baseConfig.url + '/productos/api',
+        method: 'GET'
+    };
+    
+    return runTest('TEST PRODUCTOS API', config, 'Prueba de rendimiento para API de productos');
+}
+
+// Test 11: Productos aleatorios (público)
+async function testProductosAleatorios() {
+    const config = {
+        ...baseConfig,
+        url: baseConfig.url + '/productos/api/aleatorios',
+        method: 'GET'
+    };
+    
+    return runTest('TEST PRODUCTOS ALEATORIOS', config, 'Prueba de rendimiento para productos aleatorios');
+}
+
+// Test 12: Productos con filtros (público)
+async function testProductosFiltros() {
+    const config = {
+        ...baseConfig,
+        url: baseConfig.url + '/productos/api/filtros?categoria=perros&precio_min=10&precio_max=100',
+        method: 'GET'
+    };
+    
+    return runTest('TEST PRODUCTOS FILTROS', config, 'Prueba de rendimiento para productos con filtros');
+}
+
+// ======================== TESTS DE CARRITO ROUTES ========================
+
+// Test 13: Obtener carrito (requiere auth - probará sin auth)
+async function testCarritoObtener() {
+    const config = {
+        ...baseConfig,
+        url: baseConfig.url + '/carrito/api/obtener',
+        method: 'GET'
+    };
+    
+    return runTest('TEST CARRITO OBTENER', config, 'Prueba de rendimiento para obtener carrito (sin auth)');
+}
+
+// Test 14: Vista carrito (requiere auth - probará sin auth)
+async function testCarritoVista() {
+    const config = {
+        ...baseConfig,
+        url: baseConfig.url + '/carrito/',
+        method: 'GET'
+    };
+    
+    return runTest('TEST CARRITO VISTA', config, 'Prueba de rendimiento para vista del carrito (sin auth)');
+}
+
 // ======================== TESTS DE ESTRÉS ========================
 
-// Test 9: Stress test - Homepage
+// Test 15: Stress test - Homepage
 async function stressTestHomepage() {
     const config = {
         ...baseConfig,
@@ -216,20 +290,20 @@ async function stressTestHomepage() {
     return runTest('STRESS TEST HOMEPAGE', config, 'Prueba de estrés en homepage con mayor carga');
 }
 
-// Test 10: Stress test - Auth Verify
-async function stressTestAuthVerify() {
+// Test 16: Stress test - Productos API
+async function stressTestProductos() {
     const config = {
         ...baseConfig,
-        url: baseConfig.url + '/auth/verify',
+        url: baseConfig.url + '/productos/api',
         connections: 15,
         duration: 12,
         method: 'GET'
     };
     
-    return runTest('STRESS TEST AUTH VERIFY', config, 'Prueba de estrés en verificación de autenticación');
+    return runTest('STRESS TEST PRODUCTOS API', config, 'Prueba de estrés en API de productos');
 }
 
-// Test 11: Load test intensivo
+// Test 17: Load test intensivo
 async function loadTestIntenso() {
     const config = {
         ...baseConfig,
@@ -255,8 +329,10 @@ async function runPerformanceTests() {
         testRestriccion,
         testAuthVerify,
         testAuthLogin,
-        testAuthRegistro,
-        testAuthRecuperar
+        testAuthLogout,
+        testProductosAPI,
+        testProductosAleatorios,
+        testCarritoObtener
     ];
     
     const results = [];
@@ -279,7 +355,7 @@ async function runStressTests() {
     
     const stressTests = [
         stressTestHomepage,
-        stressTestAuthVerify,
+        stressTestProductos,
         loadTestIntenso
     ];
     
@@ -328,6 +404,7 @@ async function runAuthTests() {
     const authTests = [
         testAuthVerify,
         testAuthLogin,
+        testAuthLogout,
         testAuthRegistro,
         testAuthRecuperar
     ];
@@ -338,8 +415,53 @@ async function runAuthTests() {
         const result = await test();
         results.push(result);
         
-        console.log('Pausa de 3 segundos...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        console.log('Pausa de 4 segundos...');
+        await new Promise(resolve => setTimeout(resolve, 4000));
+    }
+    
+    return results;
+}
+
+// Función para ejecutar solo tests de productos
+async function runProductosTests() {
+    console.log('=== TESTS DE PRODUCTOS ROUTES ===');
+    
+    const productosTests = [
+        testProductosAPI,
+        testProductosAleatorios,
+        testProductosFiltros
+    ];
+    
+    const results = [];
+    
+    for (const test of productosTests) {
+        const result = await test();
+        results.push(result);
+        
+        console.log('Pausa de 2 segundos...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
+    return results;
+}
+
+// Función para ejecutar solo tests de carrito
+async function runCarritoTests() {
+    console.log('=== TESTS DE CARRITO ROUTES ===');
+    
+    const carritoTests = [
+        testCarritoVista,
+        testCarritoObtener
+    ];
+    
+    const results = [];
+    
+    for (const test of carritoTests) {
+        const result = await test();
+        results.push(result);
+        
+        console.log('Pausa de 2 segundos...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
     }
     
     return results;
@@ -424,6 +546,12 @@ async function main() {
             case 'auth':
                 await runAuthTests();
                 break;
+            case 'productos':
+                await runProductosTests();
+                break;
+            case 'carrito':
+                await runCarritoTests();
+                break;
             case 'performance':
                 await runPerformanceTests();
                 break;
@@ -446,10 +574,18 @@ if (require.main === module) {
     console.log('Comandos disponibles:');
     console.log('  • node test-runner.js          -> Ejecutar todos los tests');
     console.log('  • node test-runner.js all      -> Ejecutar todos los tests');
-    console.log('  • node test-runner.js index    -> Solo tests de index routes');
-    console.log('  • node test-runner.js auth     -> Solo tests de auth routes');
-    console.log('  • node test-runner.js performance -> Solo tests de rendimiento');
+    console.log('  • node test-runner.js index    -> Solo tests de index routes (/, /nosotros, etc.)');
+    console.log('  • node test-runner.js auth     -> Solo tests de auth routes (/auth/*)');
+    console.log('  • node test-runner.js productos -> Solo tests de productos (/productos/api/*)');
+    console.log('  • node test-runner.js carrito  -> Solo tests de carrito (/carrito/*)');
+    console.log('  • node test-runner.js performance -> Tests de rendimiento general');
     console.log('  • node test-runner.js stress   -> Solo tests de estres');
+    console.log('');
+    console.log('=== RUTAS DISPONIBLES EN PETMARKET ===');
+    console.log('📄 INDEX: /, /nosotros, /restriccion, /productos/catalogo');
+    console.log('🔐 AUTH: /auth/verify, /auth/login, /auth/logout, /auth/registro');
+    console.log('🏪 PRODUCTOS: /productos/api, /productos/api/aleatorios, /productos/api/filtros');
+    console.log('🛒 CARRITO: /carrito/, /carrito/api/obtener (requieren auth)');
     console.log('');
     console.log('=== CRITERIOS DE EVALUACION ===');
     console.log('EXCELENTE: >100 req/s, <50ms latencia, 0% errores');
@@ -467,15 +603,23 @@ module.exports = {
     runStressTests,
     runIndexTests,
     runAuthTests,
+    runProductosTests,
+    runCarritoTests,
     testHomepage,
     testCatalogo,
     testNosotros,
     testRestriccion,
     testAuthVerify,
     testAuthLogin,
+    testAuthLogout,
     testAuthRegistro,
     testAuthRecuperar,
+    testProductosAPI,
+    testProductosAleatorios,
+    testProductosFiltros,
+    testCarritoVista,
+    testCarritoObtener,
     stressTestHomepage,
-    stressTestAuthVerify,
+    stressTestProductos,
     loadTestIntenso
 };

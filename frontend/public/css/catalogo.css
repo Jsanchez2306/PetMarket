@@ -142,3 +142,54 @@
   background-color: #0fda85; 
   color: #fff;
 }
+
+    /* ✨ Animaciones para el carrito */
+    @keyframes carritoGlow {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      }
+      25% { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+      }
+      50% { 
+        transform: scale(1.2); 
+        box-shadow: 0 0 25px rgba(0, 123, 255, 1);
+      }
+      75% { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+      }
+    }
+
+    @keyframes pulseCart {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    /* Efecto de la tarjeta durante la animación */
+    .product-card.animating {
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+    }
+
+    /* Animación de entrada suave para las tarjetas */
+    .product-card {
+      transition: all 0.3s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    /* Efecto del botón durante la animación */
+    .btn-comprar.adding {
+      animation: pulseButton 0.6s ease-in-out;
+    }
+
+    @keyframes pulseButton {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }

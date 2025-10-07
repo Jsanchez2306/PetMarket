@@ -6,6 +6,9 @@ let carritoData = {
     total: 0
 };
 
+// Variable para manejar la confirmación del modal
+let confirmacionCallback = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar eventos
     inicializarEventos();
@@ -20,6 +23,25 @@ function inicializarEventos() {
     
     // Evento para limpiar carrito
     document.getElementById('limpiarCarritoBtn').addEventListener('click', limpiarCarrito);
+    
+    // ✨ Evento para el modal de confirmación
+    document.getElementById('confirmacionAceptar').addEventListener('click', () => {
+        if (confirmacionCallback) {
+            confirmacionCallback(true);
+            confirmacionCallback = null;
+        }
+        // Cerrar el modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmacionModal'));
+        if (modal) modal.hide();
+    });
+    
+    // ✨ Evento para cuando se cierra el modal sin confirmar
+    document.getElementById('confirmacionModal').addEventListener('hidden.bs.modal', () => {
+        if (confirmacionCallback) {
+            confirmacionCallback(false);
+            confirmacionCallback = null;
+        }
+    });
 }
 
 function sincronizarCarritoDesdeServidor() {
@@ -227,7 +249,14 @@ window.cambiarCantidad = cambiarCantidad;
 
 async function eliminarItem(productId) {
     try {
-        const confirmacion = confirm('¿Estás seguro de que deseas eliminar este producto del carrito?');
+        // ✨ Usar modal de confirmación elegante
+        const confirmacion = await mostrarConfirmacion(
+            'Eliminar Producto',
+            '¿Estás seguro de que deseas eliminar este producto del carrito?',
+            'fa-trash-alt',
+            'text-danger'
+        );
+        
         if (!confirmacion) return;
 
         const response = await fetch(`/carrito/api/eliminar/${productId}`, {
@@ -430,13 +459,14 @@ async function procesarPagoMercadoPago() {
         const data = await response.json();
 
         if (response.ok) {
-            mostrarToast('Redirigiendo a Mercado Pago...', 'success');
+            // ✨ Mostrar modal profesional de redirección
+            mostrarModalRedirección();
             
-            // Redirigir a Mercado Pago
+            // Redirigir a la pasarela de pago
             setTimeout(() => {
                 // Usar sandbox_init_point para modo prueba
                 window.location.href = data.sandboxInitPoint || data.initPoint;
-            }, 1500);
+            }, 2500);
         } else {
             mostrarToast(data.mensaje || 'Error al crear preferencia de pago', 'error');
         }
@@ -457,7 +487,14 @@ async function limpiarCarrito() {
             return;
         }
 
-        const confirmacion = confirm('¿Estás seguro de que deseas limpiar todo el carrito?');
+        // ✨ Usar modal de confirmación elegante
+        const confirmacion = await mostrarConfirmacion(
+            'Limpiar Carrito',
+            '¿Estás seguro de que deseas limpiar todo el carrito? Esta acción no se puede deshacer.',
+            'fa-broom',
+            'text-warning'
+        );
+        
         if (!confirmacion) return;
 
         mostrarCargando(true);
@@ -588,6 +625,128 @@ function actualizarContadorCarrito(cantidad) {
         contador.textContent = cantidad;
         contador.style.display = cantidad > 0 ? 'inline' : 'none';
     }
+}
+
+// ✨ Función para mostrar modal de confirmación elegante
+function mostrarConfirmacion(titulo, mensaje, iconoClase = 'fa-question-circle', iconoColor = 'text-warning') {
+    return new Promise((resolve) => {
+        // Configurar el contenido del modal
+        document.getElementById('confirmacionModalLabel').textContent = titulo;
+        document.getElementById('confirmacionMensaje').textContent = mensaje;
+        
+        // Configurar el icono
+        const icono = document.getElementById('confirmacionIcon');
+        icono.className = `fas ${iconoClase} ${iconoColor}`;
+        icono.style.fontSize = '3rem';
+        
+        // Configurar el callback
+        confirmacionCallback = resolve;
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('confirmacionModal'));
+        modal.show();
+    });
+}
+
+// ✨ Función para mostrar modal profesional de redirección
+function mostrarModalRedirección() {
+    // Crear overlay de fondo
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    `;
+
+    // Crear modal de redirección
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.5s ease-out;
+    `;
+
+    modal.innerHTML = `
+        <div style="margin-bottom: 30px;">
+            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #28a745, #20c997); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+                <i class="fas fa-credit-card text-white" style="font-size: 2rem;"></i>
+            </div>
+            <h3 style="color: #2c3e50; margin-bottom: 10px; font-weight: 600;">Procesando Pago</h3>
+            <p style="color: #6c757d; font-size: 16px; margin-bottom: 20px;">
+                Te estamos redirigiendo a nuestra pasarela de pago segura
+            </p>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #28a745;">
+                <i class="fas fa-shield-alt"></i>
+                <span style="font-size: 14px; font-weight: 500;">Conexión SSL segura</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <div style="width: 100%; height: 4px; background: #e9ecef; border-radius: 2px; overflow: hidden;">
+                <div style="height: 100%; background: linear-gradient(90deg, #28a745, #20c997); width: 0%; animation: progressBar 2.5s ease-out forwards;"></div>
+            </div>
+            <p style="color: #6c757d; font-size: 12px; margin-top: 10px;">
+                Por favor espera, no cierres esta ventana...
+            </p>
+        </div>
+    `;
+
+    // Agregar estilos de animación
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(40, 167, 69, 0.5);
+            }
+        }
+        
+        @keyframes progressBar {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+    `;
+    
+    document.head.appendChild(style);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Limpiar después de la redirección
+    setTimeout(() => {
+        if (overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+        }
+        if (style.parentNode) {
+            style.parentNode.removeChild(style);
+        }
+    }, 3000);
 }
 
 // Cargar contador del carrito al cargar la página
