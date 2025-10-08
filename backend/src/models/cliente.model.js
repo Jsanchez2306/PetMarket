@@ -7,7 +7,7 @@ function crearEsquemaCliente() {
         type: String,
         required: [true, "El nombre es obligatorio"],
         trim: true,
-        minlength: [2, "El nombre debe tener al menos 2 caracteres"],
+        minlength: [3, "El nombre debe tener al menos 3 caracteres"],
         maxlength: [50, "El nombre no puede exceder los 50 caracteres"],
         match: [/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "El nombre solo puede contener letras y espacios"],
       },

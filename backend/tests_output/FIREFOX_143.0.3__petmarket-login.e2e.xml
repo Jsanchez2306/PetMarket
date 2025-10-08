@@ -5,9 +5,9 @@
 
   <testsuite name="Login -&gt; abrir dropdown -&gt; Logout (flujo estable)" id="petmarket-login.e2e"
     errors="0" failures="0" hostname="" package="petmarket-login.e2e" skipped="0"
-    tests="1" time="18.52" timestamp="">
+    tests="1" time="17.77" timestamp="">
   
-    <testcase name="login, espera token, asegura header, abre dropdown y hace logout" classname="Login -&gt; abrir dropdown -&gt; Logout (flujo estable)" time="18.51" assertions="13">
+    <testcase name="login, espera token, asegura header, abre dropdown y hace logout" classname="Login -&gt; abrir dropdown -&gt; Logout (flujo estable)" time="17.76" assertions="13">
 
     
 

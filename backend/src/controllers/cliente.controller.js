@@ -1,108 +1,236 @@
 const Cliente = require('../models/cliente.model');
-const Log = require('../middlewares/logs');
 
+/* ================== Helpers ================== */
+function isEmpty(v) { return v === undefined || v === null || String(v).trim() === ''; }
+function normStr(v) { return typeof v === 'string' ? v.trim() : v; }
+
+function validarNombre(nombre) {
+  if (isEmpty(nombre)) return 'El nombre es obligatorio';
+  const v = normStr(nombre);
+  if (v.length < 2) return 'El nombre debe tener al menos 2 caracteres';
+  if (v.length > 50) return 'El nombre no puede exceder los 50 caracteres';
+  if (!/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/.test(v)) return 'El nombre solo puede contener letras y espacios';
+  return null;
+}
+function validarEmail(email) {
+  if (isEmpty(email)) return 'El correo electrónico es obligatorio';
+  const v = normStr(email).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'El formato del correo electrónico no es válido';
+  return null;
+}
+function validarTelefono(telefono) {
+  if (isEmpty(telefono)) return null; // opcional
+  const v = normStr(telefono);
+  if (!/^[0-9]{7,15}$/.test(v)) return 'El teléfono debe tener entre 7 y 15 dígitos numéricos';
+  return null;
+}
+function validarDireccion(direccion) {
+  if (isEmpty(direccion)) return null; // opcional
+  const v = normStr(direccion);
+  if (v.length < 5) return 'La dirección debe tener al menos 5 caracteres';
+  if (v.length > 100) return 'La dirección no puede exceder los 100 caracteres';
+  return null;
+}
+function validarPassword(contrasena, requerida = true) {
+  if (!requerida && isEmpty(contrasena)) return null;
+  if (isEmpty(contrasena)) return 'La contraseña es obligatoria';
+  const v = String(contrasena);
+  if (v.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+  return null;
+}
+
+/* ================== Vista ================== */
 exports.renderizarGestionClientes = async (req, res) => {
   try {
     const clientes = await Cliente.find();
-    Log.generateLog("Vista clientes", `Se renderizó la vista de gestión de clientes, total: ${clientes.length}`);
     res.render('gestionClientes', { clientes });
   } catch (err) {
     console.error('Error al obtener clientes para la vista:', err);
-    Log.generateLog("Error renderizar vista", `Error al renderizar gestión de clientes: ${err.message}`);
     res.status(500).send('Error al obtener clientes');
   }
 };
 
-exports.obtenerClientes = async (req, res) => {
+/* ================== API Lista ================== */
+exports.obtenerClientes = async (_req, res) => {
   try {
     const clientes = await Cliente.find();
-    Log.generateLog("API clientes", `Se obtuvieron ${clientes.length} clientes`);
     res.status(200).json(clientes);
-  } catch (error) {
-    console.error('Error al obtener clientes (API):', error);
-    Log.generateLog("Error API clientes", `Error al obtener clientes: ${error.message}`);
-    res.status(500).json({ mensaje: 'Error al obtener los clientes', error: error.message });
+  } catch (err) {
+    console.error('Error al obtener clientes (API):', err);
+    res.status(500).json({ mensaje: 'Error al obtener clientes', error: err.message });
   }
 };
 
+/* ================== Buscar por Email ================== */
 exports.buscarClientePorEmail = async (req, res) => {
   try {
-    const { email } = req.query;
-    
-    if (!email) {
-      return res.status(400).json({ mensaje: 'Email requerido' });
-    }
+    const email = normStr(req.query.email)?.toLowerCase();
+    if (!email) return res.status(400).json({ mensaje: 'Email requerido' });
 
-    const emailLimpio = email.trim().toLowerCase();
-    const cliente = await Cliente.findOne({ email: emailLimpio });
-    
-    if (!cliente) {
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
-    }
+    const cliente = await Cliente.findOne({ email });
+    if (!cliente) return res.status(404).json({ mensaje: 'Cliente no encontrado' });
 
-    // Remover información sensible
-    const clienteSeguro = cliente.toObject();
-    delete clienteSeguro.contrasena;
-    
-    Log.generateLog("Buscar cliente", `Se encontró cliente: ${cliente.email}`);
-    res.status(200).json(clienteSeguro);
-  } catch (error) {
-    console.error('Error al buscar cliente:', error);
-    Log.generateLog("Error buscar cliente", `Error al buscar cliente: ${error.message}`);
-    res.status(500).json({ mensaje: 'Error al buscar cliente', error: error.message });
+    const seguro = cliente.toObject();
+    delete seguro.contrasena;
+    res.json(seguro);
+  } catch (err) {
+    console.error('Error al buscar cliente:', err);
+    res.status(500).json({ mensaje: 'Error al buscar cliente', error: err.message });
   }
 };
 
+/* ================== Crear Cliente ================== */
+exports.crearCliente = async (req, res) => {
+  try {
+    const data = { ...req.body };
+
+    // Normalizar
+    data.nombre = normStr(data.nombre);
+    data.email = normStr(data.email)?.toLowerCase();
+    data.telefono = normStr(data.telefono);
+    data.direccion = normStr(data.direccion);
+    data.contrasena = data.contrasena ? String(data.contrasena).trim() : '';
+
+    // Eliminar opcionales vacíos ANTES de validar contra Mongoose (evita minlength con "")
+    if (isEmpty(data.telefono)) delete data.telefono;
+    if (isEmpty(data.direccion)) delete data.direccion;
+
+    const errores = {};
+    const eNom = validarNombre(data.nombre); if (eNom) errores.nombre = eNom;
+    const eEml = validarEmail(data.email); if (eEml) errores.email = eEml;
+    const eTel = validarTelefono(data.telefono); if (eTel) errores.telefono = eTel;
+    const eDir = validarDireccion(data.direccion); if (eDir) errores.direccion = eDir;
+    const ePwd = validarPassword(data.contrasena, true); if (ePwd) errores.password = ePwd;
+
+    if (!errores.email && data.email) {
+      const existeEmail = await Cliente.findOne({ email: data.email });
+      if (existeEmail) errores.email = 'Este correo ya existe';
+    }
+
+    if (Object.keys(errores).length) {
+      return res.status(400).json({ errores });
+    }
+
+    data.rol = 'cliente';
+
+    const nuevo = await Cliente.create(data);
+    const seguro = nuevo.toObject();
+    delete seguro.contrasena;
+    res.status(201).json(seguro);
+  } catch (err) {
+    console.error('Error al crear cliente:', err);
+    if (err.name === 'ValidationError') {
+      const errores = {};
+      for (const campo in err.errors) errores[campo] = err.errors[campo].message;
+      return res.status(400).json({ errores });
+    }
+    if (err.code === 11000 && err.keyPattern?.email) {
+      return res.status(400).json({ errores: { email: 'Este correo ya existe' } });
+    }
+    res.status(500).json({ mensaje: 'Error al crear cliente', error: err.message });
+  }
+};
+
+/* ================== Actualizar Cliente ================== */
 exports.actualizarCliente = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body };
+    const body = { ...req.body };
 
-    if (updateData.email) {
-      updateData.email = String(updateData.email).trim().toLowerCase();
+    // Normalizar entradas
+    const nombre = normStr(body.nombre);
+    const email = normStr(body.email)?.toLowerCase();
+    const telefonoRaw = normStr(body.telefono);
+    const direccionRaw = normStr(body.direccion);
+    const contrasenaRaw = body.contrasena ? String(body.contrasena).trim() : '';
 
-      const otro = await Cliente.findOne({ email: updateData.email, _id: { $ne: id } });
-      if (otro) {
-        Log.generateLog("Conflicto email", `Intento de actualizar cliente ${id} con email existente: ${updateData.email}`);
-        return res.status(409).json({ campo: 'email', mensaje: 'Este correo ya existe' });
-      }
+    // Flags para campos limpiados (usuario borró contenido)
+    const telefonoVacio = isEmpty(telefonoRaw);
+    const direccionVacia = isEmpty(direccionRaw);
+    const contrasenaVacia = isEmpty(contrasenaRaw);
+
+    const datosVal = {
+      nombre,
+      email,
+      telefono: telefonoVacio ? undefined : telefonoRaw,
+      direccion: direccionVacia ? undefined : direccionRaw,
+      contrasena: contrasenaVacia ? undefined : contrasenaRaw
+    };
+
+    const errores = {};
+    const eNom = validarNombre(datosVal.nombre); if (eNom) errores.nombre = eNom;
+    const eEml = validarEmail(datosVal.email); if (eEml) errores.email = eEml;
+    const eTel = validarTelefono(datosVal.telefono); if (eTel) errores.telefono = eTel;
+    const eDir = validarDireccion(datosVal.direccion); if (eDir) errores.direccion = eDir;
+    if (datosVal.contrasena !== undefined) {
+      const ePwd = validarPassword(datosVal.contrasena, false); if (ePwd) errores.password = ePwd;
     }
 
-    const actualizado = await Cliente.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
-    if (!actualizado) {
-      Log.generateLog("Cliente no encontrado", `Intento de actualizar cliente ${id} pero no existe`);
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    if (!errores.email && datosVal.email) {
+      const otro = await Cliente.findOne({ email: datosVal.email, _id: { $ne: id } });
+      if (otro) errores.email = 'Este correo ya existe';
     }
 
-    Log.generateLog("Cliente actualizado", `Cliente actualizado: ${id}`);
-    res.json(actualizado);
+    if (Object.keys(errores).length) {
+      return res.status(400).json({ errores });
+    }
 
+    // Construir update con $set / $unset para eliminar realmente campos vaciados
+    const updateDoc = { $set: {} };
+    updateDoc.$set.nombre = datosVal.nombre;
+    updateDoc.$set.email = datosVal.email;
+
+    if (!telefonoVacio && datosVal.telefono !== undefined) updateDoc.$set.telefono = datosVal.telefono;
+    if (!direccionVacia && datosVal.direccion !== undefined) updateDoc.$set.direccion = datosVal.direccion;
+    if (datosVal.contrasena !== undefined && !contrasenaVacia) updateDoc.$set.contrasena = datosVal.contrasena;
+
+    if (telefonoVacio) {
+      updateDoc.$unset = { ...(updateDoc.$unset || {}), telefono: "" };
+    }
+    if (direccionVacia) {
+      updateDoc.$unset = { ...(updateDoc.$unset || {}), direccion: "" };
+    }
+    if (contrasenaVacia) {
+      // No hacemos unset de contraseña (no se borra), simplemente no se cambia
+      delete updateDoc.$set.contrasena;
+    }
+
+    // Limpiar $set si quedó solo con campos obligatorios (normal)
+    if (Object.keys(updateDoc.$set).length === 0) delete updateDoc.$set;
+
+    const actualizado = await Cliente.findByIdAndUpdate(
+      id,
+      updateDoc,
+      { new: true, runValidators: true }
+    );
+    if (!actualizado) return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+
+    const seguro = actualizado.toObject();
+    delete seguro.contrasena;
+    res.json(seguro);
   } catch (err) {
     console.error('Error al actualizar cliente:', err);
-    Log.generateLog("Error actualizar cliente", `Error al actualizar cliente ${req.params.id}: ${err.message}`);
-
-    if (err.code === 11000 && err.keyPattern && err.keyPattern.email) {
-      return res.status(409).json({ campo: 'email', mensaje: 'Este correo ya existe' });
+    if (err.name === 'ValidationError') {
+      const errores = {};
+      for (const campo in err.errors) errores[campo] = err.errors[campo].message;
+      return res.status(400).json({ errores });
     }
-
-    res.status(400).json({ mensaje: 'Error al actualizar', error: err.message });
+    if (err.code === 11000 && err.keyPattern?.email) {
+      return res.status(400).json({ errores: { email: 'Este correo ya existe' } });
+    }
+    res.status(500).json({ mensaje: 'Error al actualizar', error: err.message });
   }
 };
 
+/* ================== Eliminar Cliente ================== */
 exports.eliminarCliente = async (req, res) => {
   try {
     const { id } = req.params;
     const eliminado = await Cliente.findByIdAndDelete(id);
-    if (!eliminado) {
-      Log.generateLog("Cliente no encontrado", `Intento de eliminar cliente ${id} pero no existe`);
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
-    }
-
-    Log.generateLog("Cliente eliminado", `Cliente eliminado: ${id}`);
+    if (!eliminado) return res.status(404).json({ mensaje: 'Cliente no encontrado' });
     res.sendStatus(200);
-  } catch (error) {
-    console.error('Error al eliminar cliente:', error);
-    Log.generateLog("Error eliminar cliente", `Error al eliminar cliente ${req.params.id}: ${error.message}`);
+  } catch (err) {
+    console.error('Error al eliminar cliente:', err);
     res.sendStatus(500);
   }
 };
