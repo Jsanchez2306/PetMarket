@@ -164,6 +164,9 @@ class HeaderUnificado {
     this.showElements('.public-nav');
     this.hideElements('.client-nav:not(.public-nav), .employee-nav, .admin-nav');
     this.hide('#roleBadge');
+    
+    // Notificar cambio de estado de usuario a otras páginas
+    this.notifyUserStateChange();
   }
 
   showAuthenticatedHeader() {
@@ -174,6 +177,9 @@ class HeaderUnificado {
     this.updateNavigation(rol, tipoUsuario);
     this.updateCartButton(rol, tipoUsuario);
     this.updateUserDropdown(rol, tipoUsuario);
+    
+    // Notificar cambio de estado de usuario a otras páginas
+    this.notifyUserStateChange();
   }
 
   updateUserInfo(nombre, email, rol, tipoUsuario) {
@@ -870,6 +876,12 @@ class HeaderUnificado {
 
   // Agregar producto al carrito
   async agregarAlCarrito(productoId, button) {
+    // Verificar si el usuario es administrador
+    if (this.userInfo && this.userInfo.rol === 'admin') {
+      this.showErrorMessage('Acceso restringido', 'Los administradores no pueden comprar productos');
+      return;
+    }
+
     if (!productoId) {
       this.showErrorMessage('Error', 'ID de producto no válido');
       return;
@@ -905,7 +917,7 @@ class HeaderUnificado {
         throw new Error(data.mensaje || 'Error al agregar producto');
       }
     } catch (error) {
-      console.error('❌ Error al agregar al carrito:', error);
+      console.error(' Error al agregar al carrito:', error);
       this.showErrorMessage('Error', error.message || 'No se pudo agregar el producto al carrito');
       button.innerHTML = originalText;
       button.disabled = false;
@@ -1090,7 +1102,7 @@ class HeaderUnificado {
     console.log('✅ Header fijo configurado - GARANTIZADO SIEMPRE VISIBLE');
   }
 
-  // ✨ NUEVA FUNCIÓN: Animación de producto volando al carrito
+  //  NUEVA FUNCIÓN: Animación de producto volando al carrito
   animarProductoAlCarrito(button, productoId) {
     try {
       // Encontrar la tarjeta del producto
@@ -1211,6 +1223,34 @@ class HeaderUnificado {
       console.warn('⚠️ Error en recarga completa, usando método alternativo:', e);
       // Método alternativo
       window.location.href = url + '?t=' + Date.now();
+    }
+  }
+
+  // Función para notificar cambios de estado del usuario a otras páginas
+  notifyUserStateChange() {
+    try {
+      // Disparar evento personalizado para que otras páginas puedan reaccionar
+      const event = new CustomEvent('userStateChanged', {
+        detail: {
+          userInfo: this.userInfo,
+          isAuthenticated: !!this.userInfo,
+          isAdmin: this.userInfo ? this.userInfo.rol === 'admin' : false
+        }
+      });
+      document.dispatchEvent(event);
+      
+      // También llamar funciones específicas si existen
+      if (typeof window.updateIndexButtons === 'function') {
+        window.updateIndexButtons();
+      }
+      
+      if (typeof window.updateCatalogoButtons === 'function') {
+        window.updateCatalogoButtons();
+      }
+      
+      console.log('📡 Estado de usuario notificado a otras páginas');
+    } catch (error) {
+      console.error('Error notificando cambio de estado:', error);
     }
   }
 }

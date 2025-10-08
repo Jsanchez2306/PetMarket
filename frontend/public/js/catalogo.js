@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('productosContainer')) {
         cargarProductos();
     }
+
+    // Escuchar cambios en el estado del usuario
+    document.addEventListener('userStateChanged', updateCatalogoButtons);
 });
 
 function inicializarEventos() {
@@ -161,6 +164,9 @@ function mostrarProductos(productos) {
         'higiene': 'badge-higiene'
     };
 
+    // Verificar si el usuario es administrador
+    const isAdmin = verificarSiEsAdmin();
+
     const productosHTML = productos.map(producto => {
         const colorCategoria = categoriaColores[producto.categoria] || 'bg-secondary';
         const nombre = safeText(producto.nombre);
@@ -205,11 +211,11 @@ function mostrarProductos(productos) {
               </div>
 
               <div class="d-grid gap-2">
-                <button class="btn btn-primary btn-comprar"
+                <button class="btn ${isAdmin ? 'btn-secondary' : 'btn-primary'} btn-comprar"
                         data-producto="${producto._id}"
-                        ${producto.stock === 0 ? 'disabled' : ''}>
-                  <i class="fas fa-shopping-cart me-2"></i>
-                  ${producto.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+                        ${producto.stock === 0 || isAdmin ? 'disabled' : ''}>
+                  <i class="fas fa-${isAdmin ? 'lock' : 'shopping-cart'} me-2"></i>
+                  ${isAdmin ? 'Admin - No disponible' : (producto.stock === 0 ? 'Sin stock' : 'Agregar al carrito')}
                 </button>
               </div>
             </div>
@@ -441,6 +447,40 @@ function mostrarError(mensaje) {
     </div>
   `;
 }
+
+// Función para verificar si el usuario actual es administrador
+function verificarSiEsAdmin() {
+    try {
+        // Verificar si existe headerUnificado y tiene información del usuario
+        if (window.headerUnificado && window.headerUnificado.userInfo) {
+            const userInfo = window.headerUnificado.userInfo;
+            return userInfo.rol === 'admin';
+        }
+        
+        // Verificación alternativa usando localStorage
+        const token = localStorage.getItem('token');
+        if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.rol === 'admin';
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('Error verificando rol de admin:', error);
+        return false;
+    }
+}
+
+// Función para actualizar botones cuando cambia el estado del usuario
+function updateCatalogoButtons() {
+    // Re-renderizar productos con el nuevo estado de admin
+    if (productos && productos.length > 0) {
+        mostrarProductos(productos);
+    }
+}
+
+// Exponer función global para que headerUnificado pueda llamarla
+window.updateCatalogoButtons = updateCatalogoButtons;
 
 // debounce auxiliar (por si lo usas luego)
 function debounce(func, wait) {
