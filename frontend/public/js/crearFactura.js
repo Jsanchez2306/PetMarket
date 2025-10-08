@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 document.getElementById('btnBuscarCliente').addEventListener('click', async function () {
     const email = document.getElementById('emailCliente').value;
     if (!email) {
-        alert('Por favor ingrese un email');
+        showModal.warning('Por favor ingrese un email válido', 'El campo de email es obligatorio para buscar al cliente.');
         return;
     }
 
@@ -32,12 +32,12 @@ document.getElementById('btnBuscarCliente').addEventListener('click', async func
             mostrarClienteSeleccionado(data);
             validarFormulario();
         } else {
-            alert(data.mensaje || 'Cliente no encontrado');
+            showModal.error('Cliente no encontrado', data.mensaje || 'No se encontró ningún cliente con el email proporcionado.');
             limpiarClienteSeleccionado();
         }
     } catch (error) {
         console.error('Error al buscar cliente:', error);
-        alert('Error al buscar cliente');
+        showModal.error('Error de conexión', 'No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet.');
     }
 });
 
@@ -110,7 +110,7 @@ function agregarProducto(productoId) {
         if (productoExistente.cantidad < producto.stock) {
             productoExistente.cantidad++;
         } else {
-            alert('No hay suficiente stock');
+            showModal.warning('Stock insuficiente', `Solo hay ${producto.stock} unidades disponibles de "${producto.nombre}".`);
             return;
         }
     } else {
@@ -175,7 +175,7 @@ function cambiarCantidad(productoId, cambio) {
     }
 
     if (nuevaCantidad > producto.stock) {
-        alert('No hay suficiente stock');
+        showModal.warning('Stock insuficiente', `Solo hay ${producto.stock} unidades disponibles de "${producto.nombre}".`);
         return;
     }
 
@@ -214,7 +214,7 @@ document.getElementById('formCrearFactura').addEventListener('submit', async fun
     e.preventDefault();
 
     if (!clienteSeleccionado || productosFactura.length === 0) {
-        alert('Debe seleccionar un cliente y al menos un producto');
+        showModal.warning('Datos incompletos', 'Debe seleccionar un cliente y agregar al menos un producto para crear la factura.');
         return;
     }
 
@@ -241,11 +241,11 @@ document.getElementById('formCrearFactura').addEventListener('submit', async fun
         if (response.ok) {
             mostrarFacturaCreada(data.factura);
         } else {
-            alert(data.mensaje || 'Error al crear la factura');
+            showModal.error('Error al crear la factura', data.mensaje || 'Ocurrió un problema al procesar la factura. Por favor, inténtalo nuevamente.');
         }
     } catch (error) {
         console.error('Error al crear factura:', error);
-        alert('Error al crear la factura');
+        showModal.error('Error de conexión', 'No se pudo conectar con el servidor. Verifica tu conexión a internet e inténtalo nuevamente.');
     }
 });
 
@@ -383,12 +383,12 @@ async function enviarFacturaPorCorreo(facturaId) {
             // Cambiar botón a estado de éxito
             button.innerHTML = '<i class="fas fa-check"></i> Factura Enviada';
             button.className = 'btn btn-success btn-sm me-2';
-            alert(`✅ Factura enviada exitosamente a ${data.email}`);
+            showModal.success('Factura enviada por correo', `La factura ha sido enviada exitosamente a ${data.email}`);
         } else {
             // Restaurar botón en caso de error
             button.innerHTML = '<i class="fas fa-envelope"></i> Enviar por Correo';
             button.disabled = false;
-            alert(`❌ Error al enviar factura: ${data.mensaje}`);
+            showModal.error('Error al enviar factura', data.mensaje || 'No se pudo enviar la factura por correo electrónico.');
         }
 
     } catch (error) {
@@ -396,7 +396,7 @@ async function enviarFacturaPorCorreo(facturaId) {
         // Restaurar botón en caso de error
         button.innerHTML = '<i class="fas fa-envelope"></i> Enviar por Correo';
         button.disabled = false;
-        alert('❌ Error al enviar factura por correo');
+        showModal.error('Error de conexión', 'No se pudo conectar con el servidor para enviar la factura por correo.');
     }
 }
 
@@ -421,12 +421,12 @@ async function imprimirFactura(facturaId) {
                 }, 1000);
             };
         } else {
-            alert('❌ Error: No se pudo abrir la ventana de impresión. Verifica que no esté bloqueada por el navegador.');
+            showModal.error('Error de impresión', 'No se pudo abrir la ventana de impresión. Verifica que no esté bloqueada por tu navegador.');
         }
 
     } catch (error) {
         console.error('Error al imprimir factura:', error);
-        alert('❌ Error al preparar la factura para impresión');
+        showModal.error('Error al imprimir', 'Ocurrió un problema al preparar la factura para impresión.');
     } finally {
         // Restaurar botón
         const button = event.target;

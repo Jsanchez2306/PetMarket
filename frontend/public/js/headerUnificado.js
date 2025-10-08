@@ -538,11 +538,12 @@ class HeaderUnificado {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Tu cuenta ha sido eliminada exitosamente. Serás redirigido a la página principal.');
         const modal = bootstrap.Modal.getInstance(document.getElementById('eliminarCuentaModal'));
         if (modal) modal.hide();
         this.clearAuth();
-        window.location.href = '/';
+        showModal.success('Cuenta eliminada', 'Tu cuenta ha sido eliminada exitosamente. Serás redirigido a la página principal.', () => {
+          window.location.href = '/';
+        });
       } else {
         this.showErrorInElement('eliminarMensajeError', data.mensaje || 'Error al eliminar la cuenta');
       }

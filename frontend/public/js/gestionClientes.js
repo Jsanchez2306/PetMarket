@@ -249,7 +249,10 @@ $(document).ready(function () {
   $('#formEditarCliente').on('submit', async function (e) {
     e.preventDefault();
     limpiarErrores('edit');
-    if (!token) return alert('Sesión expirada');
+    if (!token) {
+      showModal.error('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      return;
+    }
 
     const btn = this.querySelector('button[type="submit"]');
     setLoading(btn, true, 'Guardar cambios', 'Guardando...');
@@ -330,7 +333,10 @@ $(document).ready(function () {
   $('#formAgregarCliente').on('submit', async function (e) {
     e.preventDefault();
     limpiarErrores('add');
-    if (!token) return alert('Sesión expirada');
+    if (!token) {
+      showModal.error('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      return;
+    }
 
     const btn = this.querySelector('button[type="submit"]');
     setLoading(btn, true, 'Agregar Cliente', 'Guardando...');
@@ -410,7 +416,10 @@ $(document).ready(function () {
 
   $('#btnConfirmarEliminar').on('click', async function () {
     if (!idEliminar) return;
-    if (!token) return alert('Sesión expirada');
+    if (!token) {
+      showModal.error('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      return;
+    }
     try {
       const res = await fetch(`/clientes/${idEliminar}`, {
         method: 'DELETE',
