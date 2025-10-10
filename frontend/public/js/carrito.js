@@ -486,13 +486,24 @@ async function procesarPagoMercadoPago() {
     try {
         mostrarCargando(true);
 
-        // Crear preferencia en Mercado Pago
+        // Obtener items del localStorage
+        const cart = JSON.parse(localStorage.getItem('petmarket_cart') || '[]');
+        
+        if (cart.length === 0) {
+            mostrarToast('El carrito está vacío', 'error');
+            return;
+        }
+
+        console.log('🛒 Enviando items del carrito a Mercado Pago:', cart);
+
+        // Crear preferencia en Mercado Pago con items del localStorage
         const response = await fetch('/mercadopago/create-preference', {
             method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ items: cart })
         });
 
         const data = await response.json();
