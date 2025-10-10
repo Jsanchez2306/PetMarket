@@ -6,7 +6,56 @@ let todosLosProductos = [];
 // Cargar productos al iniciar
 document.addEventListener('DOMContentLoaded', function () {
     cargarProductos();
+    configurarTiposCliente();
 });
+
+// Configurar los radio buttons para tipos de cliente
+function configurarTiposCliente() {
+    const radios = document.querySelectorAll('input[name="tipoCliente"]');
+    const seccionRegistrado = document.getElementById('seccionClienteRegistrado');
+    const seccionManual = document.getElementById('seccionClienteManual');
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            limpiarClienteSeleccionado();
+            
+            if (this.value === 'registrado') {
+                seccionRegistrado.style.display = 'block';
+                seccionManual.style.display = 'none';
+            } else if (this.value === 'manual') {
+                seccionRegistrado.style.display = 'none';
+                seccionManual.style.display = 'block';
+            } else { // no-especificado
+                seccionRegistrado.style.display = 'none';
+                seccionManual.style.display = 'none';
+                // Configurar cliente como "No especificado"
+                clienteSeleccionado = {
+                    tipo: 'no-especificado',
+                    email: 'no-especificado@petmarket.com',
+                    nombre: 'Cliente No Especificado'
+                };
+                mostrarClienteNoEspecificado();
+            }
+            validarFormulario();
+        });
+    });
+
+    // Event listener para email manual
+    document.getElementById('emailClienteManual').addEventListener('input', function() {
+        const email = this.value.trim();
+        if (email && email.includes('@')) {
+            clienteSeleccionado = {
+                tipo: 'manual',
+                email: email,
+                nombre: 'Cliente Manual'
+            };
+            mostrarClienteManual(email);
+        } else {
+            limpiarClienteSeleccionado();
+        }
+        validarFormulario();
+    });
+}
 
 // Buscar cliente por email
 document.getElementById('btnBuscarCliente').addEventListener('click', async function () {
@@ -42,12 +91,45 @@ document.getElementById('btnBuscarCliente').addEventListener('click', async func
 });
 
 function mostrarClienteSeleccionado(cliente) {
+    clienteSeleccionado = {
+        tipo: 'registrado',
+        _id: cliente._id,
+        email: cliente.email,
+        nombre: cliente.nombre,
+        telefono: cliente.telefono
+    };
+    
     document.getElementById('infoCliente').innerHTML = `
                 <strong>${cliente.nombre}</strong><br>
                 <small>Email: ${cliente.email}</small><br>
                 <small>Teléfono: ${cliente.telefono || 'No especificado'}</small>
             `;
     document.getElementById('clienteId').value = cliente._id;
+    document.getElementById('clienteEmail').value = cliente.email;
+    document.getElementById('clienteNombre').value = cliente.nombre;
+    document.getElementById('clienteSeleccionado').style.display = 'block';
+}
+
+function mostrarClienteManual(email) {
+    document.getElementById('infoCliente').innerHTML = `
+                <strong>Cliente Manual</strong><br>
+                <small>Email: ${email}</small><br>
+                <small class="text-muted">Cliente no registrado en el sistema</small>
+            `;
+    document.getElementById('clienteId').value = '';
+    document.getElementById('clienteEmail').value = email;
+    document.getElementById('clienteNombre').value = 'Cliente Manual';
+    document.getElementById('clienteSeleccionado').style.display = 'block';
+}
+
+function mostrarClienteNoEspecificado() {
+    document.getElementById('infoCliente').innerHTML = `
+                <strong>Cliente No Especificado</strong><br>
+                <small class="text-muted">Venta sin datos de cliente</small>
+            `;
+    document.getElementById('clienteId').value = '';
+    document.getElementById('clienteEmail').value = 'no-especificado@petmarket.com';
+    document.getElementById('clienteNombre').value = 'Cliente No Especificado';
     document.getElementById('clienteSeleccionado').style.display = 'block';
 }
 
@@ -55,6 +137,9 @@ function limpiarClienteSeleccionado() {
     clienteSeleccionado = null;
     document.getElementById('clienteSeleccionado').style.display = 'none';
     document.getElementById('clienteId').value = '';
+    document.getElementById('clienteEmail').value = '';
+    document.getElementById('clienteNombre').value = '';
+    document.getElementById('emailClienteManual').value = '';
     validarFormulario();
 }
 
@@ -76,14 +161,22 @@ function mostrarProductos(productos) {
 
     productos.forEach(producto => {
         const productoDiv = document.createElement('div');
-        productoDiv.className = 'producto-item p-2 border-bottom';
+        const sinStock = producto.stock <= 0;
+        
+        productoDiv.className = `producto-item p-2 border-bottom ${sinStock ? 'bg-light text-muted' : ''}`;
         productoDiv.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>${producto.nombre}</strong><br>
-                            <small>Stock: ${producto.stock} | Precio: $${producto.precio}</small>
+                            <strong class="${sinStock ? 'text-muted' : ''}">${producto.nombre}</strong><br>
+                            <small class="${sinStock ? 'text-danger' : ''}">
+                                Stock: ${producto.stock} | Precio: $${producto.precio}
+                                ${sinStock ? ' - <strong>SIN STOCK</strong>' : ''}
+                            </small>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="agregarProducto('${producto._id}')">
+                        <button type="button" 
+                                class="btn btn-sm ${sinStock ? 'btn-secondary' : 'btn-outline-primary'}" 
+                                onclick="agregarProducto('${producto._id}')"
+                                ${sinStock ? 'disabled title="Sin stock disponible"' : ''}>
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -104,6 +197,12 @@ document.getElementById('buscarProducto').addEventListener('input', function () 
 function agregarProducto(productoId) {
     const producto = todosLosProductos.find(p => p._id === productoId);
     if (!producto) return;
+
+    // Verificar que hay stock disponible antes de agregar
+    if (producto.stock <= 0) {
+        showModal.warning('Sin stock disponible', `El producto "${producto.nombre}" no tiene stock disponible.`);
+        return;
+    }
 
     const productoExistente = productosFactura.find(p => p.id === productoId);
     if (productoExistente) {
@@ -193,19 +292,27 @@ function eliminarProducto(productoId) {
 
 function calcularTotales() {
     const subtotal = productosFactura.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
-    const iva = subtotal * 0.19;
-    const total = subtotal + iva;
+    const total = subtotal; // Sin IVA
 
     document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('iva').textContent = `$${iva.toFixed(2)}`;
     document.getElementById('total').textContent = `$${total.toFixed(2)}`;
 }
 
 function validarFormulario() {
     const btnCrear = document.getElementById('btnCrearFactura');
-    const tieneCliente = clienteSeleccionado !== null;
-    const tieneProductos = productosFactura.length > 0;
+    const tipoCliente = document.querySelector('input[name="tipoCliente"]:checked').value;
+    let tieneCliente = false;
 
+    if (tipoCliente === 'registrado') {
+        tieneCliente = clienteSeleccionado !== null && clienteSeleccionado.tipo === 'registrado';
+    } else if (tipoCliente === 'manual') {
+        const emailManual = document.getElementById('emailClienteManual').value.trim();
+        tieneCliente = emailManual && emailManual.includes('@');
+    } else if (tipoCliente === 'no-especificado') {
+        tieneCliente = true; // Siempre válido para no especificado
+    }
+
+    const tieneProductos = productosFactura.length > 0;
     btnCrear.disabled = !(tieneCliente && tieneProductos);
 }
 
@@ -213,15 +320,48 @@ function validarFormulario() {
 document.getElementById('formCrearFactura').addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    if (!clienteSeleccionado || productosFactura.length === 0) {
-        showModal.warning('Datos incompletos', 'Debe seleccionar un cliente y agregar al menos un producto para crear la factura.');
+    const tipoCliente = document.querySelector('input[name="tipoCliente"]:checked').value;
+    
+    if (productosFactura.length === 0) {
+        showModal.warning('Datos incompletos', 'Debe agregar al menos un producto para crear la factura.');
         return;
     }
 
+    // Preparar datos del cliente según el tipo
+    let datosCliente = {};
+    
+    if (tipoCliente === 'registrado') {
+        if (!clienteSeleccionado || clienteSeleccionado.tipo !== 'registrado') {
+            showModal.warning('Cliente requerido', 'Debe buscar y seleccionar un cliente registrado.');
+            return;
+        }
+        datosCliente = {
+            tipo: 'registrado',
+            id: clienteSeleccionado._id,
+            email: clienteSeleccionado.email,
+            nombre: clienteSeleccionado.nombre
+        };
+    } else if (tipoCliente === 'manual') {
+        const emailManual = document.getElementById('emailClienteManual').value.trim();
+        if (!emailManual || !emailManual.includes('@')) {
+            showModal.warning('Email requerido', 'Debe ingresar un email válido para el cliente.');
+            return;
+        }
+        datosCliente = {
+            tipo: 'manual',
+            email: emailManual,
+            nombre: 'Cliente Manual'
+        };
+    } else { // no-especificado
+        datosCliente = {
+            tipo: 'no-especificado',
+            email: 'no-especificado@petmarket.com',
+            nombre: 'Cliente No Especificado'
+        };
+    }
+
     const datosFactura = {
-        cliente: {
-            id: clienteSeleccionado._id
-        },
+        cliente: datosCliente,
         productos: productosFactura,
         metodoPago: document.getElementById('metodoPago').value,
         observaciones: document.getElementById('observaciones').value
@@ -312,7 +452,6 @@ function mostrarFacturaCreada(factura) {
                             <div class="col-md-4">
                                 <h6 class="text-primary"><i class="fas fa-calculator"></i> Totales</h6>
                                 <p><strong>Subtotal:</strong> $${factura.subtotal.toLocaleString('es-CO')}</p>
-                                <p><strong>IVA (19%):</strong> $${factura.iva.toLocaleString('es-CO')}</p>
                                 <p><strong>Total:</strong> <span class="text-success fw-bold">$${factura.total.toLocaleString('es-CO')}</span></p>
                             </div>
                         </div>

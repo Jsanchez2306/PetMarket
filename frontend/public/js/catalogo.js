@@ -464,9 +464,11 @@ function verificarSiEsAdmin() {
             return payload.rol === 'admin';
         }
         
+        // CAMBIO IMPORTANTE: Si no hay token, NO es admin (usuario no autenticado puede comprar)
         return false;
     } catch (error) {
         console.error('Error verificando rol de admin:', error);
+        // En caso de error, asumir que NO es admin (permitir compra)
         return false;
     }
 }

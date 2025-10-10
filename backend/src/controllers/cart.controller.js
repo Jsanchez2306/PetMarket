@@ -2,14 +2,16 @@ const Cart = require('../models/cart.model');
 const Producto = require('../models/producto.model');
 
 /**
- * Renderizar la vista del carrito
+ * Renderizar la vista del carrito (AHORA SIN AUTENTICACIÓN - localStorage)
  */
 exports.renderizarCarrito = async (req, res) => {
   try {
-    const userId = req.session.user?.id || req.user?.id;
-    if (!userId) {
-      return res.redirect('/login');
-    }
+    // CAMBIO: Carrito ahora funciona con localStorage, no requiere autenticación para ver
+    console.log('🛒 Renderizando carrito (localStorage mode)');
+    return res.render('carrito', { 
+      cart: { items: [], subtotal: 0, iva: 0, total: 0 },
+      message: 'Carrito manejado con localStorage' 
+    });
 
     console.log('🛒 Renderizando carrito para usuario:', userId);
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
@@ -67,13 +69,21 @@ exports.renderizarCarrito = async (req, res) => {
 };
 
 /**
- * Obtener el carrito del usuario (API)
+ * Obtener el carrito del usuario (API) - DESPROTEGIDA para localStorage
  */
 exports.obtenerCarrito = async (req, res) => {
   try {
     const userId = req.session.user?.id || req.user?.id;
+    
+    // Si no hay usuario, devolver carrito vacío (localStorage maneja los datos)
     if (!userId) {
-      return res.status(401).json({ mensaje: 'Usuario no autenticado' });
+      return res.status(200).json({ 
+        items: [], 
+        subtotal: 0, 
+        iva: 0, 
+        total: 0,
+        mensaje: 'Carrito manejado por localStorage' 
+      });
     }
 
     console.log('📡 API: Obteniendo carrito para usuario:', userId);
@@ -137,22 +147,22 @@ exports.obtenerCarrito = async (req, res) => {
 };
 
 /**
- * Agregar producto al carrito
+ * Agregar producto al carrito - DESPROTEGIDA para localStorage
  */
 exports.agregarAlCarrito = async (req, res) => {
   console.log('🛒 === INICIO AGREGAR AL CARRITO ===');
   
   try {
-    console.log('🔍 Verificando usuario...');
-    console.log('Session completa:', JSON.stringify(req.session, null, 2));
-    console.log('User from middleware:', req.user);
-    
     const userId = req.session?.user?.id || req.user?.id;
     console.log('UserId extraído:', userId);
     
+    // Si no hay usuario, devolver respuesta para localStorage
     if (!userId) {
-      console.log('❌ Usuario no autenticado - userId es:', userId);
-      return res.status(401).json({ mensaje: 'Usuario no autenticado' });
+      console.log('📱 Sin usuario - operación manejada por localStorage');
+      return res.status(200).json({ 
+        mensaje: 'Operación manejada por localStorage en el frontend',
+        localStorage: true 
+      });
     }
 
     const { productId, quantity = 1 } = req.body;
@@ -417,13 +427,18 @@ exports.procesarPago = async (req, res) => {
 };
 
 /**
- * Contar items en el carrito del usuario
+ * Contar items en el carrito del usuario - DESPROTEGIDA para localStorage
  */
 exports.contarItems = async (req, res) => {
   try {
     const userId = req.session.user?.id || req.user?.id;
+    
+    // Si no hay usuario, devolver 0 (localStorage maneja el conteo)
     if (!userId) {
-      return res.status(401).json({ mensaje: 'Usuario no autenticado' });
+      return res.status(200).json({ 
+        itemCount: 0,
+        mensaje: 'Conteo manejado por localStorage' 
+      });
     }
 
     const cart = await Cart.findOne({ user: userId });
@@ -438,5 +453,129 @@ exports.contarItems = async (req, res) => {
   } catch (error) {
     console.error('Error al contar items del carrito:', error);
     res.status(500).json({ mensaje: 'Error al contar items del carrito', error: error.message });
+  }
+};
+
+/**
+ * NUEVA FUNCIÓN: Checkout desde localStorage (requiere autenticación)
+ * Crea preferencia de Mercado Pago para el pago
+ */
+exports.checkoutLocalStorage = async (req, res) => {
+  try {
+    const userId = req.session.user?.id || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ mensaje: 'Usuario no autenticado' });
+    }
+
+    const { items, subtotal, iva, total } = req.body;
+    
+    if (!items || items.length === 0) {
+      return res.status(400).json({ mensaje: 'No hay productos en el carrito' });
+    }
+
+    console.log('💳 Procesando checkout localStorage para usuario:', userId);
+    console.log('🛒 Items recibidos:', items.length);
+
+    // Verificar stock de todos los productos
+    const productDetails = [];
+
+    for (const item of items) {
+      const producto = await Producto.findById(item.productId);
+      
+      if (!producto) {
+        return res.status(400).json({ 
+          mensaje: `Producto no encontrado: ${item.productId}` 
+        });
+      }
+
+      if (producto.stock < item.cantidad) {
+        return res.status(400).json({ 
+          mensaje: `Stock insuficiente para ${producto.nombre}. Stock disponible: ${producto.stock}` 
+        });
+      }
+
+      productDetails.push({
+        id: producto._id.toString(),
+        nombre: producto.nombre,
+        descripcion: producto.descripcion || 'Producto PetMarket',
+        imagen: producto.imagen || '',
+        categoria: producto.categoria,
+        precio: producto.precio,
+        cantidad: item.cantidad,
+        subtotal: producto.precio * item.cantidad
+      });
+    }
+
+    // Obtener datos del usuario
+    const Cliente = require('../models/cliente.model');
+    const usuario = await Cliente.findById(userId);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    // Crear items para Mercado Pago
+    const mpItems = productDetails.map(item => ({
+      id: item.id,
+      title: item.nombre,
+      description: item.descripcion,
+      picture_url: item.imagen,
+      category_id: item.categoria,
+      quantity: item.cantidad,
+      unit_price: parseFloat(item.precio),
+      currency_id: 'COP'
+    }));
+
+    // Crear preferencia de Mercado Pago
+    const { MercadoPagoConfig, Preference } = require('mercadopago');
+    
+    const client = new MercadoPagoConfig({
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'TEST-4753465907432673-093012-6a41fd026329faee121a3570c2a47a6a-516025911'
+    });
+
+    const preferenceData = {
+      items: mpItems,
+      back_urls: {
+        success: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/success`,
+        failure: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/failure`,
+        pending: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/pending`
+      },
+      notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`,
+      external_reference: `LSCART-${userId}-${Date.now()}`,
+      metadata: {
+        user_id: userId,
+        cart_type: 'localStorage',
+        items: JSON.stringify(productDetails.map(item => ({
+          productId: item.id,
+          cantidad: item.cantidad,
+          precio: item.precio
+        })))
+      }
+    };
+
+    console.log('🛒 Creando preferencia de Mercado Pago para checkout localStorage');
+    console.log('📦 Items para MP:', mpItems.length);
+    console.log('💰 Total:', total);
+
+    const preference = new Preference(client);
+    const response = await preference.create({ body: preferenceData });
+
+    console.log('✅ Preferencia creada exitosamente:', response.id);
+    console.log('� URL de pago:', response.init_point);
+
+    // Responder con la URL de Mercado Pago
+    res.status(200).json({
+      mensaje: 'Preferencia de pago creada exitosamente',
+      preferenceId: response.id,
+      redirectUrl: response.init_point, // URL de Mercado Pago
+      total: total,
+      itemsCount: items.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error en checkout localStorage:', error);
+    res.status(500).json({ 
+      mensaje: 'Error al procesar el pago', 
+      error: error.message 
+    });
   }
 };

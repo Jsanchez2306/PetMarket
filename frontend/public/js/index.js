@@ -31,14 +31,16 @@ function checkAdminStatusAndUpdateButtons() {
         const isAdmin = verificarSiEsAdmin();
         
         if (isAdmin) {
-            // Bloquear todos los botones de compra en la landing page
+            // Solo bloquear para administradores
             bloquearBotonesCompraAdmin();
         } else {
-            // Restaurar botones si no es admin
+            // Restaurar botones para todos los demás (incluyendo usuarios no autenticados)
             restaurarBotonesCompra();
         }
     } catch (error) {
         console.error('Error verificando estado de admin:', error);
+        // En caso de error, restaurar botones (por seguridad)
+        restaurarBotonesCompra();
     }
 }
 
@@ -57,9 +59,11 @@ function verificarSiEsAdmin() {
             return payload.rol === 'admin';
         }
         
+        // CAMBIO IMPORTANTE: Si no hay token, NO es admin (usuario no autenticado puede comprar)
         return false;
     } catch (error) {
         console.error('Error verificando rol de admin:', error);
+        // En caso de error, asumir que NO es admin (permitir compra)
         return false;
     }
 }

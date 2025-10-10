@@ -205,3 +205,87 @@
         font-size: 0.85em;
         color: #6c757d;
       }
+
+         /* Estilos para modal de confirmación */
+      #confirmacionModal .modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      
+      #confirmacionModal .modal-icon {
+        animation: pulseIcon 2s infinite;
+      }
+      
+      @keyframes pulseIcon {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+      
+      #confirmacionModal .btn {
+        border-radius: 25px;
+        min-width: 120px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      
+      #confirmacionModal .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+      
+      #confirmacionModal .modal-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      }
+
+      /* 🔒 Estilos para botones protegidos */
+      .btn-protected-disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+        position: relative;
+      }
+
+      .btn-protected-disabled::before {
+        content: "🔒";
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+      }
+
+      .quantity-btn:disabled {
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+        color: #6c757d !important;
+        cursor: not-allowed;
+        opacity: 0.65;
+      }
+
+      .auth-required-tooltip {
+        position: relative;
+      }
+
+      .auth-required-tooltip:hover::after {
+        content: "Inicia sesión para usar esta función";
+        position: absolute;
+        top: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        pointer-events: none;
+      }

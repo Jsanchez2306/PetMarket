@@ -45,6 +45,20 @@
         </button>
       </div>
 
+      <!-- NUEVO: Botón del carrito - SIEMPRE VISIBLE -->
+      <a href="/carrito" class="btn btn-outline-light btn-primary position-relative me-2" id="carritoBtn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+          id="carritoContador">0</span>
+      </a>
+
+      <!-- NUEVO: Botón de ventas - SOLO PARA EMPLEADOS Y ADMINS -->
+      <a href="/ventas" class="btn btn-outline-light btn-primary position-relative me-2 d-none" id="ventasBtn">
+        <i class="fas fa-receipt"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning d-none"
+          id="ventasContador">0</span>
+      </a>
+
       <!-- Botones para usuarios no autenticados -->
       <div class="d-flex align-items-center gap-2" id="authButtons">
         <button type="button" class="btn btn-outline-light btn-primary" data-bs-toggle="modal"
@@ -59,13 +73,6 @@
 
       <!-- Área para usuarios autenticados -->
       <div class="d-flex align-items-center gap-2 d-none" id="userArea">
-        
-        <!-- Botón del carrito (solo para clientes) -->
-        <a href="/carrito" class="btn btn-outline-light btn-primary position-relative client-only d-none" id="carritoBtn">
-          <i class="fas fa-shopping-cart"></i>
-          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
-            id="carritoContador">0</span>
-        </a>
 
         <!-- Dropdown del usuario - Se adapta según el rol -->
         <div class="dropdown">
@@ -285,6 +292,16 @@
             <a href="#" id="olvidoPasswordLink" data-bs-toggle="modal" data-bs-target="#recuperarPasswordModal"
               data-bs-dismiss="modal">¿Olvidaste tu contraseña?</a>
           </div>
+          
+          <!-- NUEVO: Enlace para registro -->
+          <div class="text-center mt-3">
+            <p class="mb-2">¿No tienes cuenta?</p>
+            <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#registerModal"
+              data-bs-dismiss="modal">
+              <i class="fas fa-user-plus me-1"></i>Regístrate aquí
+            </a>
+          </div>
+          
           <div class="text-center mt-4">
             <p class="mb-2">También puedes iniciar sesión con</p>
             <div class="d-flex justify-content-center gap-3">

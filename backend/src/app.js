@@ -15,6 +15,7 @@ require('./models/cart.model');
 require('./models/producto.model');
 require('./models/cliente.model');
 require('./models/factura.model'); // 🔗 Importa el modelo factura también
+require('./models/venta.model'); // 🛒 Importa el modelo venta
 console.log('✅ Modelos registrados');
 app.set('views', path.join(__dirname, '../frontend/views'));
 app.set('view engine', 'ejs');
@@ -57,14 +58,14 @@ const noCache = (req, res, next) => {
 };
 
 // Aplicar no-cache a rutas administrativas
-app.use(['/panel', '/clientes', '/empleados', '/facturas', '/productos'], noCache);
+app.use(['/panel', '/clientes', '/empleados', '/facturas', '/productos', '/ventas', '/dashboard'], noCache);
 
-// RUTAS DEL CARRITO
-console.log('🛒 Cargando rutas completas del carrito...');
+// RUTAS DEL CARRITO - USANDO VERSIÓN DESPROTEGIDA
+console.log('🛒 Cargando rutas del carrito (localStorage compatible)...');
 try {
-    const cartRoutes = require('./routes/cart-simple.routes');
+    const cartRoutes = require('./routes/cart.routes');
     app.use('/carrito', cartRoutes);
-    console.log('✅ Rutas del carrito cargadas');
+    console.log('✅ Rutas del carrito cargadas (desprotegidas para localStorage)');
 } catch (error) {
     console.error('❌ ERROR con rutas del carrito:', error.message);
     console.error('❌ Stack:', error.stack);
@@ -82,6 +83,9 @@ try {
     const empleadoRoutes = require('./routes/empleado.routes');
     const facturaRoutes = require('./routes/factura.routes'); // ✅ agregado
     const mercadopagoRoutes = require('./routes/mercadopago.routes'); // ✅ nuevo
+    const ventasRoutes = require('./routes/ventas.routes'); // ✅ nuevo para gestión de ventas
+    const testVentasRoutes = require('./routes/test-ventas.routes'); // ✅ nuevo para datos de prueba
+    const dashboardRoutes = require('./routes/dashboard.routes'); // ✅ nuevo para dashboard
 
     app.use('/', indexRoutes);
     app.use('/auth', authRoutes);
@@ -92,6 +96,9 @@ try {
     app.use('/empleados', empleadoRoutes);
     app.use('/facturas', facturaRoutes); // ✅ agregado
     app.use('/mercadopago', mercadopagoRoutes); // ✅ nuevo
+    app.use('/ventas', ventasRoutes); // ✅ nuevo para gestión de ventas
+    app.use('/test-ventas', testVentasRoutes); // ✅ nuevo para datos de prueba (temporal)
+    app.use('/dashboard', dashboardRoutes); // ✅ nuevo para dashboard
 
     console.log('✅ Rutas básicas cargadas');
 } catch (error) {

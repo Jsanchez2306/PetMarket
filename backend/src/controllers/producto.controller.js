@@ -92,6 +92,28 @@ exports.obtenerProductos = async (_req, res) => {
   }
 };
 
+// NUEVA FUNCIÓN: Obtener producto por ID
+exports.obtenerProductoPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ mensaje: 'ID de producto inválido' });
+    }
+    
+    const producto = await Producto.findById(id);
+    
+    if (!producto) {
+      return res.status(404).json({ mensaje: 'Producto no encontrado' });
+    }
+    
+    res.status(200).json(producto);
+  } catch (err) {
+    console.error('Error al obtener producto por ID:', err);
+    res.status(500).json({ mensaje: 'Error al obtener producto', error: err.message });
+  }
+};
+
 // =================== Crear Producto ===================
 exports.crearProducto = async (req, res) => {
   try {

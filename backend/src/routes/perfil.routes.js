@@ -10,5 +10,4 @@ router.get('/cliente', perfilController.mostrarPerfilCliente);
 router.post('/cliente/actualizar', perfilController.actualizarPerfilCliente);
 router.post('/cliente/cambiar-contrasena', perfilController.cambiarContrasenaCliente);
 
-
 module.exports = router;

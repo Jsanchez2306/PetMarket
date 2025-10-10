@@ -5,27 +5,31 @@ const { validarAuthCarrito } = require('../middlewares/validateAuth');
 
 console.log('🛒 Cargando definiciones de rutas del carrito...');
 
-// Renderizar vista del carrito (requiere autenticación)
-router.get('/', validarAuthCarrito, cartController.renderizarCarrito);
+// CAMBIO: Renderizar vista del carrito SIN autenticación (localStorage)
+router.get('/', cartController.renderizarCarrito);
 
-// API Routes
-router.get('/api', validarAuthCarrito, cartController.obtenerCarrito);
-router.get('/api/count', validarAuthCarrito, cartController.contarItems);
+// API Routes - DESPROTEGIDAS para localStorage (excepto checkout)
+router.get('/api', cartController.obtenerCarrito);
+router.get('/api/count', cartController.contarItems);
 
-router.post('/api/agregar', validarAuthCarrito, cartController.agregarAlCarrito);
-router.put('/api/actualizar/:productId', validarAuthCarrito, cartController.actualizarCantidad);
-router.delete('/api/eliminar/:productId', validarAuthCarrito, cartController.eliminarDelCarrito);
-router.delete('/api/limpiar', validarAuthCarrito, cartController.limpiarCarrito);
-router.post('/api/pagar', validarAuthCarrito, cartController.procesarPago);
+router.post('/api/agregar', cartController.agregarAlCarrito);
+router.put('/api/actualizar/:productId', cartController.actualizarCantidad);
+router.delete('/api/eliminar/:productId', cartController.eliminarDelCarrito);
+router.delete('/api/limpiar', cartController.limpiarCarrito);
+router.post('/api/pagar', cartController.procesarPago);
+
+// RUTA PROTEGIDA: Solo el checkout requiere autenticación
+router.post('/checkout', validarAuthCarrito, cartController.checkoutLocalStorage);
 
 console.log('✅ Rutas del carrito definidas:');
-console.log('  GET /carrito/ (🔒 PROTEGIDA)');
-console.log('  GET /carrito/api (🔒 PROTEGIDA)');
-console.log('  GET /carrito/api/count (🔒 PROTEGIDA)');
-console.log('  POST /carrito/api/agregar (🔒 PROTEGIDA)');
-console.log('  PUT /carrito/api/actualizar/:productId (🔒 PROTEGIDA)');
-console.log('  DELETE /carrito/api/eliminar/:productId (🔒 PROTEGIDA)');
-console.log('  DELETE /carrito/api/limpiar (🔒 PROTEGIDA)');
-console.log('  POST /carrito/api/pagar (🔒 PROTEGIDA)');
+console.log('  GET /carrito/ (� PÚBLICA - localStorage)');
+console.log('  GET /carrito/api (� PÚBLICA)');
+console.log('  GET /carrito/api/count (� PÚBLICA)');
+console.log('  POST /carrito/api/agregar (� PÚBLICA)');
+console.log('  PUT /carrito/api/actualizar/:productId (� PÚBLICA)');
+console.log('  DELETE /carrito/api/eliminar/:productId (� PÚBLICA)');
+console.log('  DELETE /carrito/api/limpiar (� PÚBLICA)');
+console.log('  POST /carrito/api/pagar (🔓 PÚBLICA)');
+console.log('  POST /carrito/checkout (🔒 PROTEGIDA - requiere autenticación)');
 
 module.exports = router;

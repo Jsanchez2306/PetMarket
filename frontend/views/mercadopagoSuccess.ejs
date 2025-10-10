@@ -6,40 +6,13 @@
     <title>Pago Exitoso - PetMarket</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Estilos de PetMarket -->
     <link rel="stylesheet" href="/css/main.css">
-    <style>
-        .success-container {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
-        }
-        .success-icon {
-            font-size: 5rem;
-            margin-bottom: 1rem;
-            animation: bounce 2s infinite;
-        }
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-        .payment-details {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/buttons.css">
+    <link rel="stylesheet" href="/css/assets.css">
+    <link rel="stylesheet" href="/css/mercadopago.css">
 </head>
 
 <body>
@@ -66,10 +39,69 @@
                                 <% if (typeof reference !== 'undefined' && reference) { %>
                                     <p><strong>Referencia:</strong> <%= reference %></p>
                                 <% } %>
+                                <% if (typeof totalCompra !== 'undefined' && totalCompra > 0) { %>
+                                    <p><strong>Total Pagado:</strong> 
+                                        <span class="text-success fw-bold">$<%= Number(totalCompra).toLocaleString('es-CO') %></span>
+                                    </p>
+                                <% } %>
                             </div>
                         <% } %>
                     </div>
                 </div>
+
+                <!-- Productos Comprados -->
+                <% if (typeof productosComprados !== 'undefined' && productosComprados.length > 0) { %>
+                <div class="card mt-4 border-0 shadow">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-shopping-bag text-success"></i> 
+                            Resumen de tu Compra
+                        </h5>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% productosComprados.forEach(producto => { %>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <% if (producto.imagen) { %>
+                                                <img src="<%= producto.imagen %>" alt="<%= producto.nombre %>" 
+                                                     class="me-3" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                                <% } else { %>
+                                                <div class="me-3 bg-light d-flex align-items-center justify-content-center" 
+                                                     style="width: 50px; height: 50px; border-radius: 8px;">
+                                                    <i class="fas fa-box text-secondary"></i>
+                                                </div>
+                                                <% } %>
+                                                <strong><%= producto.nombre %></strong>
+                                            </div>
+                                        </td>
+                                        <td><%= producto.cantidad %></td>
+                                        <td>$<%= Number(producto.precio).toLocaleString('es-CO') %></td>
+                                        <td><strong>$<%= Number(producto.subtotal).toLocaleString('es-CO') %></strong></td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-success">
+                                        <th colspan="3" class="text-end">Total Pagado:</th>
+                                        <th>$<%= Number(totalCompra).toLocaleString('es-CO') %></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
 
                 <div class="card mt-4 border-0 shadow">
                     <div class="card-body text-center">
@@ -83,7 +115,11 @@
                                 <i class="fas fa-envelope text-success fs-1 mb-2"></i>
                                 <h6>Confirmación por Email</h6>
                                 <small class="text-muted">
-                                    Recibirás un correo con los detalles de tu pedido y la factura
+                                    <% if (typeof usuario !== 'undefined' && usuario && usuario.email) { %>
+                                        ✅ Factura enviada a <strong><%= usuario.email %></strong>
+                                    <% } else { %>
+                                        Recibirás un correo con los detalles de tu pedido y la factura
+                                    <% } %>
                                 </small>
                             </div>
                             
@@ -105,8 +141,11 @@
                         </div>
 
                         <div class="mt-4">
-                            <a href="/catalogo" class="btn btn-primary me-3">
+                            <a href="/productos/catalogo" class="btn btn-primary me-3">
                                 <i class="fas fa-shopping-bag"></i> Seguir Comprando
+                            </a>
+                            <a href="/carrito" class="btn btn-success me-3">
+                                <i class="fas fa-shopping-cart"></i> Ver Carrito Vacío
                             </a>
                             <a href="/panel" class="btn btn-outline-secondary">
                                 <i class="fas fa-user"></i> Mi Cuenta
@@ -120,6 +159,14 @@
                     <strong>Pago Seguro:</strong> Tu pago fue procesado de forma segura a través de Mercado Pago.
                     Conserva el ID de pago para cualquier consulta.
                 </div>
+
+                <% if (typeof usuario !== 'undefined' && usuario && usuario.email) { %>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-envelope me-2"></i>
+                    <strong>Factura Enviada:</strong> Hemos enviado tu factura detallada por correo electrónico a 
+                    <strong><%= usuario.email %></strong>. Revisa tu bandeja de entrada y spam.
+                </div>
+                <% } %>
             </div>
         </div>
     </main>
@@ -127,15 +174,27 @@
     <%- include('partials/footer') %>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts de PetMarket -->
+    <script src="/js/headerUnificado.js"></script>
+    <script src="/js/modales.js"></script>
     <script>
-        // Actualizar contador del carrito
-        setTimeout(() => {
+        // Limpiar carrito del localStorage y actualizar contador
+        document.addEventListener('DOMContentLoaded', function() {
+            // Limpiar el carrito del localStorage ya que el pago fue exitoso
+            localStorage.removeItem('carrito');
+            
+            // Actualizar contador del carrito inmediatamente
             const cartBadge = document.querySelector('.cart-badge');
             if (cartBadge) {
                 cartBadge.textContent = '0';
                 cartBadge.style.display = 'none';
             }
-        }, 1000);
+            
+            // Disparar evento personalizado para que otros scripts sepan que el carrito está vacío
+            window.dispatchEvent(new CustomEvent('carritoVaciado', { 
+                detail: { origen: 'pagoExitoso' } 
+            }));
+        });
     </script>
 </body>
 </html>

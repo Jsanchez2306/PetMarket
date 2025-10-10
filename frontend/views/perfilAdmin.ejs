@@ -1,184 +1,367 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><!DOCTYPE html>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="PetMarket - Perfil del Administrador" />
-  <link rel="icon" href="/Imagenes/HuellaPerro.png" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="/css/header.css" />
-  <link rel="stylesheet" href="/css/footer.css" />
-  <link rel="stylesheet" href="/css/assets.css" />
-  <link rel="stylesheet" href="/css/main.css" />
-  <link rel="stylesheet" href="/css/buttons.css" />
-  <title>Perfil - Administrador</title>
-</head>
+<html lang="es"><html lang="es">
 
-<body>
-  <%- include('partials/headerUnificado') %>
 
-    <main class="container-fluid mt-4">
-      <div class="row">
 
-        <aside class="col-md-3 mb-4">
-          <div class="card shadow-sm border-0">
-            <div class="card-body text-center">
-              <img src="/Imagenes/foto_admin_perfil.jpg" alt="Foto de perfil" class="rounded-circle border border-3"
-                height="210" width="190" />
-              <h5 class="mt-3 mb-1">
-                <%= admin?.nombre || 'Administrador' %>
-              </h5>
-              <p class="text-muted small">
-                <%= admin?.email || 'admin@petmarket.com' %>
-              </p>
-            </div>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">
-                <a href="#" id="btn-configuracion" class="text-decoration-none d-flex align-items-center text-dark">
-                  <i class="fas fa-user-cog me-2 text-primary"></i> Configuración básica
-                </a>
-              </li>
-              <li class="list-group-item">
-                <a href="#" class="text-decoration-none d-flex align-items-center text-dark" data-bs-toggle="modal"
-                  data-bs-target="#cambiarContrasenaModal">
-                  <i class="fas fa-key me-2 text-warning"></i> Cambiar contraseña
-                </a>
-              </li>
-              <li class="list-group-item">
-                <a href="#" id="btn-pedidos" class="text-decoration-none d-flex align-items-center text-dark">
-                  <i class="fas fa-box me-2 text-success"></i> Mis pedidos
-                </a>
-              </li>
-              <li class="list-group-item">
-                <a href="/" class="text-decoration-none d-flex align-items-center text-danger">
-                  <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
-                </a>
-              </li>
-            </ul>
-          </div>
-        </aside>
+<head><head>
 
-        <section class="col-md-9">
-          <div class="card mb-4" id="seccion-configuracion">
-            <div class="card-header text-white">Configuración básica</div>
-            <div class="card-body">
-              <form id="formPerfilAdmin" action="/perfilAdmin/actualizar" method="POST">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label for="nombre" class="form-label">Nombre completo</label>
-                    <input type="text" class="form-control form-control-lg" id="nombre" name="nombre" required
-                      value="<%= admin?.nombre || '' %>" placeholder="Tu Nombre" />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="correo" class="form-label">Correo electrónico</label>
-                    <input type="email" class="form-control form-control-lg" id="correo" name="correo" required
-                      value="<%= admin?.email || '' %>" placeholder="Tu Correo Electronico" />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="telefono" class="form-label">Teléfono</label>
-                    <input type="text" class="form-control form-control-lg" id="telefono" name="telefono"
-                      value="<%= admin?.telefono || '' %>" placeholder="Tu Numero de Telefono" />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="direccion" class="form-label">Dirección</label>
-                    <input type="text" class="form-control form-control-lg" id="direccion" name="direccion"
-                      value="<%= admin?.direccion || '' %>" placeholder="Tu Direccion" />
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <button type="submit" class="btn btn-primary w-100 py-2 fs-5">
-                    <i class="fas fa-save me-2"></i> Guardar cambios
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+  <meta charset="UTF-8" />  <meta charset="UTF-8" />
 
-          <div class="card d-none" id="seccion-pedidos">
-            <div class="card-header text-white">Mis pedidos</div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Cantidad</th>
-                      <th>Precio</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <div class="modal fade" id="cambiarContrasenaModal" tabindex="-1" aria-labelledby="cambiarContrasenaModalLabel"
-      aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content custom-modal">
-          <div class="modal-header custom-modal-header">
-            <h5 class="modal-title" id="cambiarContrasenaModalLabel">Cambiar contraseña</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-          <div class="modal-body">
-            <form id="formCambiarContrasena" autocomplete="off">
-              <div class="mb-3">
-                <label for="contrasenaAntigua" class="form-label">Contraseña actual</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                  <input type="password" class="form-control" id="contrasenaAntigua" name="actual" required />
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="contrasenaNueva" class="form-label">Nueva contraseña</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                  <input type="password" class="form-control" id="contrasenaNueva" name="nueva" required
-                    minlength="6" />
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="contrasenaConfirmar" class="form-label">Confirmar nueva contraseña</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                  <input type="password" class="form-control" id="contrasenaConfirmar" name="confirmar" required
-                    minlength="6" />
-                </div>
-              </div>
-              <div id="cambiarPassMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
-              <button type="submit" class="btn btn-primary w-100">Guardar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+  <meta name="description" content="PetMarket - Perfil del Administrador" />  <meta name="description" content="PetMarket - Perfil del Administrador" />
 
-    <div class="modal fade" id="actualizacionExitosaModal" tabindex="-1" aria-labelledby="actualizacionExitosaLabel"
-      aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content custom-modal">
-          <div class="modal-header custom-modal-header">
-            <h5 class="modal-title">¡Cambios guardados!</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-          <div class="modal-body">
-            El perfil fue actualizado correctamente.
-          </div>
-        </div>
-      </div>
-    </div>
-    <%- include('partials/footer') %>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-      <!-- Header unificado maneja toda la autenticación -->
-      <script src="/js/headerUnificado.js"></script>
-      <script src="/js/perfil.js"></script>
-</body>
+  <link rel="icon" href="/Imagenes/HuellaPerro.png" />  <link rel="icon" href="/Imagenes/HuellaPerro.png" />
 
-</html>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <link rel="stylesheet" href="/css/header.css" />  <link rel="stylesheet" href="/css/header.css" />
+
+  <link rel="stylesheet" href="/css/footer.css" />  <link rel="stylesheet" href="/css/footer.css" />
+
+  <link rel="stylesheet" href="/css/assets.css" />  <link rel="stylesheet" href="/css/assets.css" />
+
+  <link rel="stylesheet" href="/css/main.css" />  <link rel="stylesheet" href="/css/main.css" />
+
+  <link rel="stylesheet" href="/css/buttons.css" />  <link rel="stylesheet" href="/css/buttons.css" />
+
+  <title>Perfil - Administrador</title>  <title>Perfil - Administrador</title>
+
+</head></head>
+
+
+
+<body><body>
+
+  <%- include('partials/headerUnificado') %>  <%- include('partials/headerUnificado') %>
+
+
+
+    <main class="container-fluid mt-4">    <main class="container-fluid mt-4">
+
+      <div class="row">      <div class="row">
+
+
+
+        <aside class="col-md-3 mb-4">        <aside class="col-md-3 mb-4">
+
+          <div class="card shadow-sm border-0">          <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">            <div class="card-body text-center">
+
+              <img src="/Imagenes/foto_admin_perfil.jpg" alt="Foto de perfil" class="rounded-circle border border-3"              <img src="/Imagenes/foto_admin_perfil.jpg" alt="Foto de perfil" class="rounded-circle border border-3"
+
+                height="210" width="190" />                height="210" width="190" />
+
+              <h5 class="mt-3 mb-1">              <h5 class="mt-3 mb-1">
+
+                <%= admin?.nombre || 'Administrador' %>                <%= admin?.nombre || 'Administrador' %>
+
+              </h5>              </h5>
+
+              <p class="text-muted small">              <p class="text-muted small">
+
+                <%= admin?.email || 'admin@petmarket.com' %>                <%= admin?.email || 'admin@petmarket.com' %>
+
+              </p>              </p>
+
+            </div>            </div>
+
+            <ul class="list-group list-group-flush">            <ul class="list-group list-group-flush">
+
+              <li class="list-group-item">              <li class="list-group-item">
+
+                <a href="#" id="btn-configuracion" class="text-decoration-none d-flex align-items-center text-dark">                <a href="#" id="btn-configuracion" class="text-decoration-none d-flex align-items-center text-dark">
+
+                  <i class="fas fa-user-cog me-2 text-primary"></i> Configuración básica                  <i class="fas fa-user-cog me-2 text-primary"></i> Configuración básica
+
+                </a>                </a>
+
+              </li>              </li>
+
+              <li class="list-group-item">              <li class="list-group-item">
+
+                <a href="#" class="text-decoration-none d-flex align-items-center text-dark" data-bs-toggle="modal"                <a href="#" class="text-decoration-none d-flex align-items-center text-dark" data-bs-toggle="modal"
+
+                  data-bs-target="#cambiarContrasenaModal">                  data-bs-target="#cambiarContrasenaModal">
+
+                  <i class="fas fa-key me-2 text-warning"></i> Cambiar contraseña                  <i class="fas fa-key me-2 text-warning"></i> Cambiar contraseña
+
+                </a>                </a>
+
+              </li>              </li>
+
+              <li class="list-group-item">              <li class="list-group-item">
+
+                <a href="#" id="btn-pedidos" class="text-decoration-none d-flex align-items-center text-dark">                <a href="#" id="btn-pedidos" class="text-decoration-none d-flex align-items-center text-dark">
+
+                  <i class="fas fa-box me-2 text-success"></i> Mis pedidos                  <i class="fas fa-box me-2 text-success"></i> Mis pedidos
+
+                </a>                </a>
+
+              </li>              </li>
+
+              <li class="list-group-item">              <li class="list-group-item">
+
+                <a href="/" class="text-decoration-none d-flex align-items-center text-danger">                <a href="/" class="text-decoration-none d-flex align-items-center text-danger">
+
+                  <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión                  <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
+
+                </a>                </a>
+
+              </li>              </li>
+
+            </ul>            </ul>
+
+          </div>          </div>
+
+        </aside>        </aside>
+
+
+
+        <section class="col-md-9">        <section class="col-md-9">
+
+          <div class="card mb-4" id="seccion-configuracion">          <div class="card mb-4" id="seccion-configuracion">
+
+            <div class="card-header text-white">Configuración básica</div>            <div class="card-header text-white">Configuración básica</div>
+
+            <div class="card-body">            <div class="card-body">
+
+              <form id="formPerfilAdmin" action="/perfil/admin/actualizar" method="POST">              <form id="formPerfilAdmin" action="/perfilAdmin/actualizar" method="POST">
+
+                <div class="row g-3">                <div class="row g-3">
+
+                  <div class="col-md-6">                  <div class="col-md-6">
+
+                    <label for="nombre" class="form-label">Nombre completo</label>                    <label for="nombre" class="form-label">Nombre completo</label>
+
+                    <input type="text" class="form-control form-control-lg" id="nombre" name="nombre" required                    <input type="text" class="form-control form-control-lg" id="nombre" name="nombre" required
+
+                      value="<%= admin?.nombre || '' %>" placeholder="Tu Nombre" />                      value="<%= admin?.nombre || '' %>" placeholder="Tu Nombre" />
+
+                  </div>                  </div>
+
+                  <div class="col-md-6">                  <div class="col-md-6">
+
+                    <label for="correo" class="form-label">Correo electrónico</label>                    <label for="correo" class="form-label">Correo electrónico</label>
+
+                    <input type="email" class="form-control form-control-lg" id="correo" name="correo" required                    <input type="email" class="form-control form-control-lg" id="correo" name="correo" required
+
+                      value="<%= admin?.email || '' %>" placeholder="Tu Correo Electronico" />                      value="<%= admin?.email || '' %>" placeholder="Tu Correo Electronico" />
+
+                  </div>                  </div>
+
+                  <div class="col-md-6">                  <div class="col-md-6">
+
+                    <label for="telefono" class="form-label">Teléfono</label>                    <label for="telefono" class="form-label">Teléfono</label>
+
+                    <input type="text" class="form-control form-control-lg" id="telefono" name="telefono"                    <input type="text" class="form-control form-control-lg" id="telefono" name="telefono"
+
+                      value="<%= admin?.telefono || '' %>" placeholder="Tu Numero de Telefono" />                      value="<%= admin?.telefono || '' %>" placeholder="Tu Numero de Telefono" />
+
+                  </div>                  </div>
+
+                  <div class="col-md-6">                  <div class="col-md-6">
+
+                    <label for="direccion" class="form-label">Dirección</label>                    <label for="direccion" class="form-label">Dirección</label>
+
+                    <input type="text" class="form-control form-control-lg" id="direccion" name="direccion"                    <input type="text" class="form-control form-control-lg" id="direccion" name="direccion"
+
+                      value="<%= admin?.direccion || '' %>" placeholder="Tu Direccion" />                      value="<%= admin?.direccion || '' %>" placeholder="Tu Direccion" />
+
+                  </div>                  </div>
+
+                </div>                </div>
+
+                <div class="mt-4">                <div class="mt-4">
+
+                  <button type="submit" class="btn btn-primary w-100 py-2 fs-5">                  <button type="submit" class="btn btn-primary w-100 py-2 fs-5">
+
+                    <i class="fas fa-save me-2"></i> Guardar cambios                    <i class="fas fa-save me-2"></i> Guardar cambios
+
+                  </button>                  </button>
+
+                </div>                </div>
+
+              </form>              </form>
+
+            </div>            </div>
+
+          </div>          </div>
+
+
+
+          <div class="card d-none" id="seccion-pedidos">          <div class="card d-none" id="seccion-pedidos">
+
+            <div class="card-header text-white">Mis pedidos</div>            <div class="card-header text-white">Mis pedidos</div>
+
+            <div class="card-body">            <div class="card-body">
+
+              <div class="table-responsive">              <div class="table-responsive">
+
+                <table class="table table-striped align-middle">                <table class="table table-striped align-middle">
+
+                  <thead>                  <thead>
+
+                    <tr>                    <tr>
+
+                      <th>Nombre</th>                      <th>Nombre</th>
+
+                      <th>Cantidad</th>                      <th>Cantidad</th>
+
+                      <th>Precio</th>                      <th>Precio</th>
+
+                      <th>Acciones</th>                      <th>Acciones</th>
+
+                    </tr>                    </tr>
+
+                  </thead>                  </thead>
+
+                  <tbody>                  <tbody>
+
+                  </tbody>                  </tbody>
+
+                </table>                </table>
+
+              </div>              </div>
+
+            </div>            </div>
+
+          </div>          </div>
+
+        </section>        </section>
+
+      </div>      </div>
+
+    </main>    </main>
+
+
+
+    <div class="modal fade" id="cambiarContrasenaModal" tabindex="-1" aria-labelledby="cambiarContrasenaModalLabel"    <div class="modal fade" id="cambiarContrasenaModal" tabindex="-1" aria-labelledby="cambiarContrasenaModalLabel"
+
+      aria-hidden="true">      aria-hidden="true">
+
+      <div class="modal-dialog">      <div class="modal-dialog">
+
+        <div class="modal-content custom-modal">        <div class="modal-content custom-modal">
+
+          <div class="modal-header custom-modal-header">          <div class="modal-header custom-modal-header">
+
+            <h5 class="modal-title" id="cambiarContrasenaModalLabel">Cambiar contraseña</h5>            <h5 class="modal-title" id="cambiarContrasenaModalLabel">Cambiar contraseña</h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+          </div>          </div>
+
+          <div class="modal-body">          <div class="modal-body">
+
+            <form id="formCambiarContrasena" autocomplete="off">            <form id="formCambiarContrasena" autocomplete="off">
+
+              <div class="mb-3">              <div class="mb-3">
+
+                <label for="contrasenaAntigua" class="form-label">Contraseña actual</label>                <label for="contrasenaAntigua" class="form-label">Contraseña actual</label>
+
+                <div class="input-group">                <div class="input-group">
+
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+
+                  <input type="password" class="form-control" id="contrasenaAntigua" name="actual" required />                  <input type="password" class="form-control" id="contrasenaAntigua" name="actual" required />
+
+                </div>                </div>
+
+              </div>              </div>
+
+              <div class="mb-3">              <div class="mb-3">
+
+                <label for="contrasenaNueva" class="form-label">Nueva contraseña</label>                <label for="contrasenaNueva" class="form-label">Nueva contraseña</label>
+
+                <div class="input-group">                <div class="input-group">
+
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+
+                  <input type="password" class="form-control" id="contrasenaNueva" name="nueva" required                  <input type="password" class="form-control" id="contrasenaNueva" name="nueva" required
+
+                    minlength="6" />                    minlength="6" />
+
+                </div>                </div>
+
+              </div>              </div>
+
+              <div class="mb-3">              <div class="mb-3">
+
+                <label for="contrasenaConfirmar" class="form-label">Confirmar nueva contraseña</label>                <label for="contrasenaConfirmar" class="form-label">Confirmar nueva contraseña</label>
+
+                <div class="input-group">                <div class="input-group">
+
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+
+                  <input type="password" class="form-control" id="contrasenaConfirmar" name="confirmar" required                  <input type="password" class="form-control" id="contrasenaConfirmar" name="confirmar" required
+
+                    minlength="6" />                    minlength="6" />
+
+                </div>                </div>
+
+              </div>              </div>
+
+              <div id="cambiarPassMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>              <div id="cambiarPassMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
+
+              <button type="submit" class="btn btn-primary w-100">Guardar</button>              <button type="submit" class="btn btn-primary w-100">Guardar</button>
+
+            </form>            </form>
+
+          </div>          </div>
+
+        </div>        </div>
+
+      </div>      </div>
+
+    </div>    </div>
+
+
+
+    <div class="modal fade" id="actualizacionExitosaModal" tabindex="-1" aria-labelledby="actualizacionExitosaLabel"    <div class="modal fade" id="actualizacionExitosaModal" tabindex="-1" aria-labelledby="actualizacionExitosaLabel"
+
+      aria-hidden="true">      aria-hidden="true">
+
+      <div class="modal-dialog modal-dialog-centered">      <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content custom-modal">        <div class="modal-content custom-modal">
+
+          <div class="modal-header custom-modal-header">          <div class="modal-header custom-modal-header">
+
+            <h5 class="modal-title">¡Cambios guardados!</h5>            <h5 class="modal-title">¡Cambios guardados!</h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+          </div>          </div>
+
+          <div class="modal-body">          <div class="modal-body">
+
+            El perfil fue actualizado correctamente.            El perfil fue actualizado correctamente.
+
+          </div>          </div>
+
+        </div>        </div>
+
+      </div>      </div>
+
+    </div>    </div>
+
+    <%- include('partials/footer') %>    <%- include('partials/footer') %>
+
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+
+      <!-- Header unificado maneja toda la autenticación -->      <!-- Header unificado maneja toda la autenticación -->
+
+      <script src="/js/headerUnificado.js"></script>      <script src="/js/headerUnificado.js"></script>
+
+      <script src="/js/perfil.js"></script>      <script src="/js/perfil.js"></script>
+
+</body></body>
+
+
+
+</html></html>

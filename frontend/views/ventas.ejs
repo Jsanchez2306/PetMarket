@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PetMarket - Gestión de Ventas. Sistema de administración de pedidos y entregas.">
+  <title><%= title %></title>
+  <link rel="icon" href="/Imagenes/HuellaPerro.png">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  
+  <!-- CSS personalizado en el orden correcto -->
+  <link rel="stylesheet" href="/css/header.css">
+  <link rel="stylesheet" href="/css/footer.css">
+  <link rel="stylesheet" href="/css/assets.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/buttons.css">
+  <link rel="stylesheet" href="/css/modales.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/ventas.css">
+</head>
+<body>
+  <!-- Header -->
+  <%- include('partials/headerUnificado') %>
+  
+  <div class="container sales-container">
+    <!-- Título y estadísticas -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1 class="text-center mb-4">
+          <i class="fas fa-receipt me-2"></i>Gestión de Ventas
+        </h1>
+      </div>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="row mb-4" id="estadisticasContainer">
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card bg-primary text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-chart-line fa-2x mb-2"></i>
+            <h4 id="totalVentas">-</h4>
+            <p class="mb-0">Total Ventas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card bg-danger text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-clock fa-2x mb-2"></i>
+            <h4 id="ventasSinEntregar">-</h4>
+            <p class="mb-0">Sin Entregar</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card bg-warning text-dark">
+          <div class="card-body text-center">
+            <i class="fas fa-truck fa-2x mb-2"></i>
+            <h4 id="ventasEnCamino">-</h4>
+            <p class="mb-0">En Camino</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card bg-success text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <h4 id="ventasEntregadas">-</h4>
+            <p class="mb-0">Entregadas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card filters-card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-filter me-2"></i>Filtros
+            </h5>
+          </div>
+          <div class="card-body">
+            <form id="filtrosForm" class="row g-3">
+              <div class="col-md-3">
+                <label for="filtroEstado" class="form-label">Estado</label>
+                <select class="form-select" id="filtroEstado" name="estado">
+                  <option value="todos">Todos los estados</option>
+                  <option value="sin entregar">Sin entregar</option>
+                  <option value="en camino">En camino</option>
+                  <option value="entregado">Entregado</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="fechaInicio" class="form-label">Fecha inicio</label>
+                <input type="date" class="form-control" id="fechaInicio" name="fechaInicio">
+              </div>
+              <div class="col-md-3">
+                <label for="fechaFin" class="form-label">Fecha fin</label>
+                <input type="date" class="form-control" id="fechaFin" name="fechaFin">
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <button type="button" class="btn btn-primary me-2" id="aplicarFiltros">
+                  <i class="fas fa-search me-1"></i>Buscar
+                </button>
+                <button type="button" class="btn btn-secondary" id="limpiarFiltros">
+                  <i class="fas fa-times me-1"></i>Limpiar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tabla de ventas -->
+    <div class="row">
+      <div class="col-12">
+        <div class="sales-table">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID Venta</th>
+                  <th>Cliente</th>
+                  <th>Productos</th>
+                  <th>Total</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="ventasTableBody">
+                <tr>
+                  <td colspan="7" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 mb-0">Cargando ventas...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Paginación -->
+    <div class="pagination-container" id="paginationContainer">
+      <!-- Se llena dinámicamente -->
+    </div>
+  </div>
+  
+  <!-- Modal para cambiar estado -->
+  <div class="modal fade" id="cambiarEstadoModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cambiar Estado de Entrega</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="cambiarEstadoForm">
+            <input type="hidden" id="ventaId" name="ventaId">
+            <div class="mb-3">
+              <label for="nuevoEstado" class="form-label">Nuevo Estado</label>
+              <select class="form-select" id="nuevoEstado" name="estadoEntrega" required>
+                <option value="sin entregar">Sin entregar</option>
+                <option value="en camino">En camino</option>
+                <option value="entregado">Entregado</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="confirmarCambioEstado">Actualizar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de detalles de venta -->
+  <div class="modal fade" id="detallesVentaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detalles de la Venta</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detallesVentaContent">
+          <!-- Se llena dinámicamente -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading overlay -->
+  <div class="loading-overlay d-none" id="loadingOverlay">
+    <div class="text-center text-white">
+      <div class="spinner-border mb-3" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p>Cargando...</p>
+    </div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/ventas.js"></script>
+</body>
+</html>

@@ -17,33 +17,13 @@
   overflow: hidden;
 }
 
-/* Headers de modal por tipo */
-.modal-header.modal-success {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-  border-bottom: none;
-}
-
-.modal-header.modal-error {
-  background: linear-gradient(135deg, #dc3545, #fd7e14);
-  color: white;
-  border-bottom: none;
-}
-
-.modal-header.modal-warning {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: white;
-  border-bottom: none;
-}
-
-.modal-header.modal-info {
-  background: linear-gradient(135deg, #17a2b8, #007bff);
-  color: white;
-  border-bottom: none;
-}
-
+/* Headers de modal por tipo - Todos con el mismo color azul */
+.modal-header.modal-success,
+.modal-header.modal-error,
+.modal-header.modal-warning,
+.modal-header.modal-info,
 .modal-header.modal-confirm {
-  background: linear-gradient(135deg, #6f42c1, #007bff);
+  background: linear-gradient(135deg, #3b4a6b, #4a5c7a);
   color: white;
   border-bottom: none;
 }
@@ -278,4 +258,49 @@
 .modal-backdrop.modal-backdrop-custom {
   background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(3px);
+}
+
+/* Animaciones para el carrito */
+@keyframes carritoGlow {
+  0% { 
+    box-shadow: none; 
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.6); 
+    transform: scale(1.1);
+  }
+  100% { 
+    box-shadow: none; 
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseCart {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Estilos para navegación bloqueada */
+.navigation-blocked {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.back-button-blocked::before {
+  content: "🚫 Navegación restringida";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(220, 53, 69, 0.95);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  z-index: 9999;
+  font-weight: bold;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: modalShake 0.6s ease-in-out;
 }

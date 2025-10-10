@@ -3,6 +3,8 @@ const Cart = require('../models/cart.model');
 const Factura = require('../models/factura.model');
 const Producto = require('../models/producto.model');
 const Cliente = require('../models/cliente.model');
+const Venta = require('../models/venta.model');
+const { enviarFacturaPorCorreo } = require('../services/email.service');
 
 // Configurar Mercado Pago (SDK v2.x)
 console.log('🔑 Variables de entorno Mercado Pago:', {
@@ -288,17 +290,17 @@ exports.webhook = async (req, res) => {
       const paymentId = data.id;
       
       // Obtener información del pago
-      const payment = await mercadopago.payment.get(paymentId);
+      const paymentResponse = await payment.get({ id: paymentId });
       
       console.log('💳 Información del pago:', {
-        id: payment.body.id,
-        status: payment.body.status,
-        external_reference: payment.body.external_reference
+        id: paymentResponse.id,
+        status: paymentResponse.status,
+        external_reference: paymentResponse.external_reference
       });
 
       // Si el pago fue aprobado, procesar la orden
-      if (payment.body.status === 'approved') {
-        await procesarPagoAprobado(payment.body);
+      if (paymentResponse.status === 'approved') {
+        await procesarPagoAprobado(paymentResponse);
       }
     }
 
@@ -327,26 +329,157 @@ exports.success = async (req, res) => {
     // Usar payment_id o collection_id
     const paymentId = payment_id || collection_id;
 
-    // Si hay paymentId, obtener detalles del pago
+    let pagoAprobado = false;
+    
+    // Inicializar variables antes de su uso
+    let productosComprados = [];
+    let totalCompra = 0;
+
+    // Si llegamos a la página de éxito, el pago fue exitoso
+    if (paymentId) {
+      console.log('🎉 Pago considerado aprobado por llegada a página de éxito');
+      pagoAprobado = true;
+      
+      // Si hay external_reference, procesar checkout localStorage
+      if (external_reference && external_reference.startsWith('LSCART-')) {
+        console.log('🛒 Procesando pago exitoso desde localStorage checkout');
+        
+        try {
+          // Format: LSCART-userId-timestamp
+          const [, userId, timestamp] = external_reference.split('-');
+          console.log('👤 Usuario:', userId, 'Timestamp:', timestamp);
+          
+          // Mensaje informativo: el carrito se limpiará por el script del frontend
+          console.log('🧹 El carrito será limpiado automáticamente por el script del frontend');
+          
+        } catch (lsError) {
+          console.error('❌ Error procesando checkout localStorage:', lsError);
+        }
+      } else {
+        console.log('🛒 Pago exitoso sin external_reference (posible pago manual o de prueba)');
+      }
+      
+    }
+
+    // Intentar obtener detalles del pago si hay paymentId (para mostrar información)
+    
     if (paymentId) {
       try {
         const paymentResponse = await payment.get({ id: paymentId });
-        console.log('💳 Estado del pago:', paymentResponse.status);
+        console.log('💳 Estado del pago desde MP API:', paymentResponse.status);
         
         if (paymentResponse.status === 'approved') {
-          console.log('🎉 Pago aprobado, procesando...');
-          // Aquí puedes agregar la lógica para procesar el pago aprobado
+          pagoAprobado = true;
         }
+        
+        // Intentar obtener productos del pago
+        if (paymentResponse.additional_info && paymentResponse.additional_info.items) {
+          productosComprados = paymentResponse.additional_info.items.map(item => ({
+            nombre: item.title,
+            cantidad: item.quantity,
+            precio: item.unit_price,
+            subtotal: item.unit_price * item.quantity
+          }));
+        } else if (paymentResponse.metadata && paymentResponse.metadata.items) {
+          // Si no hay items en additional_info, usar metadata
+          const metadataItems = JSON.parse(paymentResponse.metadata.items);
+          for (const item of metadataItems) {
+            try {
+              const Producto = require('../models/producto.model');
+              const producto = await Producto.findById(item.productId);
+              if (producto) {
+                productosComprados.push({
+                  nombre: producto.nombre,
+                  cantidad: item.cantidad,
+                  precio: item.precio,
+                  subtotal: item.precio * item.cantidad,
+                  imagen: producto.imagen
+                });
+              }
+            } catch (err) {
+              console.warn('⚠️ No se pudo obtener detalles del producto:', item.productId);
+            }
+          }
+        }
+        
+        // Calcular total
+        totalCompra = productosComprados.reduce((total, item) => total + item.subtotal, 0);
+        
+        console.log('🛒 Productos encontrados:', productosComprados.length);
+        
       } catch (paymentError) {
-        console.error('⚠️ Error al obtener detalles del pago:', paymentError);
+        console.error('⚠️ Error al obtener detalles del pago desde MP API:', paymentError);
+        // No impedimos continuar si no podemos consultar la API
       }
+    }
+    
+    // Si no se pudieron obtener productos y hay un paymentId, mostrar productos de ejemplo
+    if (productosComprados.length === 0 && paymentId && pagoAprobado) {
+      console.log('📦 No se encontraron productos específicos, usando información genérica');
+      productosComprados = [{
+        nombre: 'Compra realizada con éxito',
+        cantidad: 1,
+        precio: 0,
+        subtotal: 0
+      }];
+    }
+
+    // 📧 ENVIAR FACTURA POR CORREO AUTOMÁTICAMENTE - DESPUÉS DE OBTENER PRODUCTOS
+    console.log('🔍 Estado antes de enviar factura:', {
+      pagoAprobado,
+      productosLength: productosComprados.length,
+      hasUser: !!req.session.user,
+      userEmail: req.session.user?.email,
+      reference: external_reference
+    });
+
+    if (pagoAprobado && productosComprados.length > 0) {
+      try {
+        console.log('📧 Enviando factura automática por correo...');
+        await enviarFacturaAutomatica(req.session.user, {
+          paymentId,
+          status: collection_status || 'approved',
+          reference: external_reference,
+          productosComprados,
+          totalCompra,
+          fechaCompra: new Date()
+        });
+        console.log('✅ Factura enviada exitosamente por correo');
+      } catch (emailError) {
+        console.error('⚠️ Error enviando factura por correo (no crítico):', emailError.message);
+        console.error('📧 Stack del error:', emailError.stack);
+        // No bloqueamos la página de éxito si falla el correo
+      }
+
+      // 🛒 GUARDAR VENTA EN BASE DE DATOS
+      try {
+        console.log('💾 Guardando venta en base de datos...');
+        await guardarVentaEnBaseDatos({
+          paymentId,
+          status: collection_status || 'approved',
+          reference: external_reference,
+          productosComprados,
+          totalCompra,
+          usuario: req.session.user
+        });
+        console.log('✅ Venta guardada exitosamente en base de datos');
+      } catch (ventaError) {
+        console.error('⚠️ Error guardando venta en base de datos (no crítico):', ventaError.message);
+        console.error('🛒 Stack del error:', ventaError.stack);
+        // No bloqueamos la página de éxito si falla guardar la venta
+      }
+    } else {
+      console.log('⚠️ No se procesaron datos adicionales - condiciones no cumplidas');
     }
 
     res.render('mercadopagoSuccess', {
       usuario: req.session.user,
       paymentId: paymentId,
       status: collection_status,
-      reference: external_reference
+      reference: external_reference,
+      pagoAprobado: pagoAprobado,
+      productosComprados: productosComprados,
+      totalCompra: totalCompra
     });
   } catch (error) {
     console.error('❌ Error en página de éxito:', error);
@@ -382,7 +515,7 @@ exports.failure = (req, res) => {
 /**
  * Página de pago pendiente
  */
-exports.pending = (req, res) => {
+exports.pending = async (req, res) => {
   const { collection_id, collection_status, external_reference, payment_id } = req.query;
   
   console.log('⏳ Llegada a página de pendiente:', { 
@@ -393,11 +526,25 @@ exports.pending = (req, res) => {
     fullQuery: req.query 
   });
   
-  console.log('⏳ Pago pendiente:', { collection_id, collection_status, external_reference });
+  const paymentId = payment_id || collection_id;
+  
+  // 🧪 MODO TEST AUTOMÁTICO: Si detecta un token de TEST, los pagos "pendientes" se tratan como exitosos
+  const isTestMode = process.env.MERCADOPAGO_ACCESS_TOKEN?.includes('TEST-');
+  
+  if (isTestMode && paymentId) {
+    console.log('🧪 Modo TEST detectado - tratando pago pendiente como exitoso');
+    console.log('🎉 Redirigiendo automáticamente a página de éxito...');
+    
+    // Redirigir a la página de éxito con los mismos parámetros
+    const successUrl = `/mercadopago/success?payment_id=${paymentId}&collection_status=approved${external_reference ? `&external_reference=${external_reference}` : ''}`;
+    return res.redirect(successUrl);
+  }
+
+  console.log('⏳ Pago pendiente real:', { collection_id, collection_status, external_reference });
 
   res.render('mercadopagoPending', {
     usuario: req.session.user,
-    paymentId: collection_id,
+    paymentId: paymentId,
     status: collection_status,
     reference: external_reference
   });
@@ -468,6 +615,205 @@ async function procesarPagoAprobado(payment) {
     return facturaGuardada;
   } catch (error) {
     console.error('❌ Error al procesar pago aprobado:', error);
+    throw error;
+  }
+}
+
+/**
+ * Función para procesar descuento de stock de productos en localStorage checkout
+ */
+async function procesarDescuentoStock(items, externalReference) {
+  try {
+    console.log('📦 Iniciando descuento de stock para localStorage checkout');
+    console.log('🔍 Items a procesar:', items);
+    
+    for (const item of items) {
+      // Buscar el producto en la base de datos
+      const producto = await Producto.findById(item.id);
+      
+      if (!producto) {
+        console.error(`❌ Producto no encontrado: ${item.id}`);
+        continue;
+      }
+      
+      // Verificar que hay suficiente stock
+      if (producto.stock < item.quantity) {
+        console.warn(`⚠️ Stock insuficiente para ${producto.nombre}: disponible ${producto.stock}, solicitado ${item.quantity}`);
+        // Descontar el stock disponible
+        const cantidadADescontar = Math.min(producto.stock, item.quantity);
+        await Producto.findByIdAndUpdate(
+          item.id,
+          { $inc: { stock: -cantidadADescontar } }
+        );
+        console.log(`📦 Stock actualizado para ${producto.nombre}: -${cantidadADescontar} (parcial)`);
+      } else {
+        // Descontar la cantidad completa
+        await Producto.findByIdAndUpdate(
+          item.id,
+          { $inc: { stock: -item.quantity } }
+        );
+        console.log(`📦 Stock actualizado para ${producto.nombre}: -${item.quantity}`);
+      }
+    }
+    
+    console.log('✅ Descuento de stock completado para:', externalReference);
+    
+  } catch (error) {
+    console.error('❌ Error procesando descuento de stock:', error);
+    throw error;
+  }
+}
+
+/**
+ * Función para enviar factura automáticamente después de pago exitoso
+ */
+async function enviarFacturaAutomatica(usuario, datosFactura) {
+  try {
+    console.log('📧 Iniciando envío automático de factura...');
+    
+    // Obtener información del cliente
+    let clienteEmail = null;
+    let clienteNombre = 'Cliente';
+    
+    if (usuario && usuario.email) {
+      clienteEmail = usuario.email;
+      clienteNombre = usuario.nombre || 'Cliente';
+    } else if (datosFactura.reference && datosFactura.reference.startsWith('LSCART-')) {
+      // Intentar obtener usuario desde external_reference
+      const [, userId] = datosFactura.reference.split('-');
+      try {
+        const cliente = await Cliente.findById(userId);
+        if (cliente) {
+          clienteEmail = cliente.email;
+          clienteNombre = cliente.nombre;
+        }
+      } catch (err) {
+        console.warn('⚠️ No se pudo obtener cliente desde reference:', err.message);
+      }
+    }
+    
+    if (!clienteEmail) {
+      console.warn('⚠️ No se pudo determinar email del cliente para envío de factura');
+      return;
+    }
+    
+    console.log(`📧 Enviando factura a: ${clienteEmail} (${clienteNombre})`);
+    
+    // Enviar factura por correo
+    const resultado = await enviarFacturaPorCorreo(clienteEmail, clienteNombre, datosFactura);
+    
+    console.log('✅ Factura enviada exitosamente por correo');
+    return resultado;
+    
+  } catch (error) {
+    console.error('❌ Error en envío automático de factura:', error);
+    throw error;
+  }
+}
+
+// Función para guardar la venta en la base de datos
+async function guardarVentaEnBaseDatos(datosVenta) {
+  try {
+    console.log('💾 Iniciando guardado de venta...');
+    
+    // Obtener información del cliente
+    let clienteInfo = {
+      cliente: null,
+      email: 'cliente@ejemplo.com',
+      nombre: 'Cliente',
+      telefono: '',
+      direccion: ''
+    };
+    
+    if (datosVenta.usuario && datosVenta.usuario.email) {
+      // Usuario logueado
+      clienteInfo.email = datosVenta.usuario.email;
+      clienteInfo.nombre = datosVenta.usuario.nombre || 'Cliente';
+      clienteInfo.telefono = datosVenta.usuario.telefono || '';
+      clienteInfo.direccion = datosVenta.usuario.direccion || '';
+      
+      // Buscar cliente en BD
+      try {
+        const cliente = await Cliente.findOne({ email: datosVenta.usuario.email });
+        if (cliente) {
+          clienteInfo.cliente = cliente._id;
+          clienteInfo.nombre = cliente.nombre;
+          clienteInfo.telefono = cliente.telefono || '';
+          clienteInfo.direccion = cliente.direccion || '';
+        }
+      } catch (err) {
+        console.warn('⚠️ No se pudo obtener cliente desde BD:', err.message);
+      }
+    } else if (datosVenta.reference && datosVenta.reference.startsWith('LSCART-')) {
+      // Intentar obtener usuario desde external_reference
+      const [, userId] = datosVenta.reference.split('-');
+      try {
+        const cliente = await Cliente.findById(userId);
+        if (cliente) {
+          clienteInfo.cliente = cliente._id;
+          clienteInfo.email = cliente.email;
+          clienteInfo.nombre = cliente.nombre;
+          clienteInfo.telefono = cliente.telefono || '';
+          clienteInfo.direccion = cliente.direccion || '';
+        }
+      } catch (err) {
+        console.warn('⚠️ No se pudo obtener cliente desde reference:', err.message);
+      }
+    }
+    
+    // Verificar que no exista ya una venta con este paymentId
+    const ventaExistente = await Venta.findOne({ paymentId: datosVenta.paymentId });
+    if (ventaExistente) {
+      console.log('⚠️ Ya existe una venta con este paymentId:', datosVenta.paymentId);
+      return ventaExistente;
+    }
+    
+    // Calcular totales (sin IVA)
+    const subtotal = datosVenta.totalCompra || 0;
+    const total = subtotal;
+    
+    // Crear nueva venta
+    const nuevaVenta = new Venta({
+      paymentId: datosVenta.paymentId,
+      
+      // Información del cliente
+      cliente: clienteInfo.cliente,
+      clienteEmail: clienteInfo.email,
+      clienteNombre: clienteInfo.nombre,
+      clienteTelefono: clienteInfo.telefono,
+      clienteDireccion: clienteInfo.direccion,
+      
+      // Productos
+      productos: datosVenta.productosComprados.map(producto => ({
+        producto: producto.producto || null, // ID del producto si existe
+        nombre: producto.nombre,
+        cantidad: producto.cantidad,
+        precio: producto.precio,
+        subtotal: producto.subtotal,
+        imagen: producto.imagen || ''
+      })),
+      
+      // Información financiera
+      subtotal: subtotal,
+      total: total,
+      
+      // Información del pago
+      metodoPago: 'mercadopago',
+      estadoPago: datosVenta.status || 'approved',
+      estadoEntrega: 'sin entregar',
+      
+      // Información adicional
+      reference: datosVenta.reference || '',
+      fechaCompra: new Date()
+    });
+    
+    await nuevaVenta.save();
+    console.log('✅ Venta guardada exitosamente con ID:', nuevaVenta._id);
+    
+    return nuevaVenta;
+    
+  } catch (error) {
+    console.error('❌ Error guardando venta en base de datos:', error);
     throw error;
   }
 }

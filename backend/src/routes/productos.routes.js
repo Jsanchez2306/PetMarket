@@ -9,6 +9,7 @@ router.get('/',validarAuth, validarEmpleado, productosController.renderizarGesti
 // Catálogo / API (público)
 router.get('/api/aleatorios', productosController.obtenerProductosAleatorios);
 router.get('/api/filtros', productosController.obtenerProductosConFiltros);
+router.get('/api/:id', productosController.obtenerProductoPorId); // NUEVA RUTA
 router.get('/api', productosController.obtenerProductos);
 
 // CRUD (empleados y admin)

@@ -1,0 +1,56 @@
+/* Dashboard Administrativo - Estilos */
+
+.stats-card {
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stats-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.action-card {
+  transition: all 0.3s ease;
+  border-radius: 15px;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.action-icon {
+  transition: all 0.3s ease;
+}
+
+.action-card:hover .action-icon {
+  transform: scale(1.1);
+}
+
+.main-container {
+  margin-top: 120px;
+  padding: 2rem 1rem 4rem 1rem;
+  min-height: calc(100vh - 60px);
+}
+
+h1 {
+  color: #2d3748;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section-divider {
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+  margin: 4rem auto;
+  width: 100px;
+}
+
+.bg-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}

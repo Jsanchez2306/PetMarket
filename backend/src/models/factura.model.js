@@ -8,7 +8,7 @@ const facturaSchema = new mongoose.Schema({
   cliente: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cliente",
-    required: true
+    required: false // Puede ser null para clientes manuales o no especificados
   },
   nombreCliente: {
     type: String,
@@ -68,7 +68,7 @@ const facturaSchema = new mongoose.Schema({
   },
   metodoPago: {
     type: String,
-    enum: ["efectivo", "tarjeta", "transferencia"],
+    enum: ["efectivo", "tarjeta", "transferencia", "mercadopago"],
     default: "efectivo"
   },
   estado: {

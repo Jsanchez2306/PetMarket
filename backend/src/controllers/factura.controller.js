@@ -2,6 +2,7 @@ const Factura = require('../models/factura.model');
 const Cliente = require('../models/cliente.model');
 const Producto = require('../models/producto.model');
 const Empleado = require('../models/empleado.model');
+const Venta = require('../models/venta.model');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
@@ -71,10 +72,37 @@ exports.crearFactura = async (req, res) => {
       return res.status(400).json({ mensaje: 'Cliente y productos son requeridos' });
     }
 
-    // Verificar que el cliente existe
-    const clienteExiste = await Cliente.findById(cliente.id || cliente._id);
-    if (!clienteExiste) {
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    // Manejar diferentes tipos de cliente
+    let clienteInfo = {};
+    let clienteId = null;
+
+    if (cliente.tipo === 'registrado') {
+      // Cliente registrado en el sistema
+      const clienteExiste = await Cliente.findById(cliente.id);
+      if (!clienteExiste) {
+        return res.status(404).json({ mensaje: 'Cliente registrado no encontrado' });
+      }
+      clienteInfo = {
+        nombre: clienteExiste.nombre,
+        email: clienteExiste.email
+      };
+      clienteId = clienteExiste._id;
+    } else if (cliente.tipo === 'manual') {
+      // Cliente con email manual
+      clienteInfo = {
+        nombre: cliente.nombre || 'Cliente Manual',
+        email: cliente.email
+      };
+      clienteId = null; // No hay referencia a cliente registrado
+    } else if (cliente.tipo === 'no-especificado') {
+      // Cliente no especificado
+      clienteInfo = {
+        nombre: 'Cliente No Especificado',
+        email: 'no-especificado@petmarket.com'
+      };
+      clienteId = null;
+    } else {
+      return res.status(400).json({ mensaje: 'Tipo de cliente no válido' });
     }
 
     // Verificar productos y calcular totales
@@ -109,14 +137,14 @@ exports.crearFactura = async (req, res) => {
       await producto.save();
     }
 
-    const iva = subtotal * 0.19;
-    const total = subtotal + iva;
+    const iva = 0; // Sin IVA
+    const total = subtotal;
 
     // Crear la factura
     const nuevaFactura = new Factura({
-      cliente: clienteExiste._id,
-      nombreCliente: clienteExiste.nombre,
-      emailCliente: clienteExiste.email,
+      cliente: clienteId, // Puede ser null para clientes manuales o no especificados
+      nombreCliente: clienteInfo.nombre,
+      emailCliente: clienteInfo.email,
       productos: productosFactura,
       subtotal: subtotal,
       iva: iva,
@@ -129,6 +157,49 @@ exports.crearFactura = async (req, res) => {
     });
 
     const facturaGuardada = await nuevaFactura.save();
+
+    // También crear una venta para llevar el control en gestión de ventas
+    try {
+      // Generar un paymentId único para la venta manual
+      const paymentId = `MANUAL-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Preparar productos para la venta (formato diferente al de factura)
+      const productosVenta = productosFactura.map(item => ({
+        producto: item.producto, // ID del producto
+        nombre: item.nombre,
+        cantidad: item.cantidad,
+        precio: item.precio,
+        subtotal: item.subtotal,
+        imagen: '' // Se puede poblar desde el producto si es necesario
+      }));
+
+      const nuevaVenta = new Venta({
+        paymentId: paymentId,
+        cliente: clienteId, // Puede ser null para clientes manuales
+        clienteEmail: clienteInfo.email,
+        clienteNombre: clienteInfo.nombre,
+        clienteTelefono: '', // No tenemos este dato en facturas manuales
+        clienteDireccion: '', // No tenemos este dato en facturas manuales
+        productos: productosVenta,
+        subtotal: subtotal,
+        total: total,
+        metodoPago: metodoPago || 'efectivo',
+        estadoPago: 'approved', // Venta manual siempre aprobada
+        estadoEntrega: 'entregado', // Venta manual siempre entregada
+        reference: `Factura Manual: ${facturaGuardada._id}`,
+        observaciones: observaciones || '',
+        fechaCompra: new Date(),
+        fechaEnvio: new Date(), // Inmediatamente enviado
+        fechaEntrega: new Date() // Inmediatamente entregado
+      });
+
+      await nuevaVenta.save();
+      console.log('✅ Venta creada desde factura manual:', nuevaVenta._id);
+      
+    } catch (ventaError) {
+      console.error('⚠️ Error al crear venta desde factura manual:', ventaError);
+      // No devolvemos error porque la factura se creó exitosamente
+    }
 
     res.status(201).json({ 
       mensaje: 'Factura creada exitosamente', 

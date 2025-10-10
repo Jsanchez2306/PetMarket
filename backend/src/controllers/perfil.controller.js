@@ -1,132 +1,138 @@
-//Admin controller
-const Admin = require('../models/cliente.model');
-const ADMIN_ID = '689902435a07da9eeb72fa34';
+const Cliente = require('../models/cliente.model');
+const Empleado = require('../models/empleado.model');
 
+// Mostrar perfil de administrador/empleado
 exports.mostrarPerfil = async (req, res) => {
   try {
-    const admin = await Admin.findById(ADMIN_ID);
-    if (!admin) return res.status(404).send('Admin no encontrado');
+    // Obtener información del empleado/admin desde el token
+    const admin = req.user || {};
     res.render('perfilAdmin', { admin });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error al cargar perfil');
+  } catch (error) {
+    console.error('Error mostrando perfil admin:', error);
+    res.status(500).render('error', { message: 'Error al cargar el perfil' });
   }
 };
 
+// Actualizar perfil de administrador/empleado
 exports.actualizarPerfil = async (req, res) => {
   try {
     const { nombre, correo, telefono, direccion } = req.body;
+    const userId = req.user.id;
 
-    const admin = await Admin.findByIdAndUpdate(
-      ADMIN_ID,
-      { nombre, email: correo, telefono, direccion },
-      { new: true }
-    );
+    // Buscar empleado/admin
+    const empleado = await Empleado.findById(userId);
+    if (!empleado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
 
-    if (!admin) return res.status(404).send('Admin no encontrado');
+    // Actualizar datos
+    empleado.nombre = nombre;
+    empleado.email = correo;
+    if (telefono) empleado.telefono = telefono;
+    if (direccion) empleado.direccion = direccion;
 
-    res.redirect('/perfil/admin');
+    await empleado.save();
+
+    res.json({ mensaje: 'Perfil actualizado correctamente' });
   } catch (error) {
-    console.error('Error al actualizar perfil:', error);
-    res.status(500).send('Error al actualizar el perfil');
+    console.error('Error actualizando perfil admin:', error);
+    res.status(500).json({ mensaje: 'Error al actualizar el perfil' });
   }
 };
 
+// Cambiar contraseña de administrador/empleado
 exports.cambiarContrasena = async (req, res) => {
   try {
     const { actual, nueva, confirmar } = req.body;
-
-    if (!actual || !nueva || !confirmar) {
-      return res.status(400).json({ mensaje: 'Completa todos los campos' });
-    }
-
-    if (nueva.length < 6) {
-      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
-    }
+    const userId = req.user.id;
 
     if (nueva !== confirmar) {
       return res.status(400).json({ mensaje: 'Las contraseñas no coinciden' });
     }
 
-    const admin = await Admin.findById(ADMIN_ID);
-    if (!admin) return res.status(404).json({ mensaje: 'Admin no encontrado' });
-
-    if (admin.contrasena !== actual) {
-      return res.status(400).json({ mensaje: 'Contraseña actual incorrecta' });
+    const empleado = await Empleado.findById(userId);
+    if (!empleado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
 
-    await Admin.findByIdAndUpdate(ADMIN_ID, { contrasena: nueva });
+    if (empleado.contrasena !== actual) {
+      return res.status(401).json({ mensaje: 'Contraseña actual incorrecta' });
+    }
 
-    return res.status(200).json({ mensaje: 'Contraseña cambiada con éxito' });
+    empleado.contrasena = nueva;
+    await empleado.save();
+
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
   } catch (error) {
-    console.error('Error al cambiar contraseña:', error);
-    return res.status(500).json({ mensaje: 'Hubo un error al cambiar la contraseña' });
+    console.error('Error cambiando contraseña admin:', error);
+    res.status(500).json({ mensaje: 'Error al cambiar la contraseña' });
   }
 };
 
-// Cliente controller
-const Cliente = require('../models/cliente.model');
-const CLIENT_ID = '6897743b55073dcd453ac533';
-
+// Mostrar perfil de cliente
 exports.mostrarPerfilCliente = async (req, res) => {
   try {
-    const cliente = await Cliente.findById(CLIENT_ID);
-    if (!cliente) return res.status(404).send('Cliente no encontrado');
-    return res.render('perfilCliente', { cliente });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send('Error al cargar perfil cliente');
+    // Obtener información del cliente desde el token
+    const cliente = req.user || {};
+    res.render('perfilCliente', { cliente });
+  } catch (error) {
+    console.error('Error mostrando perfil cliente:', error);
+    res.status(500).render('error', { message: 'Error al cargar el perfil' });
   }
 };
 
+// Actualizar perfil de cliente
 exports.actualizarPerfilCliente = async (req, res) => {
   try {
     const { nombre, correo, telefono, direccion } = req.body;
+    const userId = req.user.id;
 
-    const cliente = await Cliente.findByIdAndUpdate(
-      CLIENT_ID,
-      { nombre, email: correo, telefono, direccion },
-      { new: true }
-    );
+    // Buscar cliente
+    const cliente = await Cliente.findById(userId);
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
 
-    if (!cliente) return res.status(404).send('Cliente no encontrado');
+    // Actualizar datos
+    cliente.nombre = nombre;
+    cliente.email = correo;
+    if (telefono) cliente.telefono = telefono;
+    if (direccion) cliente.direccion = direccion;
 
-    return res.redirect('/perfil/cliente');
+    await cliente.save();
+
+    res.json({ mensaje: 'Perfil actualizado correctamente' });
   } catch (error) {
-    console.error('Error al actualizar perfil cliente:', error);
-    return res.status(500).send('Error al actualizar el perfil del cliente');
+    console.error('Error actualizando perfil cliente:', error);
+    res.status(500).json({ mensaje: 'Error al actualizar el perfil' });
   }
 };
 
+// Cambiar contraseña de cliente
 exports.cambiarContrasenaCliente = async (req, res) => {
   try {
     const { actual, nueva, confirmar } = req.body;
-
-    if (!actual || !nueva || !confirmar) {
-      return res.status(400).json({ mensaje: 'Completa todos los campos' });
-    }
-
-    if (nueva.length < 6) {
-      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
-    }
+    const userId = req.user.id;
 
     if (nueva !== confirmar) {
       return res.status(400).json({ mensaje: 'Las contraseñas no coinciden' });
     }
 
-    const cliente = await Cliente.findById(CLIENT_ID);
-    if (!cliente) return res.status(404).json({ mensaje: 'Cliente no encontrado' });
-
-    if (cliente.contrasena !== actual) {
-      return res.status(400).json({ mensaje: 'Contraseña actual incorrecta' });
+    const cliente = await Cliente.findById(userId);
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
     }
 
-    await Cliente.findByIdAndUpdate(CLIENT_ID, { contrasena: nueva });
+    if (cliente.contrasena !== actual) {
+      return res.status(401).json({ mensaje: 'Contraseña actual incorrecta' });
+    }
 
-    return res.status(200).json({ mensaje: 'Contraseña cambiada con éxito' });
+    cliente.contrasena = nueva;
+    await cliente.save();
+
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
   } catch (error) {
-    console.error('Error al cambiar contraseña cliente:', error);
-    return res.status(500).json({ mensaje: 'Hubo un error al cambiar la contraseña' });
+    console.error('Error cambiando contraseña cliente:', error);
+    res.status(500).json({ mensaje: 'Error al cambiar la contraseña' });
   }
 };
-

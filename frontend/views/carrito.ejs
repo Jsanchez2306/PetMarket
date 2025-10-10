@@ -19,41 +19,10 @@
     <link rel="stylesheet" href="/css/assets.css" />
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/buttons.css" />
+    <link rel="stylesheet" href="/css/modales.css" />
     <link rel="icon" href="/Imagenes/HuellaPerro.png" />
     <title>Carrito de Compras - PetMarket</title>
     <link rel="stylesheet" href="/css/carrito.css">
-    <style>
-      /* Estilos para modal de confirmación */
-      #confirmacionModal .modal-content {
-        border-radius: 20px;
-        overflow: hidden;
-      }
-      
-      #confirmacionModal .modal-icon {
-        animation: pulseIcon 2s infinite;
-      }
-      
-      @keyframes pulseIcon {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-      }
-      
-      #confirmacionModal .btn {
-        border-radius: 25px;
-        min-width: 120px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-      }
-      
-      #confirmacionModal .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      }
-      
-      #confirmacionModal .modal-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      }
-    </style>
   </head>
 
   <body>
@@ -82,134 +51,23 @@
 
         <!-- Contenido del carrito -->
         <div class="row" id="cartContent">
-          <!-- Items del carrito -->
+          <!-- Items del carrito - MANEJADO POR JAVASCRIPT -->
           <div class="col-lg-8">
-            <div id="cartItems">
-              <!-- Renderizar items del servidor -->
-              <% if (cart.items && cart.items.length > 0) { %>
-                <% cart.items.forEach(item => { %>
-                  <% if (item.product && item.product._id) { %>
-              <div class="cart-item" data-product-id="<%= item.product._id %>">
-                <div class="row align-items-center">
-                  <div class="col-md-3">
-                    <img
-                      src="<%= item.product.imagen || '/Imagenes/default-product.jpg' %>"
-                      alt="<%= item.product.nombre %>"
-                      class="product-image img-fluid"
-                    />
-                  </div>
-                  <div class="col-md-4">
-                    <h5 class="mb-1"><%= item.product.nombre %></h5>
-                    <p class="text-muted mb-0">
-                      <small
-                        >SKU: <%= item.product._id.toString().slice(-6)
-                        %></small
-                      >
-                    </p>
-                    <p class="text-muted mb-0">
-                      <small>Stock disponible: <%= item.product.stock %></small>
-                    </p>
-                  </div>
-                  <div class="col-md-2">
-                    <p class="fw-bold mb-0">
-                      $<%= item.price.toLocaleString() %>
-                    </p>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="quantity-controls">
-                      <button
-                        class="quantity-btn"
-                        onclick="cambiarCantidad('<%= item.product._id %>', '<%= item.quantity - 1 %>')"
-                      >
-                        <i class="fas fa-minus"></i>
-                      </button>
-                      <span class="quantity-display"><%= item.quantity %></span>
-                      <button
-                        class="quantity-btn"
-                        onclick="cambiarCantidad('<%= item.product._id %>', '<%= item.quantity + 1 %>')"
-                      >
-                        <i class="fas fa-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="col-md-1">
-                    <button
-                      class="btn btn-outline-danger btn-sm"
-                      onclick="eliminarItem('<%= item.product._id %>')"
-                    >
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-                  <% } %>
-                <% }); %>
-              <% } else { %>
-              <div id="emptyCart" class="text-center py-5">
-                <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
-                <h3 class="text-muted">Tu carrito está vacío</h3>
-                <p class="text-muted">Agrega algunos productos para comenzar</p>
-                <a href="/productos/catalogo" class="btn btn-primary">
-                  <i class="fas fa-shopping-bag me-2"></i>
-                  Ir de compras
-                </a>
-              </div>
-              <% } %>
+            <div id="carrito-items">
+              <!-- Los items se cargarán dinámicamente desde localStorage -->
             </div>
           </div>
 
-          <!-- Resumen del carrito -->
+          <!-- Resumen del carrito - MANEJADO POR JAVASCRIPT -->
           <div class="col-lg-4">
-            <div class="cart-summary">
-              <h4 class="mb-4">
-                <i class="fas fa-receipt me-2"></i>
-                Resumen del pedido
-              </h4>
+            <div id="resumen-carrito">
+              <!-- El resumen se cargará dinámicamente desde localStorage -->
+            </div>
+          </div>
 
-              <div class="summary-row">
-                <span>Subtotal:</span>
-                <span id="subtotalAmount"
-                  >$<%= (cart.subtotal || 0).toLocaleString() %></span
-                >
-              </div>
+             
 
-              <div class="summary-row">
-                <span>IVA (19%):</span>
-                <span id="ivaAmount"
-                  >$<%= (cart.iva || 0).toLocaleString() %></span
-                >
-              </div>
-
-              <div class="summary-row">
-                <span>Total:</span>
-                <span id="totalAmount"
-                  >$<%= (cart.total || 0).toLocaleString() %></span
-                >
-              </div>
-
-              <hr class="my-4" />
-
-              <div class="d-grid gap-2">
-                <button
-                  class="btn btn-pagar"
-                  id="pagarBtn"
-                  <%= (cart.items && cart.items.length > 0) ? '' : 'disabled' %>
-                >
-                  <i class="fas fa-credit-card me-2"></i>
-                  Proceder al pago
-                </button>
-                <button
-                  class="btn btn-outline-secondary"
-                  id="limpiarCarritoBtn"
-                >
-                  <i class="fas fa-trash me-2"></i>
-                  Limpiar carrito
-                </button>
-                <a href="/productos/catalogo" class="btn btn-outline-primary">
-                  <i class="fas fa-arrow-left me-2"></i>
-                  Seguir comprando
-                </a>
-              </div>
+              <!-- Los botones se generan dinámicamente por JavaScript -->
             </div>
           </div>
         </div>
@@ -400,8 +258,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Sistema de modales unificado -->
+    <script src="/js/modales.js"></script>
     <!-- Header unificado maneja toda la autenticación -->
     <script src="/js/headerUnificado.js"></script>
-    <script src="/js/carrito.js"></script>
+    <!-- CAMBIO: Usar carrito localStorage -->
+    <script src="/js/carrito-localStorage.js"></script>
   </body>
 </html>

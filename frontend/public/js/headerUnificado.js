@@ -18,10 +18,17 @@ class HeaderUnificado {
     this.setupCartButtons();
     this.setupStickyHeader(); // Nuevo: configurar header fijo
     
+    // IMPORTANTE: Cargar contador del carrito siempre
+    this.loadCartCountFromLocalStorage();
+    
     // Verificar sesión cada 30 segundos para mantenerla activa si el usuario está logueado
     setInterval(() => {
       if (this.token && this.userInfo) {
         this.verifyServerSession();
+        // NUEVO: Actualizar contador de ventas si es empleado/admin
+        if (this.userInfo.rol === 'admin' || this.userInfo.tipoUsuario === 'empleado') {
+          this.loadSalesCount();
+        }
       }
     }, 30000);
   }
@@ -69,6 +76,30 @@ class HeaderUnificado {
         this.clearRecoveryErrors();
       });
     }
+
+    // NUEVO: Guardar página actual cuando se abre el modal de login
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+      loginModal.addEventListener('show.bs.modal', () => {
+        // Solo guardar si no hay una acción post-login específica
+        const postLoginAction = sessionStorage.getItem('postLoginAction');
+        if (!postLoginAction) {
+          const currentPage = window.location.pathname + window.location.search;
+          console.log('💾 Guardando página actual para post-login:', currentPage);
+          sessionStorage.setItem('postLoginRedirect', currentPage);
+        }
+      });
+
+      // Limpiar redirección si se cierra el modal sin login
+      loginModal.addEventListener('hidden.bs.modal', () => {
+        // Solo limpiar si no se hizo login exitoso (no hay postLoginAction)
+        const postLoginAction = sessionStorage.getItem('postLoginAction');
+        if (!postLoginAction && !this.userInfo) {
+          console.log('🧹 Limpiando redirección guardada (modal cerrado sin login)');
+          sessionStorage.removeItem('postLoginRedirect');
+        }
+      });
+    }
   }
 
   setupProfileModal() {
@@ -91,14 +122,31 @@ class HeaderUnificado {
       console.log('❌ No hay token disponible');
       return;
     }
+    
+    // Verificar que el token tenga el formato correcto
+    if (typeof this.token !== 'string' || this.token === 'null' || this.token === 'undefined') {
+      console.log('❌ Token inválido (null/undefined)');
+      this.clearAuth();
+      return;
+    }
+    
+    const tokenParts = this.token.split('.');
+    if (tokenParts.length !== 3) {
+      console.log('❌ Token malformado (no tiene 3 partes)');
+      this.clearAuth();
+      return;
+    }
+    
     try {
-      const payload = JSON.parse(atob(this.token.split('.')[1]));
+      const payload = JSON.parse(atob(tokenParts[1]));
       const now = Date.now() / 1000;
+      
       if (payload.exp && payload.exp < now) {
         console.log('❌ Token expirado');
         this.clearAuth();
         return;
       }
+      
       this.userInfo = payload;
       console.log('✅ Información del usuario cargada:', this.userInfo);
       this.verifyServerSession();
@@ -125,6 +173,15 @@ class HeaderUnificado {
 
   async revalidateSession() {
     if (!this.token || !this.userInfo) return;
+    
+    // Verificar que el token sea válido antes de enviarlo
+    if (typeof this.token !== 'string' || this.token.split('.').length !== 3) {
+      console.log('❌ Token malformado, limpiando autenticación');
+      this.clearAuth();
+      this.updateHeader();
+      return;
+    }
+    
     try {
       const response = await fetch('/auth/revalidate-session', {
         method: 'POST',
@@ -138,10 +195,17 @@ class HeaderUnificado {
           email: this.userInfo.email
         })
       });
+      
       if (response.ok) {
         console.log('✅ Sesión del servidor revalidada');
       } else {
         console.log('❌ No se pudo revalidar la sesión del servidor');
+        // Si es error 401, limpiar autenticación
+        if (response.status === 401) {
+          console.log('🔑 Token inválido en revalidación, limpiando auth');
+          this.clearAuth();
+          this.updateHeader();
+        }
       }
     } catch (error) {
       console.log('❌ Error revalidando sesión:', error);
@@ -149,8 +213,16 @@ class HeaderUnificado {
   }
 
   updateHeader() {
+    // Verificar carrito ANTES de actualizar header
+    const carritoAntes = localStorage.getItem('petmarket_cart');
+    console.log('🛒 Carrito ANTES de updateHeader:', carritoAntes ? 'EXISTE' : 'NO EXISTE');
+    
     if (!this.userInfo) this.showPublicHeader();
     else this.showAuthenticatedHeader();
+    
+    // Verificar carrito DESPUÉS de actualizar header
+    const carritoDespues = localStorage.getItem('petmarket_cart');
+    console.log('🛒 Carrito DESPUÉS de updateHeader:', carritoDespues ? 'EXISTE' : 'NO EXISTE');
     
     // Solo verificar ruta protegida si NO hay usuario autenticado
     if (!this.userInfo) {
@@ -164,6 +236,13 @@ class HeaderUnificado {
     this.showElements('.public-nav');
     this.hideElements('.client-nav:not(.public-nav), .employee-nav, .admin-nav');
     this.hide('#roleBadge');
+    
+    // CAMBIO IMPORTANTE: Mostrar carrito para usuarios no autenticados
+    this.show('#carritoBtn');
+    this.loadCartCountFromLocalStorage();
+    
+    // NUEVO: Ocultar botón de ventas para usuarios no autenticados
+    this.hide('#ventasBtn');
     
     // Notificar cambio de estado de usuario a otras páginas
     this.notifyUserStateChange();
@@ -231,12 +310,19 @@ class HeaderUnificado {
   }
 
   updateCartButton(rol, tipoUsuario) {
-    if (tipoUsuario === 'cliente' || rol === 'admin') {
-      this.show('.client-only');
-      if (tipoUsuario === 'cliente') this.loadCartCount();
+    const carritoBtn = document.getElementById('carritoBtn');
+    
+    // Ocultar carrito para administradores y empleados
+    if (rol === 'admin' || tipoUsuario === 'empleado') {
+      if (carritoBtn) carritoBtn.classList.add('d-none');
     } else {
-      this.hide('.client-only');
+      // Mostrar carrito para clientes y usuarios no autenticados
+      if (carritoBtn) carritoBtn.classList.remove('d-none');
+      this.loadCartCountFromLocalStorage();
     }
+    
+    // NUEVO: Manejar botón de ventas para empleados y admins
+    this.updateSalesButton(rol, tipoUsuario);
   }
 
   updateUserDropdown(rol, tipoUsuario) {
@@ -250,29 +336,92 @@ class HeaderUnificado {
     }
   }
 
-  async loadCartCount() {
-    if (!this.token) return;
+  // NUEVO: Cargar contador desde localStorage
+  loadCartCountFromLocalStorage() {
     try {
-      const response = await fetch('/carrito/api', {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${this.token}` },
-        credentials: 'include'
+      const cart = JSON.parse(localStorage.getItem('petmarket_cart') || '[]');
+      const itemCount = cart.reduce((total, item) => total + (item.cantidad || 1), 0);
+      const counter = document.getElementById('carritoContador');
+      
+      if (counter) {
+        if (itemCount > 0) {
+          counter.textContent = itemCount;
+          counter.classList.remove('d-none');
+        } else {
+          counter.classList.add('d-none');
+        }
+      }
+      
+      console.log(`🛒 Carrito localStorage: ${cart.length} productos, ${itemCount} items`);
+    } catch (error) {
+      console.error('Error cargando carrito desde localStorage:', error);
+    }
+  }
+
+  // Mantener función original para compatibilidad (si se necesita)
+  async loadCartCount() {
+    // Por ahora usar localStorage, pero mantener estructura para futuro
+    this.loadCartCountFromLocalStorage();
+  }
+
+  // NUEVO: Actualizar botón de ventas
+  updateSalesButton(rol, tipoUsuario) {
+    const salesBtn = document.getElementById('ventasBtn');
+    if (!salesBtn) return;
+
+    // Mostrar solo para empleados y admins
+    if (rol === 'admin' || tipoUsuario === 'empleado') {
+      salesBtn.classList.remove('d-none');
+      this.loadSalesCount();
+    } else {
+      salesBtn.classList.add('d-none');
+    }
+  }
+
+  // NUEVO: Cargar contador de ventas sin entregar
+  async loadSalesCount() {
+    if (!this.token) {
+      console.log('📋 No hay token disponible para cargar contador de ventas');
+      return;
+    }
+
+    try {
+      console.log('📋 Cargando contador de ventas...');
+      
+      const response = await fetch('/ventas/api/ventas/sin-entregar/count', {
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json'
+        }
       });
+
       if (response.ok) {
         const data = await response.json();
-        const counter = document.getElementById('carritoContador');
+        const counter = document.getElementById('ventasContador');
+        
         if (counter) {
-          const itemCount = data.itemCount || data.items?.length || 0;
-          if (itemCount > 0) {
-            counter.textContent = itemCount;
+          if (data.count > 0) {
+            counter.textContent = data.count;
             counter.classList.remove('d-none');
           } else {
             counter.classList.add('d-none');
           }
         }
+        
+        console.log(`📋 Ventas sin entregar: ${data.count}`);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+        console.warn('No se pudo cargar el contador de ventas:', response.status, errorData.message);
+        
+        // Si es error 401, el token podría estar expirado
+        if (response.status === 401) {
+          console.log('🔑 Token inválido para ventas, limpiando autenticación');
+          this.clearAuth();
+          this.updateHeader();
+        }
       }
     } catch (error) {
-      console.log('No se pudo cargar el contador del carrito:', error);
+      console.error('Error cargando contador de ventas:', error);
     }
   }
 
@@ -283,7 +432,7 @@ class HeaderUnificado {
       const p = url.pathname;
 
       // Protegidas por rol
-      if (/^\/(panel|clientes|empleados|facturas)(\/|$)/.test(p)) return true;
+      if (/^\/(panel|clientes|empleados|facturas|ventas)(\/|$)/.test(p)) return true;
 
       // Gestión de productos (solo raíz /productos o /productos/)
       if (/^\/productos\/?$/.test(p)) return true;
@@ -311,26 +460,62 @@ class HeaderUnificado {
       });
       const data = await this.parseJSONSafe(response);
       if (response.ok) {
-        this.token = data.token;
-        if (data.token) localStorage.setItem('token', data.token);
+        console.log('🔐 Login exitoso, procesando token...');
+        
+        if (data.token && typeof data.token === 'string' && data.token.trim()) {
+          this.token = data.token.trim();
+          localStorage.setItem('token', this.token);
+          console.log('✅ Token guardado correctamente');
+        } else {
+          console.error('❌ Token inválido recibido del servidor:', data.token);
+          this.showErrorMessage('Error', 'Token de autenticación inválido');
+          return;
+        }
+        
+        // Verificar carrito ANTES de cargar info
+        const carritoAntes = localStorage.getItem('petmarket_cart');
+        console.log('🛒 Carrito ANTES de loadUserInfo:', carritoAntes ? 'EXISTE' : 'NO EXISTE');
+        
         this.loadUserInfo();
         this.updateHeader();
+        
+        // Verificar carrito DESPUÉS de cargar info
+        const carritoDespues = localStorage.getItem('petmarket_cart');
+        console.log('🛒 Carrito DESPUÉS de loadUserInfo:', carritoDespues ? 'EXISTE' : 'NO EXISTE');
+        
+        // NUEVO: Disparar evento de login exitoso
+        document.dispatchEvent(new CustomEvent('loginSuccess', {
+          detail: { userInfo: this.userInfo, token: this.token }
+        }));
+        
         const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
         if (loginModal) loginModal.hide();
 
-        // Redirección inteligente:
-        // 1) Si guardamos un destino, úsalo.
-        let redirectUrl = '/';
+        // VERIFICAR SI ES UN CHECKOUT - NO HACER REDIRECT
+        const postLoginAction = sessionStorage.getItem('postLoginAction');
+        if (postLoginAction === 'checkout') {
+            // No hacer redirect, el carrito-localStorage.js manejará el pago
+            console.log('🛒 Login exitoso para checkout - no redirecting');
+            return;
+        }
+
+        // NUEVO: Por defecto, mantener al usuario en la página actual
+        let redirectUrl = window.location.pathname + window.location.search;
+        
         try {
+          // 1) Si hay un destino específico guardado, úsalo
           const saved = sessionStorage.getItem('postLoginRedirect');
           if (saved) {
             redirectUrl = saved;
             sessionStorage.removeItem('postLoginRedirect');
           } else {
-            // 2) Si no hay destino guardado, usa la lógica por rol
-            if (data.rol === 'admin') redirectUrl = '/panel';
-            else if (data.tipoUsuario === 'empleado') redirectUrl = '/productos';
-            // clientes: '/' por defecto
+            // 2) Solo cambiar de página si es un rol específico que necesita redirección
+            if (data.rol === 'admin' && !window.location.pathname.includes('/panel')) {
+              redirectUrl = '/panel';
+            } else if (data.tipoUsuario === 'empleado' && window.location.pathname === '/') {
+              redirectUrl = '/productos';
+            }
+            // Para clientes: mantener en la página actual
           }
         } catch {}
 
@@ -589,26 +774,42 @@ class HeaderUnificado {
   }
 
   clearAuth() {
-    console.log('🧹 Limpiando toda la autenticación...');
+    console.log('🧹 Limpiando autenticación (PRESERVANDO carrito)...');
     
     // Limpiar propiedades de la clase
     this.token = null;
     this.userInfo = null;
     
-    // Limpiar TODO el localStorage
+    // PRESERVAR el carrito antes de limpiar
+    const carritoBackup = localStorage.getItem('petmarket_cart');
+    console.log('💾 Respaldando carrito:', carritoBackup ? 'SÍ' : 'NO');
+    
+    // Limpiar solo elementos de autenticación, NO todo el localStorage
     try {
-      localStorage.clear();
-      console.log('✅ localStorage limpiado');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userInfo');
+      localStorage.removeItem('cartItems'); // carrito viejo
+      localStorage.removeItem('userData');
+      localStorage.removeItem('sessionData');
+      localStorage.removeItem('authData');
+      
+      // RESTAURAR el carrito si existía
+      if (carritoBackup) {
+        localStorage.setItem('petmarket_cart', carritoBackup);
+        console.log('🛒 Carrito restaurado después de limpiar auth');
+      }
+      
+      console.log('✅ Autenticación limpiada (carrito preservado)');
     } catch (e) {
       console.warn('⚠️ Error limpiando localStorage:', e);
-      // Intentar limpiar elementos específicos conocidos
-      try {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userInfo');
-        localStorage.removeItem('cartItems');
-        localStorage.removeItem('userData');
-      } catch (e2) {
-        console.warn('⚠️ Error limpiando elementos específicos de localStorage:', e2);
+      // Fallback: restaurar carrito de todas formas
+      if (carritoBackup) {
+        try {
+          localStorage.setItem('petmarket_cart', carritoBackup);
+          console.log('🛒 Carrito restaurado en fallback');
+        } catch (e2) {
+          console.error('❌ Error restaurando carrito:', e2);
+        }
       }
     }
     
@@ -717,9 +918,7 @@ class HeaderUnificado {
         e.stopPropagation();
         const productoId = button.getAttribute('data-producto');
 
-        // Invitado: guarda la URL actual para volver después del login
-        if (!this.checkAuthForPurchase()) return;
-
+        // CAMBIO: Ya no verificar autenticación - permitir agregar sin login
         this.agregarAlCarrito(productoId, button);
       }
     });
@@ -803,11 +1002,18 @@ class HeaderUnificado {
       
       console.log('🔍 Verificando permisos para:', path, 'Usuario:', user);
       
-      // Solo admins pueden acceder a gestión
+      // Rutas que requieren permisos de admin
       if (/^\/(panel|clientes|empleados|facturas|productos)\/?$/.test(path)) {
         const isAdmin = user.rol === 'admin' || user.rol === 'administrador';
         console.log('🔐 Ruta administrativa. Es admin?', isAdmin, 'Rol:', user.rol);
         return isAdmin;
+      }
+      
+      // Ventas: admins y empleados
+      if (/^\/ventas\/?$/.test(path)) {
+        const isAdminOrEmployee = user.rol === 'admin' || user.tipoUsuario === 'empleado';
+        console.log('🔐 Ruta de ventas. Es admin/empleado?', isAdminOrEmployee, 'Rol:', user.rol, 'Tipo:', user.tipoUsuario);
+        return isAdminOrEmployee;
       }
       
       // Otras rutas son públicas o tienen sus propias validaciones
@@ -860,22 +1066,14 @@ class HeaderUnificado {
     });
   }
 
-  // Verificar autenticación antes de comprar
+  // OBSOLETO: Ya no verificar autenticación para agregar al carrito
+  // Solo se requiere autenticación para el checkout, no para agregar productos
   checkAuthForPurchase() {
-    if (!this.token || !this.userInfo) {
-      // Guardar a dónde volver después de login (ej: catálogo actual)
-      try {
-        const current = window.location.pathname + window.location.search + window.location.hash;
-        sessionStorage.setItem('postLoginRedirect', current);
-      } catch {}
-      const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-      loginModal.show();
-      return false;
-    }
+    // CAMBIO: Siempre permitir agregar al carrito (localStorage)
     return true;
   }
 
-  // Agregar producto al carrito
+  // NUEVO: Agregar producto al carrito localStorage
   async agregarAlCarrito(productoId, button) {
     // Verificar si el usuario es administrador
     if (this.userInfo && this.userInfo.rol === 'admin') {
@@ -887,38 +1085,78 @@ class HeaderUnificado {
       this.showErrorMessage('Error', 'ID de producto no válido');
       return;
     }
+
     const originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Agregando...';
     button.disabled = true;
 
     try {
-      const response = await fetch('/carrito/api/agregar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
-        credentials: 'include',
-        body: JSON.stringify({ productId: productoId, quantity: 1 })
-      });
-      const data = await response.json();
-
-      if (response.ok) {
-        //  NUEVA ANIMACIÓN: Disparar animación de vuelo al carrito
-        this.animarProductoAlCarrito(button, productoId);
-        this.loadCartCount();
-        
-        button.innerHTML = '<i class="fas fa-check me-2"></i>¡Agregado!';
-        button.classList.remove('btn-primary');
-        button.classList.add('btn-success');
-        setTimeout(() => {
-          button.innerHTML = originalText;
-          button.classList.remove('btn-success');
-          button.classList.add('btn-primary');
-          button.disabled = false;
-        }, 2000); // Aumentamos el tiempo para que se vea la animación completa
-      } else {
-        throw new Error(data.mensaje || 'Error al agregar producto');
+      // Obtener información del producto del backend
+      const response = await fetch(`/productos/api/${productoId}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.mensaje || 'No se pudo obtener información del producto');
       }
+      
+      const producto = await response.json();
+      
+      // Verificar stock disponible
+      if (producto.stock <= 0) {
+        throw new Error('Producto sin stock disponible');
+      }
+
+      // Obtener carrito actual del localStorage
+      const cart = JSON.parse(localStorage.getItem('petmarket_cart') || '[]');
+      
+      // Verificar si el producto ya existe en el carrito
+      const existingItemIndex = cart.findIndex(item => item.productId === productoId);
+      
+      if (existingItemIndex >= 0) {
+        // Si ya existe, incrementar cantidad (verificando stock)
+        const currentQuantity = cart[existingItemIndex].cantidad;
+        if (currentQuantity >= producto.stock) {
+          throw new Error(`Stock máximo disponible: ${producto.stock}`);
+        }
+        cart[existingItemIndex].cantidad += 1;
+      } else {
+        // Si no existe, agregar nuevo item
+        cart.push({
+          productId: productoId,
+          nombre: producto.nombre,
+          precio: producto.precio,
+          imagen: producto.imagen,
+          categoria: producto.categoria || 'Sin categoría', // ✅ AGREGADO
+          cantidad: 1,
+          stock: producto.stock,
+          addedAt: new Date().toISOString()
+        });
+      }
+
+      // Guardar carrito actualizado
+      localStorage.setItem('petmarket_cart', JSON.stringify(cart));
+      
+      // Disparar animación de vuelo al carrito
+      this.animarProductoAlCarrito(button, productoId);
+      
+      // Actualizar contador
+      this.loadCartCountFromLocalStorage();
+      
+      // Feedback visual
+      button.innerHTML = '<i class="fas fa-check me-2"></i>¡Agregado!';
+      button.classList.remove('btn-primary');
+      button.classList.add('btn-success');
+      
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-primary');
+        button.disabled = false;
+      }, 2000);
+
+      console.log('🛒 Producto agregado al carrito localStorage:', productoId);
+      
     } catch (error) {
-      console.error(' Error al agregar al carrito:', error);
+      console.error('❌ Error al agregar al carrito:', error);
       this.showErrorMessage('Error', error.message || 'No se pudo agregar el producto al carrito');
       button.innerHTML = originalText;
       button.disabled = false;

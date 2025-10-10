@@ -15,14 +15,40 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Sincronizar datos del carrito desde el servidor
     sincronizarCarritoDesdeServidor();
+    
+    // 🔒 Escuchar cambios de estado de autenticación desde headerUnificado
+    document.addEventListener('userStateChanged', function(event) {
+        console.log('🔄 Estado de usuario cambió, actualizando protecciones del carrito');
+        verificarEstadoBotonPago();
+        protegerBotonesCarrito();
+    });
+    
+    // 🔒 Escuchar evento de limpieza de autenticación
+    document.addEventListener('authStateCleared', function(event) {
+        console.log('🧹 Estado de autenticación limpiado, actualizando protecciones del carrito');
+        verificarEstadoBotonPago();
+        protegerBotonesCarrito();
+    });
 });
 
 function inicializarEventos() {
-    // Evento para proceder al pago
-    document.getElementById('pagarBtn').addEventListener('click', procesarPago);
+    // Evento para proceder al pago (con verificación de autenticación)
+    const pagarBtn = document.getElementById('pagarBtn');
+    if (pagarBtn) {
+        pagarBtn.addEventListener('click', procesarPago);
+        
+        // 🔒 Verificar estado de autenticación para el botón
+        verificarEstadoBotonPago();
+    }
     
     // Evento para limpiar carrito
-    document.getElementById('limpiarCarritoBtn').addEventListener('click', limpiarCarrito);
+    const limpiarBtn = document.getElementById('limpiarCarritoBtn');
+    if (limpiarBtn) {
+        limpiarBtn.addEventListener('click', limpiarCarrito);
+    }
+    
+    // 🔒 Proteger todos los botones del carrito
+    protegerBotonesCarrito();
     
     // ✨ Evento para el modal de confirmación
     document.getElementById('confirmacionAceptar').addEventListener('click', () => {
@@ -73,6 +99,9 @@ function sincronizarCarritoDesdeServidor() {
             console.log('  - Subtotal:', subtotal);
             console.log('  - IVA:', iva);
             console.log('  - Total:', total);
+            
+            // 🔒 Proteger botones después de sincronizar
+            setTimeout(() => protegerBotonesCarrito(), 100);
         } else {
             console.warn('⚠️ No se encontraron elementos de total en el DOM');
         }
@@ -197,6 +226,11 @@ function actualizarResumen() {
 
 async function cambiarCantidad(productId, nuevaCantidad) {
     try {
+        // 🔒 VERIFICAR AUTENTICACIÓN ANTES DE CAMBIAR CANTIDAD
+        if (!verificarAutenticacion()) {
+            return; // La función ya maneja el error y redirección
+        }
+
         nuevaCantidad = parseInt(nuevaCantidad);
         
         if (nuevaCantidad < 0) {
@@ -249,6 +283,11 @@ window.cambiarCantidad = cambiarCantidad;
 
 async function eliminarItem(productId) {
     try {
+        // 🔒 VERIFICAR AUTENTICACIÓN ANTES DE ELIMINAR
+        if (!verificarAutenticacion()) {
+            return; // La función ya maneja el error y redirección
+        }
+
         // ✨ Usar modal de confirmación elegante
         const confirmacion = await mostrarConfirmacion(
             'Eliminar Producto',
@@ -480,6 +519,11 @@ async function procesarPagoMercadoPago() {
 
 async function limpiarCarrito() {
     try {
+        // 🔒 VERIFICAR AUTENTICACIÓN ANTES DE LIMPIAR CARRITO
+        if (!verificarAutenticacion()) {
+            return; // La función ya maneja el error y redirección
+        }
+
         // Verificar si hay productos en el DOM en lugar de en carritoData
         const cartItems = document.querySelectorAll('.cart-item');
         if (cartItems.length === 0) {
@@ -523,6 +567,11 @@ async function limpiarCarrito() {
 
 async function procesarPago() {
     try {
+        // 🔒 VERIFICAR AUTENTICACIÓN ANTES DE PROCEDER
+        if (!verificarAutenticacion()) {
+            return; // La función ya maneja el error y redirección
+        }
+
         // Verificar si hay productos en el DOM
         const cartItems = document.querySelectorAll('.cart-item');
         if (cartItems.length === 0) {
@@ -764,4 +813,266 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Error al cargar contador del carrito:', error);
     }
+});
+
+// 🔒 Función para verificar autenticación antes de proceder al pago
+function verificarAutenticacion() {
+    try {
+        // Verificar si hay token en localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.log('❌ No hay token de autenticación');
+            mostrarErrorAutenticacion();
+            return false;
+        }
+
+        // Verificar si el token no está expirado
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const now = Date.now() / 1000;
+            
+            if (payload.exp && payload.exp < now) {
+                console.log('❌ Token expirado');
+                mostrarErrorAutenticacion();
+                return false;
+            }
+
+            // Verificar el rol del usuario
+            if (payload.rol === 'admin') {
+                mostrarToast('Los administradores no pueden realizar compras', 'error');
+                return false;
+            }
+
+            console.log('✅ Usuario autenticado:', payload.email);
+            return true;
+
+        } catch (error) {
+            console.error('❌ Error al decodificar token:', error);
+            mostrarErrorAutenticacion();
+            return false;
+        }
+
+    } catch (error) {
+        console.error('❌ Error en verificación de autenticación:', error);
+        mostrarErrorAutenticacion();
+        return false;
+    }
+}
+
+// 🔒 Función para mostrar error de autenticación y redirigir al login
+function mostrarErrorAutenticacion() {
+    console.log('🔒 Mostrando error de autenticación');
+    
+    // Guardar la URL actual para redirigir después del login
+    try {
+        sessionStorage.setItem('postLoginRedirect', window.location.pathname);
+    } catch (e) {
+        console.warn('No se pudo guardar redirect:', e);
+    }
+    
+    // Intentar usar las modales bonitas si están disponibles
+    if (typeof showModal !== 'undefined' && showModal.error) {
+        showModal.error(
+            'Autenticación Requerida',
+            'Debes iniciar sesión para proceder al pago. Te redirigiremos al login.',
+            () => {
+                // Callback cuando se cierre la modal
+                mostrarModalLogin();
+            }
+        );
+    } else {
+        // Fallback a toast si no hay modales bonitas
+        mostrarToast('Debes iniciar sesión para proceder al pago', 'error');
+        
+        // Esperar un momento antes de mostrar el modal de login
+        setTimeout(() => {
+            mostrarModalLogin();
+        }, 1500);
+    }
+}
+
+// 🔒 Función auxiliar para mostrar modal de login
+function mostrarModalLogin() {
+    // Intentar abrir el modal de login si existe
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        const modal = new bootstrap.Modal(loginModal);
+        modal.show();
+    } else {
+        // Si no hay modal, redirigir a la página principal
+        console.log('🔄 No hay modal de login, redirigiendo a página principal');
+        window.location.href = '/?needLogin=true';
+    }
+}
+
+// 🔒 Función para verificar autenticación al cargar la página
+function verificarAccesoCarrito() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.log('❌ Sin token, redirigiendo...');
+        window.location.href = '/restriccion?reason=unauthorized';
+        return false;
+    }
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Date.now() / 1000;
+        
+        if (payload.exp && payload.exp < now) {
+            console.log('❌ Token expirado, redirigiendo...');
+            localStorage.removeItem('token');
+            window.location.href = '/restriccion?reason=expired';
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('❌ Token inválido, redirigiendo...');
+        localStorage.removeItem('token');
+        window.location.href = '/restriccion?reason=invalid';
+        return false;
+    }
+}
+
+// 🔒 Función para verificar el estado del botón de pago
+function verificarEstadoBotonPago() {
+    const pagarBtn = document.getElementById('pagarBtn');
+    if (!pagarBtn) return;
+
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        // Sin token: cambiar texto y estilo del botón
+        pagarBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Inicia sesión para pagar';
+        pagarBtn.classList.remove('btn-pagar');
+        pagarBtn.classList.add('btn-warning');
+        pagarBtn.title = 'Debes iniciar sesión para proceder al pago';
+        return;
+    }
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Date.now() / 1000;
+        
+        if (payload.exp && payload.exp < now) {
+            // Token expirado
+            pagarBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sesión expirada - Inicia sesión';
+            pagarBtn.classList.remove('btn-pagar');
+            pagarBtn.classList.add('btn-warning');
+            pagarBtn.title = 'Tu sesión ha expirado, inicia sesión nuevamente';
+            return;
+        }
+
+        if (payload.rol === 'admin') {
+            // Admin no puede comprar
+            pagarBtn.innerHTML = '<i class="fas fa-ban me-2"></i>Admins no pueden comprar';
+            pagarBtn.classList.remove('btn-pagar');
+            pagarBtn.classList.add('btn-secondary');
+            pagarBtn.disabled = true;
+            pagarBtn.title = 'Los administradores no pueden realizar compras';
+            return;
+        }
+
+        // Usuario válido: restaurar botón normal
+        pagarBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proceder al pago';
+        pagarBtn.classList.remove('btn-warning', 'btn-secondary');
+        pagarBtn.classList.add('btn-pagar');
+        pagarBtn.disabled = false;
+        pagarBtn.title = 'Proceder al pago con Mercado Pago';
+
+    } catch (error) {
+        // Token inválido
+        pagarBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Token inválido - Inicia sesión';
+        pagarBtn.classList.remove('btn-pagar');
+        pagarBtn.classList.add('btn-warning');
+        pagarBtn.title = 'Token de sesión inválido, inicia sesión nuevamente';
+    }
+}
+
+// 🔒 Función para proteger todos los botones del carrito
+function protegerBotonesCarrito() {
+    const token = localStorage.getItem('token');
+    const isAuthenticated = token && verificarTokenValido(token);
+    
+    console.log('🔒 Protegiendo botones del carrito. Autenticado:', isAuthenticated);
+    
+    // Proteger botones de cantidad
+    const quantityButtons = document.querySelectorAll('.quantity-btn');
+    quantityButtons.forEach(btn => {
+        if (!isAuthenticated) {
+            btn.disabled = true;
+            btn.title = 'Inicia sesión para modificar la cantidad';
+            btn.classList.add('auth-required-tooltip');
+            btn.style.opacity = '0.5';
+        } else {
+            btn.disabled = false;
+            btn.title = '';
+            btn.classList.remove('auth-required-tooltip');
+            btn.style.opacity = '1';
+        }
+    });
+    
+    // Proteger inputs de cantidad
+    const quantityInputs = document.querySelectorAll('input[onchange*="cambiarCantidad"]');
+    quantityInputs.forEach(input => {
+        if (!isAuthenticated) {
+            input.disabled = true;
+            input.title = 'Inicia sesión para modificar la cantidad';
+            input.classList.add('auth-required-tooltip');
+            input.style.opacity = '0.5';
+        } else {
+            input.disabled = false;
+            input.title = '';
+            input.classList.remove('auth-required-tooltip');
+            input.style.opacity = '1';
+        }
+    });
+    
+    // Proteger botones de eliminar
+    const deleteButtons = document.querySelectorAll('[onclick*="eliminarItem"]');
+    deleteButtons.forEach(btn => {
+        if (!isAuthenticated) {
+            btn.disabled = true;
+            btn.title = 'Inicia sesión para eliminar productos';
+            btn.classList.add('auth-required-tooltip');
+            btn.style.opacity = '0.5';
+        } else {
+            btn.disabled = false;
+            btn.title = 'Eliminar producto del carrito';
+            btn.classList.remove('auth-required-tooltip');
+            btn.style.opacity = '1';
+        }
+    });
+    
+    // Proteger botón de limpiar carrito
+    const limpiarBtn = document.getElementById('limpiarCarritoBtn');
+    if (limpiarBtn) {
+        if (!isAuthenticated) {
+            limpiarBtn.disabled = true;
+            limpiarBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Inicia sesión para limpiar';
+            limpiarBtn.title = 'Inicia sesión para limpiar el carrito';
+            limpiarBtn.classList.add('btn-protected-disabled');
+        } else {
+            limpiarBtn.disabled = false;
+            limpiarBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Limpiar carrito';
+            limpiarBtn.title = 'Limpiar todo el carrito';
+            limpiarBtn.classList.remove('btn-protected-disabled');
+        }
+    }
+}
+
+// 🔒 Función auxiliar para verificar si un token es válido
+function verificarTokenValido(token) {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Date.now() / 1000;
+        return payload.exp && payload.exp > now;
+    } catch (error) {
+        return false;
+    }
+}
+
+// Verificar acceso al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    verificarAccesoCarrito();
 });
