@@ -40,6 +40,9 @@ class VentasManager {
       const token = localStorage.getItem('token');
       if (!token) {
         console.error('No hay token de autenticación');
+        if (window.showModal) {
+          window.showModal.warning('No hay token de autenticación', 'Por favor, inicia sesión nuevamente.');
+        }
         return;
       }
 
@@ -55,9 +58,15 @@ class VentasManager {
         this.updateEstadisticas(data.estadisticas);
       } else {
         console.error('Error cargando estadísticas:', response.statusText);
+        if (window.showModal) {
+          window.showModal.warning('Error cargando estadísticas', 'No se pudieron cargar las estadísticas de ventas.');
+        }
       }
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
+      if (window.showModal) {
+        window.showModal.error('Error de conexión', 'No se pudieron cargar las estadísticas. Verifica tu conexión a internet.');
+      }
     }
   }
 
@@ -70,7 +79,11 @@ class VentasManager {
 
   async loadVentas(page = 1) {
     try {
-      this.showLoading();
+      // Mostrar loading con modal personalizado si está disponible
+      const loadingId = window.showModal ? 
+        window.showModal.loading('Cargando ventas...') : null;
+      
+      if (!loadingId) this.showLoading(); // Fallback
       
       const token = localStorage.getItem('token');
       if (!token) {
@@ -104,7 +117,12 @@ class VentasManager {
       console.error('Error cargando ventas:', error);
       this.showError('Error de conexión al cargar ventas');
     } finally {
-      this.hideLoading();
+      // Ocultar loading
+      if (window.showModal) {
+        window.showModal.hideLoading();
+      } else {
+        this.hideLoading();
+      }
     }
   }
 
@@ -261,6 +279,10 @@ class VentasManager {
 
   async verDetalles(ventaId) {
     try {
+      // Mostrar loading
+      const loadingId = window.showModal ? 
+        window.showModal.loading('Cargando detalles de la venta...') : null;
+      
       const token = localStorage.getItem('token');
       const response = await fetch(`/ventas/api/ventas?page=1&limit=1000`, {
         headers: {
@@ -268,6 +290,9 @@ class VentasManager {
           'Content-Type': 'application/json'
         }
       });
+
+      // Ocultar loading
+      if (loadingId) window.showModal.hideLoading(loadingId);
 
       if (response.ok) {
         const data = await response.json();
@@ -278,6 +303,8 @@ class VentasManager {
         } else {
           this.showError('Venta no encontrada');
         }
+      } else {
+        this.showError('Error cargando detalles: ' + response.statusText);
       }
     } catch (error) {
       console.error('Error cargando detalles:', error);
@@ -348,10 +375,38 @@ class VentasManager {
   }
 
   cambiarEstado(ventaId, estadoActual) {
-    document.getElementById('ventaId').value = ventaId;
-    document.getElementById('nuevoEstado').value = estadoActual;
-    
-    new bootstrap.Modal(document.getElementById('cambiarEstadoModal')).show();
+    // Si existe el modal tradicional, usarlo
+    if (document.getElementById('cambiarEstadoModal')) {
+      document.getElementById('ventaId').value = ventaId;
+      document.getElementById('nuevoEstado').value = estadoActual;
+      new bootstrap.Modal(document.getElementById('cambiarEstadoModal')).show();
+    } else {
+      // Usar modal de confirmación personalizado
+      const estados = [
+        { value: 'sin entregar', text: 'Sin entregar' },
+        { value: 'en camino', text: 'En camino' },
+        { value: 'entregado', text: 'Entregado' }
+      ];
+      
+      let selectHTML = '<select id="tempNuevoEstado" class="form-select mt-2">';
+      estados.forEach(estado => {
+        const selected = estado.value === estadoActual ? 'selected' : '';
+        selectHTML += `<option value="${estado.value}" ${selected}>${estado.text}</option>`;
+      });
+      selectHTML += '</select>';
+      
+      if (window.showModal) {
+        window.showModal.confirm(
+          '¿Deseas cambiar el estado de esta venta?',
+          () => {
+            const nuevoEstado = document.getElementById('tempNuevoEstado').value;
+            this.procesarCambioEstado(ventaId, nuevoEstado);
+          },
+          null,
+          `Selecciona el nuevo estado: ${selectHTML}`
+        );
+      }
+    }
   }
 
   async confirmarCambioEstado() {
@@ -372,6 +427,44 @@ class VentasManager {
       if (response.ok) {
         this.showSuccess('Estado actualizado correctamente');
         bootstrap.Modal.getInstance(document.getElementById('cambiarEstadoModal')).hide();
+        this.loadVentas(this.currentPage);
+        this.loadEstadisticas();
+        
+        // Actualizar contador en header si existe
+        if (window.headerUnificado) {
+          window.headerUnificado.loadSalesCount();
+        }
+      } else {
+        const error = await response.json();
+        this.showError(error.message || 'Error actualizando estado');
+      }
+    } catch (error) {
+      console.error('Error actualizando estado:', error);
+      this.showError('Error de conexión al actualizar estado');
+    }
+  }
+
+  async procesarCambioEstado(ventaId, nuevoEstado) {
+    try {
+      // Mostrar loading
+      const loadingId = window.showModal ? 
+        window.showModal.loading('Actualizando estado...') : null;
+      
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/ventas/api/ventas/${ventaId}/estado`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estadoEntrega: nuevoEstado })
+      });
+
+      // Ocultar loading
+      if (loadingId) window.showModal.hideLoading(loadingId);
+
+      if (response.ok) {
+        this.showSuccess('Estado actualizado correctamente');
         this.loadVentas(this.currentPage);
         this.loadEstadisticas();
         
@@ -431,16 +524,35 @@ class VentasManager {
   }
 
   showSuccess(message) {
-    this.showNotification('success', 'Éxito', message);
+    if (window.showModal) {
+      window.showModal.success(message);
+    } else {
+      this.showNotification('success', 'Éxito', message);
+    }
   }
 
   showError(message) {
-    this.showNotification('error', 'Error', message);
+    if (window.showModal) {
+      window.showModal.error(message);
+    } else {
+      this.showNotification('error', 'Error', message);
+    }
   }
 
   showNotification(type, title, message) {
-    // Usar el sistema de notificaciones del header si está disponible
-    if (window.headerUnificado) {
+    // Usar el sistema de modales personalizados
+    if (window.showModal) {
+      if (type === 'success') {
+        window.showModal.success(message, title);
+      } else if (type === 'error') {
+        window.showModal.error(message, title);
+      } else if (type === 'warning') {
+        window.showModal.warning(message, title);
+      } else {
+        window.showModal.info(message, title);
+      }
+    } else if (window.headerUnificado) {
+      // Fallback al sistema del header
       if (type === 'success') {
         window.headerUnificado.showSuccessMessage(title, message);
       } else {
