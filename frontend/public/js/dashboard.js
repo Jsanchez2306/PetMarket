@@ -207,10 +207,10 @@ class DashboardManager {
                         <div class="action-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                             <i class="fas fa-user-plus fa-2x text-primary"></i>
                         </div>
-                        <h5 class="card-title">Crear Cliente</h5>
-                        <p class="card-text text-muted small">Registrar nuevo cliente en el sistema</p>
-                        <a href="/clientes/crear" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus me-1"></i>Nuevo Cliente
+                        <h5 class="card-title">Gestión Clientes</h5>
+                        <p class="card-text text-muted small">Administrar clientes del sistema</p>
+                        <a href="/clientes" class="btn btn-primary btn-sm">
+                            <i class="fas fa-users me-1"></i>Gestionar Clientes
                         </a>
                     </div>
                 </div>
@@ -222,10 +222,10 @@ class DashboardManager {
                         <div class="action-icon bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                             <i class="fas fa-box fa-2x text-warning"></i>
                         </div>
-                        <h5 class="card-title">Agregar Producto</h5>
-                        <p class="card-text text-muted small">Añadir productos al inventario</p>
-                        <a href="/productos/crear" class="btn btn-warning btn-sm">
-                            <i class="fas fa-plus me-1"></i>Nuevo Producto
+                        <h5 class="card-title">Gestión Productos</h5>
+                        <p class="card-text text-muted small">Administrar inventario de productos</p>
+                        <a href="/productos" class="btn btn-warning btn-sm">
+                            <i class="fas fa-boxes me-1"></i>Gestionar Productos
                         </a>
                     </div>
                 </div>
