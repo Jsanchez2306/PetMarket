@@ -287,11 +287,20 @@ exports.eliminarFactura = async (req, res) => {
  */
 const configureMailTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail', // O el servicio que uses
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER || 'tu-email@gmail.com',
       pass: process.env.EMAIL_PASS || 'tu-password-app'
-    }
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 60000,
+    greetingTimeout: 30000,
+    socketTimeout: 75000
   });
 };
 
