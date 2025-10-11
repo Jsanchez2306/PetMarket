@@ -1,37 +1,35 @@
 const nodemailer = require('nodemailer');
 
-// Configurar transporter reutilizable con múltiples opciones
+// Configurar transporter reutilizable
 const configurarTransporter = () => {
-  // En producción, deshabilitar email si hay problemas de conexión
-  if (process.env.NODE_ENV === 'production' && process.env.DISABLE_EMAIL === 'true') {
-    console.log('⚠️ Email deshabilitado en producción por configuración');
+  // Validar que existan las variables de entorno requeridas
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('❌ ERROR: EMAIL_USER o EMAIL_PASS no están configurados');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Configuración de email requerida en producción');
+    }
     return null;
   }
 
-  // Gmail con configuración robusta para desarrollo Y producción
-  console.log('📧 Configurando transporter con Gmail (configuración robusta)');
-  return nodemailer.createTransporter({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // usar STARTTLS
+  console.log('📧 Configurando transporter con Gmail');
+  
+  return nodemailer.createTransport({
+    service: 'gmail', // Usar 'service' en lugar de configuración manual
     auth: {
-      user: process.env.EMAIL_USER || 'andresbmx11@gmail.com',
-      pass: process.env.EMAIL_PASS || 'vziu xkmz sice gikb'
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
     },
-    tls: {
-      rejectUnauthorized: false,
-      ciphers: 'SSLv3'
-    },
-    // Configuración robusta para producción
-    connectionTimeout: 60000,  // 60 segundos
-    greetingTimeout: 30000,    // 30 segundos  
-    socketTimeout: 60000,      // 60 segundos
-    pool: true,                // usar pool de conexiones
-    maxConnections: 5,         // max 5 conexiones simultáneas
-    maxMessages: 100,          // max 100 mensajes per connection
-    rateLimit: 14,             // max 14 mensajes por segundo
-    debug: process.env.NODE_ENV === 'production', // debug en producción
-    logger: process.env.NODE_ENV === 'production'  // logs en producción
+    // Configuración optimizada para Gmail
+    connectionTimeout: 30000,    // 30 segundos
+    greetingTimeout: 15000,      // 15 segundos  
+    socketTimeout: 30000,        // 30 segundos
+    pool: true,                  // pool de conexiones
+    maxConnections: 3,           // max 3 conexiones simultáneas
+    maxMessages: 10,             // max 10 mensajes por conexión
+    rateDelta: 1000,             // ventana de tiempo en ms
+    rateLimit: 2,                // 2 mensajes por segundo (seguro para Gmail)
+    debug: process.env.NODE_ENV !== 'production',
+    logger: process.env.NODE_ENV !== 'production'
   });
 };
 
@@ -65,25 +63,34 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
     
     const transporter = configurarTransporter();
     
-    // Si el transporter está deshabilitado, simular envío exitoso
+    // Si el transporter no se pudo configurar
     if (!transporter) {
-      console.log('⚠️ Email deshabilitado - simulando envío exitoso');
+      console.error('⚠️ No se pudo configurar el servicio de email');
       return {
-        success: true,
-        mensaje: `Factura registrada para ${clienteEmail} (email deshabilitado en producción)`
+        success: false,
+        mensaje: 'Servicio de email no disponible'
       };
+    }
+    
+    // Verificar conexión antes de enviar
+    try {
+      await transporter.verify();
+      console.log('✅ Conexión SMTP verificada');
+    } catch (verifyError) {
+      console.error('❌ Error verificando conexión SMTP:', verifyError.message);
+      throw new Error('No se pudo conectar al servidor de email');
     }
     
     // Generar HTML de la factura
     const htmlFactura = generarHTMLFactura(clienteNombre, datosFactura);
     
-    const emailFrom = process.env.EMAIL_USER || 'andresbmx11@gmail.com';
-    
     const mailOptions = {
-      from: emailFrom,
+      from: `"PetMarket 🐾" <${process.env.EMAIL_USER}>`,
       to: clienteEmail,
       subject: `PetMarket - Factura de Compra #${datosFactura.paymentId || 'N/A'}`,
-      html: htmlFactura
+      html: htmlFactura,
+      // Agregar versión de texto plano como fallback
+      text: `Hola ${clienteNombre}, tu compra en PetMarket ha sido procesada exitosamente.`
     };
 
     // Usar función de retry
@@ -96,23 +103,35 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
     };
     
   } catch (error) {
-    console.error('❌ Error enviando factura por correo después de reintentos:', error);
+    console.error('❌ Error enviando factura por correo:', error);
     
-    // En producción, no fallar si el email falla - solo loggear
+    // Log detallado del error
+    if (error.code) {
+      console.error('Código de error:', error.code);
+    }
+    if (error.response) {
+      console.error('Respuesta del servidor:', error.response);
+    }
+    
+    // En producción, no fallar completamente
     if (process.env.NODE_ENV === 'production') {
-      console.error('⚠️ Email falló en producción después de reintentos, continuando sin email');
+      console.error('⚠️ Email falló en producción, la compra se procesó pero no se envió email');
       return {
         success: false,
-        mensaje: `Factura registrada para ${clienteEmail} (envío de email falló después de reintentos)`
+        mensaje: `Factura registrada (email no enviado: ${error.message})`
       };
     }
     
-    // En desarrollo, lanzar error
-    if (error.code === 'ETIMEDOUT' || error.code === 'EAUTH' || error.code === 'ECONNREFUSED') {
-      throw new Error('Error en el servicio de correo. Por favor, intenta más tarde.');
+    // Mensajes de error más específicos
+    if (error.code === 'ETIMEDOUT') {
+      throw new Error('Tiempo de espera agotado conectando al servidor de email');
+    } else if (error.code === 'EAUTH') {
+      throw new Error('Error de autenticación con el servidor de email');
+    } else if (error.code === 'ECONNREFUSED') {
+      throw new Error('Conexión rechazada por el servidor de email');
     }
     
-    throw new Error('Error al enviar la factura por correo');
+    throw new Error(`Error al enviar email: ${error.message}`);
   }
 };
 
