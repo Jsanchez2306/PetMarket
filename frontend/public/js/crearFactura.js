@@ -5,8 +5,11 @@ let todosLosProductos = [];
 
 // Cargar productos al iniciar
 document.addEventListener('DOMContentLoaded', function () {
-    cargarProductos();
-    configurarTiposCliente();
+    // Esperar un poco para asegurar que todos los elementos están disponibles
+    setTimeout(() => {
+        configurarTiposCliente();
+        cargarProductos();
+    }, 100);
 });
 
 // Configurar los radio buttons para tipos de cliente
@@ -14,6 +17,12 @@ function configurarTiposCliente() {
     const radios = document.querySelectorAll('input[name="tipoCliente"]');
     const seccionRegistrado = document.getElementById('seccionClienteRegistrado');
     const seccionManual = document.getElementById('seccionClienteManual');
+
+    // Verificar que los elementos existen
+    if (!seccionRegistrado || !seccionManual) {
+        console.error('No se encontraron las secciones de cliente');
+        return;
+    }
 
     radios.forEach(radio => {
         radio.addEventListener('change', function() {
@@ -25,6 +34,13 @@ function configurarTiposCliente() {
             } else if (this.value === 'manual') {
                 seccionRegistrado.style.display = 'none';
                 seccionManual.style.display = 'block';
+                // Hacer focus en el campo de email manual
+                setTimeout(() => {
+                    const emailManualInput = document.getElementById('emailClienteManual');
+                    if (emailManualInput) {
+                        emailManualInput.focus();
+                    }
+                }, 100);
             } else { // no-especificado
                 seccionRegistrado.style.display = 'none';
                 seccionManual.style.display = 'none';
@@ -41,20 +57,28 @@ function configurarTiposCliente() {
     });
 
     // Event listener para email manual
-    document.getElementById('emailClienteManual').addEventListener('input', function() {
-        const email = this.value.trim();
-        if (email && email.includes('@')) {
-            clienteSeleccionado = {
-                tipo: 'manual',
-                email: email,
-                nombre: 'Cliente Manual'
-            };
-            mostrarClienteManual(email);
-        } else {
-            limpiarClienteSeleccionado();
-        }
-        validarFormulario();
-    });
+    const emailManualInput = document.getElementById('emailClienteManual');
+    if (emailManualInput) {
+        emailManualInput.addEventListener('input', function() {
+            const email = this.value.trim();
+            if (email && email.includes('@')) {
+                clienteSeleccionado = {
+                    tipo: 'manual',
+                    email: email,
+                    nombre: 'Cliente Manual'
+                };
+                mostrarClienteManual(email);
+            } else {
+                // Solo limpiar si estamos en modo manual
+                const tipoActual = document.querySelector('input[name="tipoCliente"]:checked')?.value;
+                if (tipoActual === 'manual') {
+                    clienteSeleccionado = null;
+                    document.getElementById('clienteSeleccionado').style.display = 'none';
+                }
+            }
+            validarFormulario();
+        });
+    }
 }
 
 // Buscar cliente por email
@@ -139,7 +163,11 @@ function limpiarClienteSeleccionado() {
     document.getElementById('clienteId').value = '';
     document.getElementById('clienteEmail').value = '';
     document.getElementById('clienteNombre').value = '';
-    document.getElementById('emailClienteManual').value = '';
+    // Solo limpiar el email manual si no está siendo usado actualmente
+    const tipoActual = document.querySelector('input[name="tipoCliente"]:checked')?.value;
+    if (tipoActual !== 'manual') {
+        document.getElementById('emailClienteManual').value = '';
+    }
     validarFormulario();
 }
 

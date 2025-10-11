@@ -150,10 +150,10 @@ class VentasManager {
         </td>
         <td>
           <div>
-            <strong>${venta.cliente?.nombre || 'Sin cliente'}</strong>
+            <strong>${venta.cliente?.nombre || venta.clienteNombre || 'Sin cliente'}</strong>
             <br>
-            <small class="text-muted">${venta.cliente?.email || ''}</small>
-            ${venta.cliente?.telefono ? `<br><small class="text-muted">${venta.cliente.telefono}</small>` : ''}
+            <small class="text-muted">${venta.cliente?.email || venta.clienteEmail || ''}</small>
+            ${venta.cliente?.telefono || venta.clienteTelefono ? `<br><small class="text-muted">${venta.cliente?.telefono || venta.clienteTelefono}</small>` : ''}
           </div>
         </td>
         <td>
@@ -331,10 +331,10 @@ class VentasManager {
         </div>
         <div class="col-md-6">
           <h6>Información del Cliente</h6>
-          <p><strong>Nombre:</strong> ${venta.cliente?.nombre || 'N/A'}</p>
-          <p><strong>Email:</strong> ${venta.cliente?.email || 'N/A'}</p>
-          <p><strong>Teléfono:</strong> ${venta.cliente?.telefono || 'N/A'}</p>
-          <p><strong>Dirección:</strong> ${venta.cliente?.direccion || 'N/A'}</p>
+          <p><strong>Nombre:</strong> ${venta.cliente?.nombre || venta.clienteNombre || 'N/A'}</p>
+          <p><strong>Email:</strong> ${venta.cliente?.email || venta.clienteEmail || 'N/A'}</p>
+          <p><strong>Teléfono:</strong> ${venta.cliente?.telefono || venta.clienteTelefono || 'N/A'}</p>
+          <p><strong>Dirección:</strong> ${venta.cliente?.direccion || venta.clienteDireccion || 'N/A'}</p>
         </div>
       </div>
       <hr>

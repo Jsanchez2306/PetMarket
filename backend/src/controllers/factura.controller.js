@@ -298,7 +298,7 @@ const configureMailTransporter = () => {
 /**
  * Generar HTML de la factura para correo
  */
-const generarHTMLFactura = (factura, cliente, empleado) => {
+const generarHTMLFactura = (factura, clienteInfo, empleado) => {
   const fechaFormateada = new Date(factura.fecha).toLocaleDateString('es-CO');
   
   let productosHTML = '';
@@ -354,9 +354,9 @@ const generarHTMLFactura = (factura, cliente, empleado) => {
           
           <div class="info-box">
             <h4>👤 Datos del Cliente</h4>
-            <p><strong>Nombre:</strong> ${cliente.nombre}</p>
-            <p><strong>Email:</strong> ${cliente.email}</p>
-            <p><strong>Teléfono:</strong> ${cliente.telefono || 'No especificado'}</p>
+            <p><strong>Nombre:</strong> ${clienteInfo.nombre}</p>
+            <p><strong>Email:</strong> ${clienteInfo.email}</p>
+            <p><strong>Teléfono:</strong> ${clienteInfo.telefono}</p>
           </div>
           
           <div class="info-box">
@@ -428,24 +428,41 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
       return res.status(404).json({ mensaje: 'Factura no encontrada' });
     }
 
-    // Obtener datos del cliente y empleado
-    const cliente = await Cliente.findById(factura.cliente);
+    // Obtener datos del empleado
     const empleado = await Empleado.findById(factura.empleado);
     
-    if (!cliente) {
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    // Manejar cliente registrado vs manual
+    let clienteInfo = {};
+    if (factura.cliente) {
+      // Cliente registrado
+      const cliente = await Cliente.findById(factura.cliente);
+      if (!cliente) {
+        return res.status(404).json({ mensaje: 'Cliente registrado no encontrado' });
+      }
+      clienteInfo = {
+        nombre: cliente.nombre,
+        email: cliente.email,
+        telefono: cliente.telefono || 'No especificado'
+      };
+    } else {
+      // Cliente manual - usar datos guardados en la factura
+      clienteInfo = {
+        nombre: factura.nombreCliente,
+        email: factura.emailCliente,
+        telefono: 'No especificado'
+      };
     }
 
     // Configurar transporter
     const transporter = configureMailTransporter();
     
     // Generar HTML de la factura
-    const htmlFactura = generarHTMLFactura(factura, cliente, empleado);
+    const htmlFactura = generarHTMLFactura(factura, clienteInfo, empleado);
     
     // Configurar email
     const mailOptions = {
       from: process.env.EMAIL_USER || 'noreply@petmarket.com',
-      to: cliente.email,
+      to: clienteInfo.email,
       subject: `Factura PetMarket #${factura._id.toString().slice(-8).toUpperCase()}`,
       html: htmlFactura
     };
@@ -453,10 +470,10 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
     // Enviar email
     await transporter.sendMail(mailOptions);
     
-    console.log(`✅ Factura enviada por correo a ${cliente.email}`);
+    console.log(`✅ Factura enviada por correo a ${clienteInfo.email}`);
     res.status(200).json({ 
       mensaje: 'Factura enviada exitosamente por correo electrónico',
-      email: cliente.email
+      email: clienteInfo.email
     });
 
   } catch (error) {
@@ -481,16 +498,33 @@ exports.generarFacturaPDF = async (req, res) => {
       return res.status(404).json({ mensaje: 'Factura no encontrada' });
     }
 
-    // Obtener datos del cliente y empleado
-    const cliente = await Cliente.findById(factura.cliente);
+    // Obtener datos del empleado
     const empleado = await Empleado.findById(factura.empleado);
     
-    if (!cliente) {
-      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    // Manejar cliente registrado vs manual
+    let clienteInfo = {};
+    if (factura.cliente) {
+      // Cliente registrado
+      const cliente = await Cliente.findById(factura.cliente);
+      if (!cliente) {
+        return res.status(404).json({ mensaje: 'Cliente registrado no encontrado' });
+      }
+      clienteInfo = {
+        nombre: cliente.nombre,
+        email: cliente.email,
+        telefono: cliente.telefono || 'No especificado'
+      };
+    } else {
+      // Cliente manual - usar datos guardados en la factura
+      clienteInfo = {
+        nombre: factura.nombreCliente,
+        email: factura.emailCliente,
+        telefono: 'No especificado'
+      };
     }
 
     // Generar HTML de la factura
-    const htmlFactura = generarHTMLFactura(factura, cliente, empleado);
+    const htmlFactura = generarHTMLFactura(factura, clienteInfo, empleado);
     
     // Configurar respuesta para descarga
     res.setHeader('Content-Type', 'text/html');
