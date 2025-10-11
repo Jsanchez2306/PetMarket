@@ -1,137 +1,106 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Configurar transporter reutilizable
-const configurarTransporter = () => {
-  // Validar que existan las variables de entorno requeridas
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error('❌ ERROR: EMAIL_USER o EMAIL_PASS no están configurados');
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Configuración de email requerida en producción');
-    }
-    return null;
+let resendClient = null;
+
+// Inicializar cliente de Resend
+const getResendClient = () => {
+  if (!resendClient && process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
   }
-
-  console.log('📧 Configurando transporter con Gmail');
-  
-  return nodemailer.createTransport({
-    service: 'gmail', // Usar 'service' en lugar de configuración manual
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    },
-    // Configuración optimizada para Gmail
-    connectionTimeout: 30000,    // 30 segundos
-    greetingTimeout: 15000,      // 15 segundos  
-    socketTimeout: 30000,        // 30 segundos
-    pool: true,                  // pool de conexiones
-    maxConnections: 3,           // max 3 conexiones simultáneas
-    maxMessages: 10,             // max 10 mensajes por conexión
-    rateDelta: 1000,             // ventana de tiempo en ms
-    rateLimit: 2,                // 2 mensajes por segundo (seguro para Gmail)
-    debug: process.env.NODE_ENV !== 'production',
-    logger: process.env.NODE_ENV !== 'production'
-  });
+  return resendClient;
 };
-
-// Función helper para enviar email con retry
-async function enviarEmailConRetry(transporter, mailOptions, maxReintentos = 3) {
-  for (let intento = 1; intento <= maxReintentos; intento++) {
-    try {
-      console.log(`📧 Intento ${intento}/${maxReintentos} enviando email a: ${mailOptions.to}`);
-      const resultado = await transporter.sendMail(mailOptions);
-      console.log(`✅ Email enviado exitosamente en intento ${intento}`);
-      return resultado;
-    } catch (error) {
-      console.error(`❌ Error en intento ${intento}:`, error.message);
-      
-      if (intento === maxReintentos) {
-        throw error; // Lanzar error en el último intento
-      }
-      
-      // Esperar antes del siguiente intento (backoff exponencial)
-      const tiempoEspera = Math.pow(2, intento) * 1000; // 2s, 4s, 8s...
-      console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
-      await new Promise(resolve => setTimeout(resolve, tiempoEspera));
-    }
-  }
-}
 
 // Función para enviar factura por correo
 exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactura) => {
   try {
     console.log('📧 Enviando factura por correo a:', clienteEmail);
     
-    const transporter = configurarTransporter();
-    
-    // Si el transporter no se pudo configurar
-    if (!transporter) {
-      console.error('⚠️ No se pudo configurar el servicio de email');
+    // Validar API Key
+    if (!process.env.RESEND_API_KEY) {
+      console.error('❌ ERROR: RESEND_API_KEY no está configurado');
+      if (process.env.NODE_ENV === 'production') {
+        return {
+          success: false,
+          mensaje: 'Servicio de email no configurado'
+        };
+      }
       return {
         success: false,
-        mensaje: 'Servicio de email no disponible'
+        mensaje: 'Servicio de email no disponible en desarrollo'
       };
     }
-    
-    // Verificar conexión antes de enviar
-    try {
-      await transporter.verify();
-      console.log('✅ Conexión SMTP verificada');
-    } catch (verifyError) {
-      console.error('❌ Error verificando conexión SMTP:', verifyError.message);
-      throw new Error('No se pudo conectar al servidor de email');
-    }
+
+    const resend = getResendClient();
     
     // Generar HTML de la factura
     const htmlFactura = generarHTMLFactura(clienteNombre, datosFactura);
     
-    const mailOptions = {
-      from: `"PetMarket 🐾" <${process.env.EMAIL_USER}>`,
+    // Configurar email
+    const emailOptions = {
+      from: process.env.EMAIL_FROM || 'PetMarket <onboarding@resend.dev>',
       to: clienteEmail,
       subject: `PetMarket - Factura de Compra #${datosFactura.paymentId || 'N/A'}`,
       html: htmlFactura,
-      // Agregar versión de texto plano como fallback
       text: `Hola ${clienteNombre}, tu compra en PetMarket ha sido procesada exitosamente.`
     };
 
-    // Usar función de retry
-    await enviarEmailConRetry(transporter, mailOptions, 3);
-    console.log('✅ Factura enviada exitosamente a:', clienteEmail);
+    console.log('📤 Enviando email con Resend...');
     
-    return {
-      success: true,
-      mensaje: `Factura enviada exitosamente a ${clienteEmail}`
-    };
+    // Enviar email con retry
+    let lastError = null;
+    for (let intento = 1; intento <= 3; intento++) {
+      try {
+        console.log(`📧 Intento ${intento}/3`);
+        
+        const { data, error } = await resend.emails.send(emailOptions);
+
+        if (error) {
+          lastError = error;
+          console.error(`❌ Error en intento ${intento}:`, error);
+          
+          if (intento < 3) {
+            const tiempoEspera = Math.pow(2, intento) * 1000;
+            console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
+            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+          }
+          continue;
+        }
+
+        console.log('✅ Email enviado exitosamente:', data);
+        
+        return {
+          success: true,
+          mensaje: `Factura enviada exitosamente a ${clienteEmail}`,
+          emailId: data.id
+        };
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Excepción en intento ${intento}:`, error.message);
+        
+        if (intento < 3) {
+          const tiempoEspera = Math.pow(2, intento) * 1000;
+          await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+        }
+      }
+    }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    throw lastError || new Error('Falló después de 3 intentos');
     
   } catch (error) {
     console.error('❌ Error enviando factura por correo:', error);
-    
-    // Log detallado del error
-    if (error.code) {
-      console.error('Código de error:', error.code);
-    }
-    if (error.response) {
-      console.error('Respuesta del servidor:', error.response);
-    }
     
     // En producción, no fallar completamente
     if (process.env.NODE_ENV === 'production') {
       console.error('⚠️ Email falló en producción, la compra se procesó pero no se envió email');
       return {
         success: false,
-        mensaje: `Factura registrada (email no enviado: ${error.message})`
+        mensaje: `Factura registrada (email no enviado: ${error.message || 'Error desconocido'})`
       };
     }
     
-    // Mensajes de error más específicos
-    if (error.code === 'ETIMEDOUT') {
-      throw new Error('Tiempo de espera agotado conectando al servidor de email');
-    } else if (error.code === 'EAUTH') {
-      throw new Error('Error de autenticación con el servidor de email');
-    } else if (error.code === 'ECONNREFUSED') {
-      throw new Error('Conexión rechazada por el servidor de email');
-    }
-    
-    throw new Error(`Error al enviar email: ${error.message}`);
+    throw new Error(`Error al enviar email: ${error.message || 'Error desconocido'}`);
   }
 };
 
@@ -274,11 +243,11 @@ function generarHTMLFactura(clienteNombre, datosFactura) {
 
       <!-- Botones de acción -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.BASE_URL || 'http://localhost:3191'}/productos/catalogo" 
+        <a href="${process.env.BASE_URL || 'https://petmarket-vij4.onrender.com'}/productos/catalogo" 
            style="background-color: #4CAF50; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; margin: 5px; font-weight: bold;">
           🛒 Seguir Comprando
         </a>
-        <a href="${process.env.BASE_URL || 'http://localhost:3191'}/panel" 
+        <a href="${process.env.BASE_URL || 'https://petmarket-vij4.onrender.com'}/panel" 
            style="background-color: #2196F3; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; margin: 5px; font-weight: bold;">
           👤 Mi Cuenta
         </a>
