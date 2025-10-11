@@ -8,38 +8,55 @@ const configurarTransporter = () => {
     return null;
   }
 
-  // OPCIÓN 1: SendGrid (recomendado para producción)
-  if (process.env.SENDGRID_API_KEY) {
-    console.log('📧 Configurando transporter con SendGrid');
-    return nodemailer.createTransporter({
-      service: 'SendGrid',
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY
-      }
-    });
-  }
-
-  // OPCIÓN 2: Gmail (para desarrollo local)
-  console.log('📧 Configurando transporter con Gmail');
+  // Gmail con configuración robusta para desarrollo Y producción
+  console.log('📧 Configurando transporter con Gmail (configuración robusta)');
   return nodemailer.createTransporter({
-    service: 'gmail',
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false,
+    secure: false, // usar STARTTLS
     auth: {
-      user: process.env.EMAIL_USER || 'tu-email@gmail.com',
-      pass: process.env.EMAIL_PASS || 'tu-app-password'
+      user: process.env.EMAIL_USER || 'andresbmx11@gmail.com',
+      pass: process.env.EMAIL_PASS || 'vziu xkmz sice gikb'
     },
     tls: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      ciphers: 'SSLv3'
     },
-    // Timeouts reducidos para evitar bloqueos
-    connectionTimeout: 10000,  // 10 segundos
-    greetingTimeout: 5000,     // 5 segundos  
-    socketTimeout: 10000       // 10 segundos
+    // Configuración robusta para producción
+    connectionTimeout: 60000,  // 60 segundos
+    greetingTimeout: 30000,    // 30 segundos  
+    socketTimeout: 60000,      // 60 segundos
+    pool: true,                // usar pool de conexiones
+    maxConnections: 5,         // max 5 conexiones simultáneas
+    maxMessages: 100,          // max 100 mensajes per connection
+    rateLimit: 14,             // max 14 mensajes por segundo
+    debug: process.env.NODE_ENV === 'production', // debug en producción
+    logger: process.env.NODE_ENV === 'production'  // logs en producción
   });
 };
+
+// Función helper para enviar email con retry
+async function enviarEmailConRetry(transporter, mailOptions, maxReintentos = 3) {
+  for (let intento = 1; intento <= maxReintentos; intento++) {
+    try {
+      console.log(`📧 Intento ${intento}/${maxReintentos} enviando email a: ${mailOptions.to}`);
+      const resultado = await transporter.sendMail(mailOptions);
+      console.log(`✅ Email enviado exitosamente en intento ${intento}`);
+      return resultado;
+    } catch (error) {
+      console.error(`❌ Error en intento ${intento}:`, error.message);
+      
+      if (intento === maxReintentos) {
+        throw error; // Lanzar error en el último intento
+      }
+      
+      // Esperar antes del siguiente intento (backoff exponencial)
+      const tiempoEspera = Math.pow(2, intento) * 1000; // 2s, 4s, 8s...
+      console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
+      await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+    }
+  }
+}
 
 // Función para enviar factura por correo
 exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactura) => {
@@ -60,9 +77,7 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
     // Generar HTML de la factura
     const htmlFactura = generarHTMLFactura(clienteNombre, datosFactura);
     
-    const emailFrom = process.env.SENDGRID_API_KEY ? 
-      (process.env.EMAIL_FROM || 'noreply@petmarket.com') : 
-      (process.env.EMAIL_USER || 'tu-email@gmail.com');
+    const emailFrom = process.env.EMAIL_USER || 'andresbmx11@gmail.com';
     
     const mailOptions = {
       from: emailFrom,
@@ -71,7 +86,8 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
       html: htmlFactura
     };
 
-    await transporter.sendMail(mailOptions);
+    // Usar función de retry
+    await enviarEmailConRetry(transporter, mailOptions, 3);
     console.log('✅ Factura enviada exitosamente a:', clienteEmail);
     
     return {
@@ -80,14 +96,14 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
     };
     
   } catch (error) {
-    console.error('❌ Error enviando factura por correo:', error);
+    console.error('❌ Error enviando factura por correo después de reintentos:', error);
     
     // En producción, no fallar si el email falla - solo loggear
     if (process.env.NODE_ENV === 'production') {
-      console.error('⚠️ Email falló en producción, continuando sin email');
+      console.error('⚠️ Email falló en producción después de reintentos, continuando sin email');
       return {
         success: false,
-        mensaje: `Factura registrada para ${clienteEmail} (envío de email falló)`
+        mensaje: `Factura registrada para ${clienteEmail} (envío de email falló después de reintentos)`
       };
     }
     
