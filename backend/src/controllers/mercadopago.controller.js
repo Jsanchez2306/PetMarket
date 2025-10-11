@@ -5,6 +5,7 @@ const Producto = require('../models/producto.model');
 const Cliente = require('../models/cliente.model');
 const Venta = require('../models/venta.model');
 const { enviarFacturaPorCorreo } = require('../services/email.service');
+const crypto = require('crypto');
 
 // Configurar Mercado Pago (SDK v2.x)
 console.log('🔑 Variables de entorno Mercado Pago:', {
@@ -434,13 +435,77 @@ exports.crearPreferencia = async (req, res) => {
 };
 
 /**
+ * Validar firma del webhook de MercadoPago para seguridad
+ */
+function validarFirmaWebhook(req) {
+  const xSignature = req.headers['x-signature'];
+  const xRequestId = req.headers['x-request-id'];
+  
+  if (!xSignature || !xRequestId) {
+    console.log('⚠️ Headers de firma faltantes');
+    return false;
+  }
+  
+  // En modo TEST, la validación es menos estricta
+  const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.log('⚠️ MERCADOPAGO_WEBHOOK_SECRET no configurado - omitiendo validación en desarrollo');
+    return true; // Permitir en desarrollo
+  }
+  
+  try {
+    const parts = xSignature.split(',');
+    let ts, hash;
+    
+    parts.forEach(part => {
+      const [key, value] = part.trim().split('=');
+      if (key === 'ts') ts = value;
+      if (key === 'v1') hash = value;
+    });
+    
+    if (!ts || !hash) {
+      console.log('❌ Formato de firma inválido');
+      return false;
+    }
+    
+    // Crear la cadena para validar
+    const manifest = `id:${req.body.data?.id || ''};request-id:${xRequestId};ts:${ts};`;
+    const hmac = crypto.createHmac('sha256', webhookSecret);
+    hmac.update(manifest);
+    const sha = hmac.digest('hex');
+    
+    const isValid = sha === hash;
+    console.log('🔐 Validación de firma:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
+    
+    return isValid;
+  } catch (error) {
+    console.error('❌ Error validando firma:', error);
+    return false;
+  }
+}
+
+/**
  * Webhook para recibir notificaciones de Mercado Pago
  */
 exports.webhook = async (req, res) => {
   try {
+    console.log('🔔 Webhook recibido:', { 
+      body: req.body, 
+      headers: {
+        'x-signature': req.headers['x-signature'],
+        'x-request-id': req.headers['x-request-id']
+      }
+    });
+
+    // Validar firma del webhook para seguridad
+    const firmaValida = validarFirmaWebhook(req);
+    if (!firmaValida) {
+      console.log('❌ Firma de webhook inválida - rechazando');
+      return res.status(401).json({ mensaje: 'Firma inválida' });
+    }
+
     const { type, data } = req.body;
-    
-    console.log('🔔 Webhook recibido:', { type, data });
+    console.log('✅ Webhook validado correctamente:', { type, data });
 
     if (type === 'payment') {
       const paymentId = data.id;

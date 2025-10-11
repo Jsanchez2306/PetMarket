@@ -1,12 +1,32 @@
 const nodemailer = require('nodemailer');
 
-// Configurar transporter reutilizable
+// Configurar transporter reutilizable con múltiples opciones
 const configurarTransporter = () => {
-  return nodemailer.createTransport({
+  // En producción, deshabilitar email si hay problemas de conexión
+  if (process.env.NODE_ENV === 'production' && process.env.DISABLE_EMAIL === 'true') {
+    console.log('⚠️ Email deshabilitado en producción por configuración');
+    return null;
+  }
+
+  // OPCIÓN 1: SendGrid (recomendado para producción)
+  if (process.env.SENDGRID_API_KEY) {
+    console.log('📧 Configurando transporter con SendGrid');
+    return nodemailer.createTransporter({
+      service: 'SendGrid',
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY
+      }
+    });
+  }
+
+  // OPCIÓN 2: Gmail (para desarrollo local)
+  console.log('📧 Configurando transporter con Gmail');
+  return nodemailer.createTransporter({
     service: 'gmail',
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // true for 465, false for other ports
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER || 'tu-email@gmail.com',
       pass: process.env.EMAIL_PASS || 'tu-app-password'
@@ -14,10 +34,10 @@ const configurarTransporter = () => {
     tls: {
       rejectUnauthorized: false
     },
-    // Configuraciones adicionales para producción
-    connectionTimeout: 60000, // 60 segundos
-    greetingTimeout: 30000,    // 30 segundos
-    socketTimeout: 75000       // 75 segundos
+    // Timeouts reducidos para evitar bloqueos
+    connectionTimeout: 10000,  // 10 segundos
+    greetingTimeout: 5000,     // 5 segundos  
+    socketTimeout: 10000       // 10 segundos
   });
 };
 
@@ -28,11 +48,24 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
     
     const transporter = configurarTransporter();
     
+    // Si el transporter está deshabilitado, simular envío exitoso
+    if (!transporter) {
+      console.log('⚠️ Email deshabilitado - simulando envío exitoso');
+      return {
+        success: true,
+        mensaje: `Factura registrada para ${clienteEmail} (email deshabilitado en producción)`
+      };
+    }
+    
     // Generar HTML de la factura
     const htmlFactura = generarHTMLFactura(clienteNombre, datosFactura);
     
+    const emailFrom = process.env.SENDGRID_API_KEY ? 
+      (process.env.EMAIL_FROM || 'noreply@petmarket.com') : 
+      (process.env.EMAIL_USER || 'tu-email@gmail.com');
+    
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'tu-email@gmail.com',
+      from: emailFrom,
       to: clienteEmail,
       subject: `PetMarket - Factura de Compra #${datosFactura.paymentId || 'N/A'}`,
       html: htmlFactura
@@ -49,7 +82,17 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
   } catch (error) {
     console.error('❌ Error enviando factura por correo:', error);
     
-    if (error.code === 'EAUTH' || error.code === 'ECONNREFUSED') {
+    // En producción, no fallar si el email falla - solo loggear
+    if (process.env.NODE_ENV === 'production') {
+      console.error('⚠️ Email falló en producción, continuando sin email');
+      return {
+        success: false,
+        mensaje: `Factura registrada para ${clienteEmail} (envío de email falló)`
+      };
+    }
+    
+    // En desarrollo, lanzar error
+    if (error.code === 'ETIMEDOUT' || error.code === 'EAUTH' || error.code === 'ECONNREFUSED') {
       throw new Error('Error en el servicio de correo. Por favor, intenta más tarde.');
     }
     
