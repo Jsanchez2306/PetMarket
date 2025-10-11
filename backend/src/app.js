@@ -100,6 +100,16 @@ try {
     app.use('/test-ventas', testVentasRoutes); // ✅ nuevo para datos de prueba (temporal)
     app.use('/dashboard', dashboardRoutes); // ✅ nuevo para dashboard
 
+    // Health check endpoint para Render
+    app.get('/health', (req, res) => {
+        res.status(200).json({ 
+            status: 'OK', 
+            timestamp: new Date().toISOString(),
+            service: 'PetMarket Backend',
+            version: '1.0.0'
+        });
+    });
+
     console.log('✅ Rutas básicas cargadas');
 } catch (error) {
     console.error('❌ ERROR con rutas básicas:', error.message);

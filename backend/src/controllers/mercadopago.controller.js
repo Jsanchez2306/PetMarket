@@ -35,10 +35,11 @@ exports.testPreferencia = async (req, res) => {
         }
       ],
       back_urls: {
-        success: 'http://localhost:3191/mercadopago/success',
-        failure: 'http://localhost:3191/mercadopago/failure',
-        pending: 'http://localhost:3191/mercadopago/pending'
+        success: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/success`,
+        failure: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/failure`,
+        pending: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/pending`
       },
+      notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`,
       external_reference: `TEST-${Date.now()}`
     };
 
@@ -83,10 +84,11 @@ exports.testToken = async (req, res) => {
         }
       ],
       back_urls: {
-        success: 'http://localhost:3191/mercadopago/success',
-        failure: 'http://localhost:3191/mercadopago/failure',
-        pending: 'http://localhost:3191/mercadopago/pending'
-      }
+        success: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/success`,
+        failure: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/failure`,
+        pending: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/pending`
+      },
+      notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`
     };
 
     console.log('🔑 Probando token de acceso...');
@@ -200,10 +202,11 @@ exports.testColombia = async (req, res) => {
         }
       },
       back_urls: {
-        success: 'http://localhost:3191/mercadopago/success',
-        failure: 'http://localhost:3191/mercadopago/failure',
-        pending: 'http://localhost:3191/mercadopago/pending'
+        success: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/success`,
+        failure: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/failure`,
+        pending: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/pending`
       },
+      notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`,
       payment_methods: {
         excluded_payment_methods: [],
         excluded_payment_types: [],
@@ -305,10 +308,11 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
     const preferenceData = {
       items: itemsVerificados,
       back_urls: {
-        success: 'http://localhost:3191/mercadopago/success',
-        failure: 'http://localhost:3191/mercadopago/failure',
-        pending: 'http://localhost:3191/mercadopago/pending'
+        success: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/success`,
+        failure: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/failure`,
+        pending: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/pending`
       },
+      notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`,
       external_reference: `LSCART-${userId}-${Date.now()}` // LSCART = LocalStorage Cart
     };
 
@@ -389,10 +393,11 @@ exports.crearPreferencia = async (req, res) => {
     const preferenceData = {
       items: items,
       back_urls: {
-        success: 'http://localhost:3191/mercadopago/success',
-        failure: 'http://localhost:3191/mercadopago/failure',
-        pending: 'http://localhost:3191/mercadopago/pending'
+        success: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/success`,
+        failure: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/failure`,
+        pending: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/pending`
       },
+      notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`,
       external_reference: `CART-${userId}-${Date.now()}`
     };
 
