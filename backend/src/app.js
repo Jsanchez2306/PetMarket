@@ -3,6 +3,8 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
+
+
 console.log('📦 === APP SIMPLE INICIANDO ===');
 
 // Conexión a MongoDB
@@ -14,8 +16,8 @@ console.log('📋 Registrando modelos...');
 require('./models/cart.model');
 require('./models/producto.model');
 require('./models/cliente.model');
-require('./models/factura.model'); // 🔗 Importa el modelo factura también
-require('./models/venta.model'); // 🛒 Importa el modelo venta
+require('./models/factura.model'); //  Importa el modelo factura también
+require('./models/venta.model'); //  Importa el modelo venta
 console.log('✅ Modelos registrados');
 app.set('views', path.join(__dirname, '../frontend/views'));
 app.set('view engine', 'ejs');
@@ -78,26 +80,22 @@ try {
     const authRoutes = require('./routes/auth.routes');
     const productoRoutes = require('./routes/productos.routes');
     const clienteRoutes = require('./routes/cliente.routes');
-    const perfilRoutes = require('./routes/perfil.routes');
-    const panelRoutes = require('./routes/panel');
+    const panelRoutes = require('./routes/panel.routes');
     const empleadoRoutes = require('./routes/empleado.routes');
     const facturaRoutes = require('./routes/factura.routes'); // ✅ agregado
     const mercadopagoRoutes = require('./routes/mercadopago.routes'); // ✅ nuevo
     const ventasRoutes = require('./routes/ventas.routes'); // ✅ nuevo para gestión de ventas
-    const testVentasRoutes = require('./routes/test-ventas.routes'); // ✅ nuevo para datos de prueba
     const dashboardRoutes = require('./routes/dashboard.routes'); // ✅ nuevo para dashboard
 
     app.use('/', indexRoutes);
     app.use('/auth', authRoutes);
     app.use('/productos', productoRoutes);
     app.use('/clientes', clienteRoutes);
-    app.use('/perfil', perfilRoutes);
     app.use('/panel', panelRoutes);
     app.use('/empleados', empleadoRoutes);
     app.use('/facturas', facturaRoutes); // ✅ agregado
     app.use('/mercadopago', mercadopagoRoutes); // ✅ nuevo
     app.use('/ventas', ventasRoutes); // ✅ nuevo para gestión de ventas
-    app.use('/test-ventas', testVentasRoutes); // ✅ nuevo para datos de prueba (temporal)
     app.use('/dashboard', dashboardRoutes); // ✅ nuevo para dashboard
 
     // Health check endpoint para Render

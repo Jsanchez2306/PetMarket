@@ -1,6 +1,6 @@
 # Dependencias
 node_modules/
-
+#.env
 
 # Respaldos de MongoDB
 backup/

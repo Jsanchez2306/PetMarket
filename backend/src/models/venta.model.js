@@ -5,7 +5,6 @@ const ventaSchema = new mongoose.Schema({
   paymentId: {
     type: String,
     required: true,
-    unique: true
   },
   
   // Información del cliente
@@ -139,7 +138,7 @@ ventaSchema.pre('save', function(next) {
 });
 
 // Índices para mejorar rendimiento
-ventaSchema.index({ paymentId: 1 });
+ventaSchema.index({ paymentId: 1 }, { unique: true });
 ventaSchema.index({ clienteEmail: 1 });
 ventaSchema.index({ estadoEntrega: 1 });
 ventaSchema.index({ fechaCompra: -1 });

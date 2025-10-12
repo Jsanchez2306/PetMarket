@@ -1,7 +1,7 @@
 const app = require('./app');  // USANDO VERSIÓN SIMPLE
 require('dotenv').config({ quiet: true });
-// const backup = require('./config/backup');  // COMENTADO TEMPORALMENTE
-// const cron = require('node-cron');  // COMENTADO TEMPORALMENTE
+const backup = require('./config/backup');  // COMENTADO TEMPORALMENTE
+const cron = require('node-cron');  // COMENTADO TEMPORALMENTE
 
 console.log('🚀 === INICIANDO SERVIDOR ===');
 const HOST = process.env.HOST || "0.0.0.0";
@@ -25,8 +25,8 @@ function iniciarServidor() {
   });
 }
 
-// ✅ solo corre el backup si lo activas por variable de entorno
-/*
+
+
 if (process.env.ENABLE_BACKUP === 'true') {
   cron.schedule('* * * * *', () => {
     backup.backupDatabase();
@@ -35,7 +35,7 @@ if (process.env.ENABLE_BACKUP === 'true') {
 } else {
   console.log(' Backups desactivados (ENABLE_BACKUP != true)');
 }
-*/
+
 
 console.log(' Llamando iniciarServidor...');
 iniciarServidor();
