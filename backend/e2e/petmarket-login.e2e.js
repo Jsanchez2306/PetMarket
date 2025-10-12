@@ -16,8 +16,8 @@ describe('Login -> abrir dropdown -> Logout (flujo estable)', function () {
     const LOGOUT_BTN = '#logoutBtn';
     const MODAL_CONFIRM_LOGOUT = '#confirmarLogoutModal';
     const BTN_CONFIRM_LOGOUT = '#btnConfirmarLogout';
-    const USERNAME = process.env.E2E_USER || 'sanchezbarrerajj@gmail.com';
-    const PASSWORD = process.env.E2E_PASS || 'juan123';
+    const USERNAME = process.env.E2E_USER || 'carlos.rojas@gmail.com';
+    const PASSWORD = process.env.E2E_PASS || 'C@rR0jas!7';
     function waitForToken(browser, done, startedAt) {
       if (!startedAt) startedAt = Date.now();
       browser.execute(() => localStorage.getItem('token'), [], res => {
