@@ -51,7 +51,7 @@ exports.testPreferencia = async (req, res) => {
     const response = await preference.create({ body: testPreferenceData });
 
     console.log('✅ Prueba exitosa:', response.id);
-    
+
     res.json({
       success: true,
       message: 'Configuración de Mercado Pago funcionando correctamente',
@@ -61,7 +61,7 @@ exports.testPreferencia = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error en prueba de Mercado Pago:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Error en configuración de Mercado Pago',
       message: error.message,
       details: error
@@ -99,7 +99,7 @@ exports.testToken = async (req, res) => {
     const response = await preference.create({ body: testPreferenceData });
 
     console.log('✅ Token válido! Preferencia creada:', response.id);
-    
+
     res.json({
       success: true,
       message: 'Token de acceso válido',
@@ -109,7 +109,7 @@ exports.testToken = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Token inválido:', error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Token de acceso inválido',
       message: error.message,
       status: error.status
@@ -123,32 +123,32 @@ exports.testToken = async (req, res) => {
 exports.testDescuentoStock = async (req, res) => {
   try {
     console.log('🧪 TEST: Descontando stock de golosinas Dogjoy...');
-    
+
     // Buscar las golosinas Dogjoy
-    const producto = await Producto.findOne({ 
-      nombre: { $regex: /golosinas.*dogjoy/i } 
+    const producto = await Producto.findOne({
+      nombre: { $regex: /golosinas.*dogjoy/i }
     });
-    
+
     if (!producto) {
       console.log('❌ No se encontró el producto');
       return res.status(404).json({ mensaje: 'Producto no encontrado' });
     }
-    
+
     console.log(`📦 Producto encontrado: ${producto.nombre}`);
     console.log(`📊 Stock actual: ${producto.stock}`);
-    
+
     // Descontar 2 unidades
     const cantidadADescontar = 2;
-    
+
     if (producto.stock >= cantidadADescontar) {
       const resultado = await Producto.findByIdAndUpdate(
         producto._id,
         { $inc: { stock: -cantidadADescontar } },
         { new: true }
       );
-      
+
       console.log(`✅ Stock actualizado: ${producto.stock} -> ${resultado.stock}`);
-      
+
       res.json({
         mensaje: 'Stock descontado exitosamente',
         producto: producto.nombre,
@@ -163,12 +163,12 @@ exports.testDescuentoStock = async (req, res) => {
         cantidadSolicitada: cantidadADescontar
       });
     }
-    
+
   } catch (error) {
     console.error('❌ Error en test de descuento:', error);
-    res.status(500).json({ 
-      mensaje: 'Error en test de descuento', 
-      error: error.message 
+    res.status(500).json({
+      mensaje: 'Error en test de descuento',
+      error: error.message
     });
   }
 };
@@ -227,7 +227,7 @@ exports.testColombia = async (req, res) => {
     const response = await preference.create({ body: testPreferenceData });
 
     console.log('✅ Prueba Colombia exitosa:', response.id);
-    
+
     res.json({
       success: true,
       message: 'Configuración Colombia funcionando',
@@ -238,7 +238,7 @@ exports.testColombia = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error en prueba Colombia:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Error en configuración Colombia',
       message: error.message,
       details: error
@@ -254,7 +254,7 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
     console.log('🔥🛒 ===== CREAR PREFERENCIA LOCALSTORAGE - DEBUG =====');
     const userId = req.session.user?.id || req.user?.id;
     console.log('👤 Usuario ID:', userId);
-    
+
     if (!userId) {
       console.log('❌ Usuario no autenticado');
       return res.status(401).json({ mensaje: 'Usuario no autenticado' });
@@ -263,7 +263,7 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
     const { items } = req.body; // Recibir items del localStorage
     console.log('📦 Body completo recibido:', req.body);
     console.log('🛒 Items recibidos del localStorage:', items);
-    
+
     if (!items || items.length === 0) {
       console.log('❌ Carrito vacío');
       return res.status(400).json({ mensaje: 'El carrito está vacío' });
@@ -271,22 +271,22 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
 
     // Verificar y obtener productos de la base de datos
     const itemsVerificados = [];
-    
+
     for (const item of items) {
       const producto = await Producto.findById(item.productId);
-      
+
       if (!producto) {
         return res.status(400).json({ mensaje: `Producto no encontrado: ${item.productId}` });
       }
-      
+
       if (item.cantidad > producto.stock) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           mensaje: `Stock insuficiente para ${producto.nombre}`,
           stockDisponible: producto.stock,
           cantidadSolicitada: item.cantidad
         });
       }
-      
+
       itemsVerificados.push({
         id: producto._id.toString(),
         title: producto.nombre,
@@ -319,7 +319,7 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
 
     console.log('🛒 Creando preferencia de Mercado Pago desde localStorage para usuario:', usuario.email);
     console.log('🛍️ Items verificados:', JSON.stringify(itemsVerificados, null, 2));
-    
+
     // Crear preferencia en Mercado Pago
     const preference = new Preference(client);
     const response = await preference.create({ body: preferenceData });
@@ -335,9 +335,9 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error al crear preferencia desde localStorage:', error);
-    res.status(500).json({ 
-      mensaje: 'Error al crear preferencia de pago', 
-      error: error.message 
+    res.status(500).json({
+      mensaje: 'Error al crear preferencia de pago',
+      error: error.message
     });
   }
 };
@@ -364,7 +364,7 @@ exports.crearPreferencia = async (req, res) => {
         return res.status(400).json({ mensaje: 'Producto no encontrado en el carrito' });
       }
       if (item.quantity > item.product.stock) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           mensaje: `Stock insuficiente para ${item.product.nombre}`,
           stockDisponible: item.product.stock,
           cantidadSolicitada: item.quantity
@@ -411,7 +411,7 @@ exports.crearPreferencia = async (req, res) => {
     });
     console.log('🛍️ Items del carrito:', JSON.stringify(items, null, 2));
     console.log('📋 Preferencia completa:', JSON.stringify(preferenceData, null, 2));
-    
+
     // Crear preferencia en Mercado Pago usando SDK v2.x
     const preference = new Preference(client);
     const response = await preference.create({ body: preferenceData });
@@ -427,56 +427,57 @@ exports.crearPreferencia = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error al crear preferencia de Mercado Pago:', error);
-    res.status(500).json({ 
-      mensaje: 'Error al crear preferencia de pago', 
-      error: error.message 
+    res.status(500).json({
+      mensaje: 'Error al crear preferencia de pago',
+      error: error.message
     });
   }
 };
 
-/**
- * Validar firma del webhook de MercadoPago para seguridad
- */
+// /**
+//  * Validar firma del webhook de MercadoPago para seguridad
+//  */
 function validarFirmaWebhook(req) {
   const xSignature = req.headers['x-signature'];
   const xRequestId = req.headers['x-request-id'];
-  
+
   if (!xSignature || !xRequestId) {
     console.log('⚠️ Headers de firma faltantes');
     return false;
   }
-  
+
   // En modo TEST, la validación es menos estricta
   const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
   if (!webhookSecret) {
     console.log('⚠️ MERCADOPAGO_WEBHOOK_SECRET no configurado - omitiendo validación en desarrollo');
     return true; // Permitir en desarrollo
   }
-  
+
+
   try {
     const parts = xSignature.split(',');
     let ts, hash;
-    
+
     parts.forEach(part => {
       const [key, value] = part.trim().split('=');
       if (key === 'ts') ts = value;
       if (key === 'v1') hash = value;
     });
-    
+
     if (!ts || !hash) {
       console.log('❌ Formato de firma inválido');
       return false;
     }
-    
+
     // Crear la cadena para validar
     const manifest = `id:${req.body.data?.id || ''};request-id:${xRequestId};ts:${ts};`;
     const hmac = crypto.createHmac('sha256', webhookSecret);
     hmac.update(manifest);
     const sha = hmac.digest('hex');
-    
+
     const isValid = sha === hash;
     console.log('🔐 Validación de firma:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
-    
+
     return isValid;
   } catch (error) {
     console.error('❌ Error validando firma:', error);
@@ -489,8 +490,8 @@ function validarFirmaWebhook(req) {
  */
 exports.webhook = async (req, res) => {
   try {
-    console.log('🔔 Webhook recibido:', { 
-      body: req.body, 
+    console.log('🔔 Webhook recibido:', {
+      body: req.body,
       headers: {
         'x-signature': req.headers['x-signature'],
         'x-request-id': req.headers['x-request-id']
@@ -498,21 +499,21 @@ exports.webhook = async (req, res) => {
     });
 
     // Validar firma del webhook para seguridad
-    // const firmaValida = validarFirmaWebhook(req);
-    // if (!firmaValida) {
-    //   console.log('❌ Firma de webhook inválida - rechazando');
-    //   return res.status(401).json({ mensaje: 'Firma inválida' });
-    // }
+    const firmaValida = validarFirmaWebhook(req);
+    if (!firmaValida) {
+      console.log('❌ Firma de webhook inválida - rechazando');
+      return res.status(401).json({ mensaje: 'Firma inválida' });
+    }
 
     const { type, data } = req.body;
-    console.log('✅ Webhook validado correctamente:', { type, data });
+    // console.log('✅ Webhook validado correctamente:', { type, data });
 
     if (type === 'payment') {
       const paymentId = data.id;
-      
+
       // Obtener información del pago
       const paymentResponse = await payment.get({ id: paymentId });
-      
+
       console.log('💳 Información del pago:', {
         id: paymentResponse.id,
         status: paymentResponse.status,
@@ -538,14 +539,14 @@ exports.webhook = async (req, res) => {
 exports.success = async (req, res) => {
   try {
     const { collection_id, collection_status, external_reference, payment_id } = req.query;
-    
+
     console.log('🎉🔥 ===== PÁGINA DE ÉXITO - INICIO DEBUG COMPLETO =====');
-    console.log('✅ Llegada a página de éxito:', { 
-      collection_id, 
-      collection_status, 
-      external_reference, 
+    console.log('✅ Llegada a página de éxito:', {
+      collection_id,
+      collection_status,
+      external_reference,
       payment_id,
-      fullQuery: req.query 
+      fullQuery: req.query
     });
     console.log('🕐 Timestamp:', new Date().toISOString());
     console.log('🔍 External Reference recibido:', external_reference);
@@ -555,7 +556,7 @@ exports.success = async (req, res) => {
     const paymentId = payment_id || collection_id;
 
     let pagoAprobado = false;
-    
+
     // Inicializar variables antes de su uso
     let productosComprados = [];
     let totalCompra = 0;
@@ -564,10 +565,10 @@ exports.success = async (req, res) => {
     if (paymentId) {
       console.log('🎉 Pago considerado aprobado por llegada a página de éxito');
       pagoAprobado = true;
-      
+
       // CORREGIDO: Obtener external_reference del pago en lugar de la URL
       let externalReferenceFromPayment = external_reference; // URL parameter (puede ser undefined)
-      
+
       // Si no hay external_reference en URL, obtenerlo del pago
       if (!externalReferenceFromPayment && paymentId) {
         try {
@@ -579,61 +580,61 @@ exports.success = async (req, res) => {
           console.error('❌ Error obteniendo external_reference del pago:', error);
         }
       }
-      
+
       // Si hay external_reference (desde URL o desde pago), procesar checkout localStorage
       if (externalReferenceFromPayment && externalReferenceFromPayment.startsWith('LSCART-')) {
         console.log('🛒✅ PROCESANDO PAGO EXITOSO DESDE localStorage CHECKOUT');
         console.log('🎯 External Reference:', externalReferenceFromPayment);
         console.log('🛒 Procesando pago exitoso desde localStorage checkout');
-        
+
         try {
           // Format: LSCART-userId-timestamp
           const [, userId, timestamp] = externalReferenceFromPayment.split('-');
           console.log('👤 Usuario:', userId, 'Timestamp:', timestamp);
-          
+
           // NUEVO: Descontar stock de productos comprados
           console.log('📦🔥 INICIANDO DESCUENTO DE STOCK DE PRODUCTOS');
-          
+
           try {
             const paymentResponse = await payment.get({ id: paymentId });
             console.log('💳 Obteniendo items del pago para descuento de stock...');
-            
+
             if (paymentResponse.additional_info && paymentResponse.additional_info.items) {
               const items = paymentResponse.additional_info.items;
               console.log('📋 Items encontrados para descuento:', items.length);
-              
+
               for (const item of items) {
                 console.log(`🔍 Procesando item: ${item.title} (cantidad: ${item.quantity})`);
-                
+
                 // Buscar producto por ID si está disponible, sino por nombre
                 let producto = null;
-                
+
                 if (item.id) {
                   producto = await Producto.findById(item.id);
                   console.log(`🔍 Búsqueda por ID (${item.id}):`, producto ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO');
                 }
-                
+
                 if (!producto) {
-                  producto = await Producto.findOne({ 
-                    nombre: { $regex: new RegExp(item.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } 
+                  producto = await Producto.findOne({
+                    nombre: { $regex: new RegExp(item.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }
                   });
                   console.log(`🔍 Búsqueda por nombre ("${item.title}"):`, producto ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO');
                 }
-                
+
                 if (producto) {
                   const cantidadComprada = item.quantity;
                   const stockAntes = producto.stock;
-                  
+
                   console.log(`📦 PRODUCTO: ${producto.nombre}`);
                   console.log(`📊 Stock antes: ${stockAntes}, Cantidad comprada: ${cantidadComprada}`);
-                  
+
                   if (stockAntes >= cantidadComprada) {
                     const resultado = await Producto.findByIdAndUpdate(
                       producto._id,
                       { $inc: { stock: -cantidadComprada } },
                       { new: true }
                     );
-                    
+
                     console.log(`🎉✅ STOCK ACTUALIZADO EXITOSAMENTE!`);
                     console.log(`📊 ${producto.nombre}: ${stockAntes} → ${resultado.stock}`);
                   } else {
@@ -651,7 +652,7 @@ exports.success = async (req, res) => {
                   console.error(`❌ No se encontró producto: "${item.title}"`);
                 }
               }
-              
+
               console.log('✅🎉 DESCUENTO DE STOCK COMPLETADO');
             } else {
               console.warn('⚠️ No se encontraron items en el pago');
@@ -659,10 +660,10 @@ exports.success = async (req, res) => {
           } catch (stockError) {
             console.error('❌ Error en descuento de stock:', stockError);
           }
-          
+
           // Mensaje informativo: el carrito se limpiará por el script del frontend
           console.log('🧹 El carrito será limpiado automáticamente por el script del frontend');
-          
+
         } catch (lsError) {
           console.error('❌ Error procesando checkout localStorage:', lsError);
         }
@@ -672,16 +673,16 @@ exports.success = async (req, res) => {
     }
 
     // Intentar obtener detalles del pago si hay paymentId (para mostrar información)
-    
+
     if (paymentId) {
       try {
         const paymentResponse = await payment.get({ id: paymentId });
         console.log('💳 Estado del pago desde MP API:', paymentResponse.status);
-        
+
         if (paymentResponse.status === 'approved') {
           pagoAprobado = true;
         }
-        
+
         // Intentar obtener productos del pago
         if (paymentResponse.additional_info && paymentResponse.additional_info.items) {
           productosComprados = paymentResponse.additional_info.items.map(item => ({
@@ -711,18 +712,18 @@ exports.success = async (req, res) => {
             }
           }
         }
-        
+
         // Calcular total
         totalCompra = productosComprados.reduce((total, item) => total + item.subtotal, 0);
-        
+
         console.log('🛒 Productos encontrados:', productosComprados.length);
-        
+
       } catch (paymentError) {
         console.error('⚠️ Error al obtener detalles del pago desde MP API:', paymentError);
         // No impedimos continuar si no podemos consultar la API
       }
     }
-    
+
     // Si no se pudieron obtener productos y hay un paymentId, mostrar productos de ejemplo
     if (productosComprados.length === 0 && paymentId && pagoAprobado) {
       console.log('📦 No se encontraron productos específicos, usando información genérica');
@@ -805,13 +806,13 @@ exports.success = async (req, res) => {
  */
 exports.failure = (req, res) => {
   const { collection_id, collection_status, external_reference, payment_id } = req.query;
-  
-  console.log('❌ Llegada a página de fallo:', { 
-    collection_id, 
-    collection_status, 
-    external_reference, 
+
+  console.log('❌ Llegada a página de fallo:', {
+    collection_id,
+    collection_status,
+    external_reference,
     payment_id,
-    fullQuery: req.query 
+    fullQuery: req.query
   });
 
   res.render('mercadopagoFailure', {
@@ -827,24 +828,24 @@ exports.failure = (req, res) => {
  */
 exports.pending = async (req, res) => {
   const { collection_id, collection_status, external_reference, payment_id } = req.query;
-  
-  console.log('⏳ Llegada a página de pendiente:', { 
-    collection_id, 
-    collection_status, 
-    external_reference, 
+
+  console.log('⏳ Llegada a página de pendiente:', {
+    collection_id,
+    collection_status,
+    external_reference,
     payment_id,
-    fullQuery: req.query 
+    fullQuery: req.query
   });
-  
+
   const paymentId = payment_id || collection_id;
-  
+
   // 🧪 MODO TEST AUTOMÁTICO: Si detecta un token de TEST, los pagos "pendientes" se tratan como exitosos
   const isTestMode = process.env.MERCADOPAGO_ACCESS_TOKEN?.includes('TEST-');
-  
+
   if (isTestMode && paymentId) {
     console.log('🧪 Modo TEST detectado - tratando pago pendiente como exitoso');
     console.log('🎉 Redirigiendo automáticamente a página de éxito...');
-    
+
     // Redirigir a la página de éxito con los mismos parámetros
     const successUrl = `/mercadopago/success?payment_id=${paymentId}&collection_status=approved${external_reference ? `&external_reference=${external_reference}` : ''}`;
     return res.redirect(successUrl);
@@ -867,7 +868,7 @@ async function procesarPagoAprobado(payment) {
   try {
     const externalReference = payment.external_reference;
     const userId = externalReference.split('-')[1]; // Extraer userId de la referencia
-    
+
     console.log('🔄 Procesando pago aprobado para usuario:', userId);
 
     // Obtener carrito del usuario
@@ -936,16 +937,16 @@ async function procesarDescuentoStock(items, externalReference) {
   try {
     console.log('📦 Iniciando descuento de stock para localStorage checkout');
     console.log('🔍 Items a procesar:', items);
-    
+
     for (const item of items) {
       // Buscar el producto en la base de datos
       const producto = await Producto.findById(item.id);
-      
+
       if (!producto) {
         console.error(`❌ Producto no encontrado: ${item.id}`);
         continue;
       }
-      
+
       // Verificar que hay suficiente stock
       if (producto.stock < item.quantity) {
         console.warn(`⚠️ Stock insuficiente para ${producto.nombre}: disponible ${producto.stock}, solicitado ${item.quantity}`);
@@ -965,9 +966,9 @@ async function procesarDescuentoStock(items, externalReference) {
         console.log(`📦 Stock actualizado para ${producto.nombre}: -${item.quantity}`);
       }
     }
-    
+
     console.log('✅ Descuento de stock completado para:', externalReference);
-    
+
   } catch (error) {
     console.error('❌ Error procesando descuento de stock:', error);
     throw error;
@@ -980,11 +981,11 @@ async function procesarDescuentoStock(items, externalReference) {
 async function enviarFacturaAutomatica(usuario, datosFactura) {
   try {
     console.log('📧 Iniciando envío automático de factura...');
-    
+
     // Obtener información del cliente
     let clienteEmail = null;
     let clienteNombre = 'Cliente';
-    
+
     if (usuario && usuario.email) {
       clienteEmail = usuario.email;
       clienteNombre = usuario.nombre || 'Cliente';
@@ -1001,20 +1002,20 @@ async function enviarFacturaAutomatica(usuario, datosFactura) {
         console.warn('⚠️ No se pudo obtener cliente desde reference:', err.message);
       }
     }
-    
+
     if (!clienteEmail) {
       console.warn('⚠️ No se pudo determinar email del cliente para envío de factura');
       return;
     }
-    
+
     console.log(`📧 Enviando factura a: ${clienteEmail} (${clienteNombre})`);
-    
+
     // Enviar factura por correo
     const resultado = await enviarFacturaPorCorreo(clienteEmail, clienteNombre, datosFactura);
-    
+
     console.log('✅ Factura enviada exitosamente por correo');
     return resultado;
-    
+
   } catch (error) {
     console.error('❌ Error en envío automático de factura:', error);
     throw error;
@@ -1025,7 +1026,7 @@ async function enviarFacturaAutomatica(usuario, datosFactura) {
 async function guardarVentaEnBaseDatos(datosVenta) {
   try {
     console.log('💾 Iniciando guardado de venta...');
-    
+
     // Obtener información del cliente
     let clienteInfo = {
       cliente: null,
@@ -1034,14 +1035,14 @@ async function guardarVentaEnBaseDatos(datosVenta) {
       telefono: '',
       direccion: ''
     };
-    
+
     if (datosVenta.usuario && datosVenta.usuario.email) {
       // Usuario logueado
       clienteInfo.email = datosVenta.usuario.email;
       clienteInfo.nombre = datosVenta.usuario.nombre || 'Cliente';
       clienteInfo.telefono = datosVenta.usuario.telefono || '';
       clienteInfo.direccion = datosVenta.usuario.direccion || '';
-      
+
       // Buscar cliente en BD
       try {
         const cliente = await Cliente.findOne({ email: datosVenta.usuario.email });
@@ -1070,29 +1071,29 @@ async function guardarVentaEnBaseDatos(datosVenta) {
         console.warn('⚠️ No se pudo obtener cliente desde reference:', err.message);
       }
     }
-    
+
     // Verificar que no exista ya una venta con este paymentId
     const ventaExistente = await Venta.findOne({ paymentId: datosVenta.paymentId });
     if (ventaExistente) {
       console.log('⚠️ Ya existe una venta con este paymentId:', datosVenta.paymentId);
       return ventaExistente;
     }
-    
+
     // Calcular totales (sin IVA)
     const subtotal = datosVenta.totalCompra || 0;
     const total = subtotal;
-    
+
     // Crear nueva venta
     const nuevaVenta = new Venta({
       paymentId: datosVenta.paymentId,
-      
+
       // Información del cliente
       cliente: clienteInfo.cliente,
       clienteEmail: clienteInfo.email,
       clienteNombre: clienteInfo.nombre,
       clienteTelefono: clienteInfo.telefono,
       clienteDireccion: clienteInfo.direccion,
-      
+
       // Productos
       productos: datosVenta.productosComprados.map(producto => ({
         producto: producto.producto || null, // ID del producto si existe
@@ -1102,26 +1103,26 @@ async function guardarVentaEnBaseDatos(datosVenta) {
         subtotal: producto.subtotal,
         imagen: producto.imagen || ''
       })),
-      
+
       // Información financiera
       subtotal: subtotal,
       total: total,
-      
+
       // Información del pago
       metodoPago: 'mercadopago',
       estadoPago: datosVenta.status || 'approved',
       estadoEntrega: 'sin entregar',
-      
+
       // Información adicional
       reference: datosVenta.reference || '',
       fechaCompra: new Date()
     });
-    
+
     await nuevaVenta.save();
     console.log('✅ Venta guardada exitosamente con ID:', nuevaVenta._id);
-    
+
     return nuevaVenta;
-    
+
   } catch (error) {
     console.error('❌ Error guardando venta en base de datos:', error);
     throw error;
