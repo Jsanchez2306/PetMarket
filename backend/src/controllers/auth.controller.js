@@ -1,7 +1,7 @@
 const Cliente = require('../models/cliente.model');
 const Empleado = require('../models/empleado.model');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 exports.registro = async (req, res) => {
   try {
@@ -264,14 +264,14 @@ function generarPasswordTemporal() {
   return password;
 }
 
-const configurarTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER || 'tu-email@gmail.com',
-      pass: process.env.EMAIL_PASS || 'tu-app-password'
-    }
-  });
+// Configurar cliente de Resend
+const configurarResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('❌ RESEND_API_KEY no está configurado');
+    return null;
+  }
+  return new Resend(apiKey);
 };
 
 exports.recuperarPassword = async (req, res) => {
@@ -287,55 +287,138 @@ exports.recuperarPassword = async (req, res) => {
     cliente.contrasena = nuevaPassword;
     await cliente.save();
 
-    const transporter = configurarTransporter();
-    const mailOptions = {
-      from: process.env.EMAIL_USER || 'tu-email@gmail.com',
+    // Configurar Resend
+    const resend = configurarResend();
+    
+    if (!resend) {
+      console.error('⚠️ Servicio de email no disponible - API Key no configurado');
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(500).json({ 
+          mensaje: 'Servicio de correo temporalmente no disponible. La contraseña se ha actualizado, contacta al administrador.' 
+        });
+      }
+      return res.status(500).json({ mensaje: 'Servicio de email no configurado en desarrollo' });
+    }
+
+    const emailOptions = {
+      from: process.env.EMAIL_FROM || 'PetMarket <onboarding@resend.dev>',
       to: emailLimpio,
       subject: 'PetMarket - Nueva Contraseña Temporal',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="color: #4CAF50;">🐾 PetMarket</h2>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Recuperación de Contraseña - PetMarket</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333;">
+          
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #4CAF50;">
+            <h1 style="color: #4CAF50; margin: 0;">🐾 PetMarket</h1>
+            <p style="color: #666; margin: 5px 0;">Recuperación de Contraseña</p>
           </div>
+
+          <!-- Contenido principal -->
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h3 style="color: #333; margin-top: 0;">Hola ${cliente.nombre},</h3>
-            <p style="color: #666; line-height: 1.6;">Hemos recibido una solicitud para recuperar tu contraseña. A continuación encontrarás tu nueva contraseña temporal:</p>
+            <h2 style="color: #28a745; margin-top: 0;">🔑 Nueva Contraseña Temporal</h2>
+            <p style="margin: 0; color: #666;">Hola <strong>${cliente.nombre}</strong>,</p>
+            <p style="color: #666;">Hemos recibido una solicitud para recuperar tu contraseña. A continuación encontrarás tu nueva contraseña temporal:</p>
           </div>
-          <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
-            <p style="margin: 0; color: #1976d2; font-size: 14px;">Nueva contraseña temporal:</p>
-            <h3 style="background-color: #fff; padding: 10px; border-radius: 4px; letter-spacing: 2px; color: #333; margin: 10px 0; font-family: monospace;">
-              ${nuevaPassword}
-            </h3>
+
+          <!-- Contraseña temporal -->
+          <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <p style="margin: 0; color: #1976d2; font-size: 14px; font-weight: bold;">Nueva contraseña temporal:</p>
+            <div style="background-color: #fff; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px dashed #1976d2;">
+              <h2 style="color: #333; font-family: 'Courier New', monospace; letter-spacing: 3px; margin: 0; font-size: 24px;">
+                ${nuevaPassword}
+              </h2>
+            </div>
           </div>
-          <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="color: #f57c00; margin-top: 0;">⚠️ Importante:</h4>
-            <ul style="color: #666; line-height: 1.6;">
+          
+          <!-- Instrucciones importantes -->
+          <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #f57c00; margin-top: 0;">⚠️ Importante:</h3>
+            <ul style="color: #666; line-height: 1.8; padding-left: 20px;">
               <li>Esta es una contraseña temporal por seguridad</li>
-              <li>Te recomendamos cambiarla lo antes posible</li>
+              <li><strong>Te recomendamos cambiarla inmediatamente</strong> después de iniciar sesión</li>
               <li>Ve a tu perfil y actualiza tu contraseña por una personalizada</li>
-              <li>Si no solicitaste este cambio, contacta con nosotros</li>
+              <li>Si no solicitaste este cambio, contacta con nosotros inmediatamente</li>
             </ul>
           </div>
-          <div style="text-align: center; margin-top: 30px;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3191'}" style="background-color: #4CAF50; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block;">
-              Iniciar Sesión
+
+          <!-- Botón de acción -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.BASE_URL || 'https://petmarket-vij4.onrender.com'}" 
+               style="background-color: #4CAF50; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+              🔐 Iniciar Sesión Ahora
             </a>
           </div>
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-            <p>Este correo se envió automáticamente, por favor no respondas a este mensaje.</p>
-            <p>© 2025 PetMarket - Cuidamos de tus mascotas</p>
+
+          <!-- Footer -->
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; text-align: center; color: #999; font-size: 12px;">
+            <p style="margin: 5px 0;">Este correo se envió automáticamente, por favor no respondas a este mensaje.</p>
+            <p style="margin: 5px 0;">Si tienes problemas, contacta nuestro soporte.</p>
+            <p style="margin: 15px 0 5px 0; font-weight: bold;">© 2025 PetMarket - Cuidamos de tus mascotas 🐾</p>
           </div>
-        </div>
-      `
+
+        </body>
+        </html>
+      `,
+      text: `Hola ${cliente.nombre}, tu nueva contraseña temporal es: ${nuevaPassword}. Te recomendamos cambiarla después de iniciar sesión.`
     };
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ mensaje: `Hemos enviado una nueva contraseña temporal a ${emailLimpio}. Revisa tu correo electrónico.` });
-  } catch (error) {
-    console.error('Error al recuperar contraseña:', error);
-    if (error.code === 'EAUTH' || error.code === 'ECONNREFUSED') {
-      return res.status(500).json({ mensaje: 'Error en el servicio de correo. Por favor, intenta más tarde o contacta al administrador.' });
+    // Enviar email con retry
+    console.log('📧 Enviando email de recuperación con Resend...');
+    
+    let lastError = null;
+    for (let intento = 1; intento <= 3; intento++) {
+      try {
+        console.log(`📧 Intento ${intento}/3 - Enviando a: ${emailLimpio}`);
+        
+        const { data, error } = await resend.emails.send(emailOptions);
+
+        if (error) {
+          lastError = error;
+          console.error(`❌ Error en intento ${intento}:`, error);
+          
+          if (intento < 3) {
+            const tiempoEspera = Math.pow(2, intento) * 1000;
+            console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
+            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+          }
+          continue;
+        }
+
+        console.log('✅ Email de recuperación enviado exitosamente:', data);
+        return res.status(200).json({ 
+          mensaje: `Hemos enviado una nueva contraseña temporal a ${emailLimpio}. Revisa tu correo electrónico.` 
+        });
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Excepción en intento ${intento}:`, error.message);
+        
+        if (intento < 3) {
+          const tiempoEspera = Math.pow(2, intento) * 1000;
+          await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+        }
+      }
     }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    throw lastError || new Error('Falló después de 3 intentos');
+
+  } catch (error) {
+    console.error('❌ Error al recuperar contraseña:', error);
+    
+    // En producción, la contraseña ya se cambió, así que informar eso
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(500).json({ 
+        mensaje: 'La contraseña se ha actualizado, pero hubo un error enviando el email. Contacta al administrador si no recibiste el correo.' 
+      });
+    }
+    
     res.status(500).json({ mensaje: 'Error al procesar la solicitud de recuperación de contraseña' });
   }
 };
