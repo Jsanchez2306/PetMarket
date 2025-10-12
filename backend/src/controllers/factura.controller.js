@@ -3,7 +3,7 @@ const Cliente = require('../models/cliente.model');
 const Producto = require('../models/producto.model');
 const Empleado = require('../models/empleado.model');
 const Venta = require('../models/venta.model');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const fs = require('fs');
 const path = require('path');
 
@@ -283,25 +283,15 @@ exports.eliminarFactura = async (req, res) => {
 };
 
 /**
- * Configurar transporter de nodemailer
+ * Configurar cliente de Resend
  */
-const configureMailTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER || 'tu-email@gmail.com',
-      pass: process.env.EMAIL_PASS || 'tu-password-app'
-    },
-    tls: {
-      rejectUnauthorized: false
-    },
-    connectionTimeout: 60000,
-    greetingTimeout: 30000,
-    socketTimeout: 75000
-  });
+const configurarResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('❌ RESEND_API_KEY no está configurado');
+    return null;
+  }
+  return new Resend(apiKey);
 };
 
 /**
@@ -462,31 +452,86 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
       };
     }
 
-    // Configurar transporter
-    const transporter = configureMailTransporter();
+    // Configurar Resend
+    const resend = configurarResend();
+    
+    if (!resend) {
+      console.error('⚠️ Servicio de email no disponible - API Key no configurado');
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(500).json({ 
+          mensaje: 'Servicio de correo temporalmente no disponible.' 
+        });
+      }
+      return res.status(500).json({ mensaje: 'Servicio de email no configurado en desarrollo' });
+    }
     
     // Generar HTML de la factura
     const htmlFactura = generarHTMLFactura(factura, clienteInfo, empleado);
     
-    // Configurar email
-    const mailOptions = {
-      from: process.env.EMAIL_USER || 'noreply@petmarket.com',
+    // Configurar email con Resend
+    const emailOptions = {
+      from: process.env.EMAIL_FROM || 'PetMarket <onboarding@resend.dev>',
       to: clienteInfo.email,
       subject: `Factura PetMarket #${factura._id.toString().slice(-8).toUpperCase()}`,
-      html: htmlFactura
+      html: htmlFactura,
+      text: `Hola ${clienteInfo.nombre}, adjunto encontrarás tu factura de PetMarket.`
     };
 
-    // Enviar email
-    await transporter.sendMail(mailOptions);
+    // Enviar email con retry
+    console.log('📧 Enviando factura con Resend...');
     
-    console.log(`✅ Factura enviada por correo a ${clienteInfo.email}`);
-    res.status(200).json({ 
-      mensaje: 'Factura enviada exitosamente por correo electrónico',
-      email: clienteInfo.email
-    });
+    let lastError = null;
+    for (let intento = 1; intento <= 3; intento++) {
+      try {
+        console.log(`📧 Intento ${intento}/3 - Enviando factura a: ${clienteInfo.email}`);
+        
+        const { data, error } = await resend.emails.send(emailOptions);
+
+        if (error) {
+          lastError = error;
+          console.error(`❌ Error en intento ${intento}:`, error);
+          
+          if (intento < 3) {
+            const tiempoEspera = Math.pow(2, intento) * 1000;
+            console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
+            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+          }
+          continue;
+        }
+
+        console.log('✅ Factura enviada exitosamente:', data);
+        console.log(`✅ Factura enviada por correo a ${clienteInfo.email}`);
+        return res.status(200).json({ 
+          mensaje: 'Factura enviada exitosamente por correo electrónico',
+          email: clienteInfo.email,
+          emailId: data.id
+        });
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Excepción en intento ${intento}:`, error.message);
+        
+        if (intento < 3) {
+          const tiempoEspera = Math.pow(2, intento) * 1000;
+          await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+        }
+      }
+    }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    throw lastError || new Error('Falló después de 3 intentos');
 
   } catch (error) {
-    console.error('Error al enviar factura por correo:', error);
+    console.error('❌ Error al enviar factura por correo:', error);
+    
+    // En producción, no fallar completamente
+    if (process.env.NODE_ENV === 'production') {
+      console.error('⚠️ Email de factura falló en producción');
+      return res.status(500).json({ 
+        mensaje: `Factura generada correctamente, pero falló el envío por email: ${error.message || 'Error desconocido'}` 
+      });
+    }
+    
     res.status(500).json({ 
       mensaje: 'Error al enviar factura por correo', 
       error: error.message 
