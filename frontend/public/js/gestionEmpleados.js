@@ -114,11 +114,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showErrorModal(titulo, mensaje) {
-    // Puedes sustituir este alert por tu modal de error si existe en tu HTML
+    // Usar ModalManager global si está disponible, sino fallback a alert
+    try {
+      if (window.showModal && typeof window.showModal.error === 'function') {
+        window.showModal.error(titulo, mensaje);
+        return;
+      }
+    } catch (e) {
+      // ignore y fallback
+    }
     alert(`${titulo}: ${mensaje}`);
   }
 
   function toastOK(msg, reloadDelayMs = 1200) {
+    // Preferir el ModalManager global si existe
+    try {
+      if (window.showModal && typeof window.showModal.success === 'function' && window.modalManager) {
+        window.showModal.success(msg);
+        setTimeout(() => {
+          try { window.modalManager.closeModal(); } catch (e) {}
+          window.location.reload();
+        }, reloadDelayMs);
+        return;
+      }
+    } catch (e) {
+      // ignore y fallback
+    }
+
     const el = document.getElementById('confirmacionModal');
     if (!el) {
       console.log('✅', msg);

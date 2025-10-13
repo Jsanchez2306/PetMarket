@@ -55,7 +55,7 @@
       }
       .summary-row {
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         padding: 10px 0;
         border-bottom: 1px solid #dee2e6;
@@ -108,6 +108,32 @@
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
         color: white;
+      }
+
+      /* Responsive: tablet y móvil */
+      @media (max-width: 991.98px) {
+        .cart-container { padding-top: 80px; }
+        .cart-item { padding: 15px; display: flex; gap: 12px; align-items: center; }
+        .cart-item .product-image { width: 70px; height: 70px; }
+        .cart-item .product-info { flex: 1 1 auto; min-width: 0; }
+        .cart-item .quantity-controls { gap: 8px; }
+        .quantity-input { width: 50px; }
+        .cart-summary { position: static; margin-top: 16px; }
+        .summary-row { padding: 8px 0; }
+      }
+
+      @media (max-width: 575.98px) {
+        /* Móvil: apilar todo y usar tamaño compacto */
+        .cart-item { flex-direction: column; align-items: stretch; padding: 12px; }
+        .cart-item .product-top { display: flex; gap: 10px; align-items: center; }
+        .cart-item .product-image { width: 60px; height: 60px; }
+        .cart-item .product-info { padding-top: 6px; }
+        .quantity-controls { justify-content: flex-start; }
+        .quantity-input { width: 48px; }
+        .cart-summary { position: static; width: 100%; }
+        .btn-pagar { width: 100%; padding: 12px; }
+        .loading-overlay { align-items: center; justify-content: center; }
+        .empty-cart { padding: 40px 12px; }
       }
 
       /* Estilos para la Factura Modal */

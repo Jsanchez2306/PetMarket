@@ -16,7 +16,7 @@ class HeaderUnificado {
     this.loadUserInfo();
     this.updateHeader();
     this.setupCartButtons();
-    this.setupStickyHeader(); // Nuevo: configurar header fijo
+    this.setupStickyHeader(); // configurar header fijo
     
     // IMPORTANTE: Cargar contador del carrito siempre
     this.loadCartCountFromLocalStorage();

@@ -449,20 +449,26 @@ function renderizarCarrito() {
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
+                        
                     </div>
-                    <div class="col-md-1">
-                        <p class="mb-0 fw-bold">$${subtotalItem.toLocaleString('es-CO')}</p>
-                        <small class="text-muted">Subtotal</small>
+                    
+
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <p class="mb-0 fw-bold">$${subtotalItem.toLocaleString('es-CO')}</p>
+                            <small class="text-muted">Subtotal</small>
+                        </div>
+
+                        <div class="col-md-1 ms-4">
+                            <button class="btn btn-outline-danger btn-sm btn-eliminar-item" 
+                                    data-product-id="${item.productId}"
+                                    title="Eliminar producto">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-md-1">
-                        <button class="btn btn-outline-danger btn-sm btn-eliminar-item" 
-                                data-product-id="${item.productId}"
-                                title="Eliminar producto">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+               </div>
+           </div>
         `;
     }).join('');
     
