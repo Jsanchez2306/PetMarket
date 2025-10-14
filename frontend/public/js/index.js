@@ -49,14 +49,14 @@ function verificarSiEsAdmin() {
         // Verificar si existe headerUnificado y tiene información del usuario
         if (window.headerUnificado && window.headerUnificado.userInfo) {
             const userInfo = window.headerUnificado.userInfo;
-            return userInfo.rol === 'admin';
+            return userInfo.rol === 'admin' || userInfo.rol === 'empleado';
         }
         
         // Verificación alternativa usando localStorage
         const token = localStorage.getItem('token');
         if (token) {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.rol === 'admin';
+            return payload.rol === 'admin' || payload.rol === 'empleado';
         }
         
         // CAMBIO IMPORTANTE: Si no hay token, NO es admin (usuario no autenticado puede comprar)
