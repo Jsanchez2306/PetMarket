@@ -263,7 +263,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <form id="formLogin">
+  <form id="formLogin">
           <div class="mb-3">
             <label for="loginCorreo" class="form-label">Correo electrónico</label>
             <div class="input-group">
@@ -279,6 +279,13 @@
             </div>
           </div>
           <div id="loginMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
+
+          <% if (RECAPTCHA_ENABLED && RECAPTCHA_SITE_KEY) { %>
+          <!-- Google reCAPTCHA v2 -->
+          <div class="mb-3 d-flex justify-content-center">
+            <div id="loginRecaptcha" class="g-recaptcha" data-sitekey="<%= RECAPTCHA_SITE_KEY %>"></div>
+          </div>
+          <% } %>
           <button type="submit" class="btn btn-primary w-100">Ingresar</button>
           <div class="text-center mt-3">
             <a href="#" id="olvidoPasswordLink" data-bs-toggle="modal" data-bs-target="#recuperarPasswordModal"
@@ -307,6 +314,11 @@
     </div>
   </div>
 </div>
+
+<!-- Script de Google reCAPTCHA (solo si está habilitado) -->
+<% if (RECAPTCHA_ENABLED && RECAPTCHA_SITE_KEY) { %>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<% } %>
 
 <!-- Modal para actualizar datos de perfil -->
 <div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="perfilModalLabel" aria-hidden="true">

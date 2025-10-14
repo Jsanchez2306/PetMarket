@@ -451,12 +451,28 @@ class HeaderUnificado {
     const errorAlert = document.getElementById('loginMensajeError');
     if (errorAlert) { errorAlert.classList.add('d-none'); errorAlert.textContent = ''; }
 
+    // Obtener token de reCAPTCHA si existe el widget
+    let recaptchaToken = null;
+    try {
+      if (window.grecaptcha && document.getElementById('loginRecaptcha')) {
+        recaptchaToken = grecaptcha.getResponse();
+        if (!recaptchaToken) {
+          // Mostrar mensaje amigable si no ha pasado el captcha
+          if (errorAlert) {
+            errorAlert.textContent = 'Por favor confirma que no eres un robot.';
+            errorAlert.classList.remove('d-none');
+          }
+          return;
+        }
+      }
+    } catch {}
+
     try {
       const response = await fetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, contrasena })
+        body: JSON.stringify({ email, contrasena, recaptchaToken })
       });
       const data = await this.parseJSONSafe(response);
       if (response.ok) {
@@ -549,6 +565,8 @@ class HeaderUnificado {
         loginError.classList.remove('d-none');
       }
     }
+    // Resetear captcha (si corresponde) para permitir reintentar
+    try { if (window.grecaptcha && document.getElementById('loginRecaptcha')) grecaptcha.reset(); } catch {}
   }
 
   async handleRegister(e) {

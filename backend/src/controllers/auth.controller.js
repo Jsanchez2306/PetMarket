@@ -76,9 +76,38 @@ exports.registro = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, contrasena } = req.body;
+    const { email, contrasena, recaptchaToken } = req.body;
     if (!email || !contrasena) {
       return res.status(400).json({ mensaje: 'Faltan campos' });
+    }
+
+    // Verificación de Google reCAPTCHA (si está habilitado)
+    try {
+      const enabled = ((process.env.RECAPTCHA_ENABLED || 'false').trim().toLowerCase()) === 'true';
+      if (enabled) {
+        if (!recaptchaToken || typeof recaptchaToken !== 'string' || !recaptchaToken.trim()) {
+          return res.status(400).json({ mensaje: 'Validación reCAPTCHA requerida' });
+        }
+        const secret = process.env.RECAPTCHA_SECRET_KEY;
+        if (!secret) {
+          console.warn('⚠️ RECAPTCHA habilitado pero falta RECAPTCHA_SECRET_KEY');
+        } else {
+          const axios = require('axios');
+          const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
+          const params = new URLSearchParams();
+          params.append('secret', secret);
+          params.append('response', recaptchaToken);
+          // opcional: params.append('remoteip', req.ip);
+          const { data: gResp } = await axios.post(verifyURL, params);
+          if (!gResp || gResp.success !== true) {
+            const reason = Array.isArray(gResp && gResp['error-codes']) ? gResp['error-codes'].join(', ') : 'fallo de verificación';
+            return res.status(400).json({ mensaje: 'reCAPTCHA inválido', detalle: reason });
+          }
+        }
+      }
+    } catch (rcErr) {
+      console.error('❌ Error verificando reCAPTCHA:', rcErr.message);
+      return res.status(400).json({ mensaje: 'Error al verificar reCAPTCHA' });
     }
 
     const emailLimpio = email.trim().toLowerCase();

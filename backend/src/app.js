@@ -51,6 +51,10 @@ app.use(session({
 
 console.log('📦 Sesiones configuradas');
 
+// Exponer configuración básica a las vistas (EJS)
+app.locals.RECAPTCHA_ENABLED = ((process.env.RECAPTCHA_ENABLED || 'false').trim().toLowerCase()) === 'true';
+app.locals.RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || '';
+
 // Middleware para prevenir caché en rutas administrativas
 const noCache = (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
