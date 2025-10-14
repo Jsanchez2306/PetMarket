@@ -233,6 +233,13 @@
             </label>
           </div>
           
+
+          <% if (RECAPTCHA_ENABLED && RECAPTCHA_SITE_KEY) { %>
+          <!-- Google reCAPTCHA v2 para registro -->
+          <div class="mb-3 d-flex justify-content-center">
+            <div id="registerRecaptcha" data-sitekey="<%= RECAPTCHA_SITE_KEY %>"></div>
+          </div>
+          <% } %>
           <div id="registroMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
           
           <div class="d-grid">

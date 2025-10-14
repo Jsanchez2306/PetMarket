@@ -139,6 +139,49 @@ class HeaderUnificado {
         } catch {}
       });
     }
+
+    // Renderizar reCAPTCHA en el modal de registro
+    const registerModal = document.getElementById('registerModal');
+    if (registerModal) {
+      registerModal.addEventListener('show.bs.modal', () => {
+        try {
+          const container = document.getElementById('registerRecaptcha');
+          if (container && window.isRecaptchaReady && window.isRecaptchaReady()) {
+            if (typeof container.dataset.rendered === 'undefined') {
+              const widgetId = grecaptcha.render(container, {
+                sitekey: window.LOGIN_RECAPTCHA_SITE_KEY,
+                theme: 'light',
+                size: 'normal',
+                callback: () => {
+                  const errorAlert = document.getElementById('registroMensajeError');
+                  if (errorAlert) errorAlert.classList.add('d-none');
+                },
+                'expired-callback': () => {
+                  const errorAlert = document.getElementById('registroMensajeError');
+                  if (errorAlert) {
+                    errorAlert.textContent = 'El reCAPTCHA expiró. Vuelve a marcar la casilla.';
+                    errorAlert.classList.remove('d-none');
+                  }
+                }
+              });
+              container.dataset.rendered = 'true';
+              container.dataset.widgetId = String(widgetId);
+              console.log('✅ reCAPTCHA registro renderizado (widgetId):', widgetId);
+            }
+          }
+        } catch (e) {
+          console.warn('⚠️ No se pudo renderizar reCAPTCHA en registro:', e.message);
+        }
+      });
+      registerModal.addEventListener('hidden.bs.modal', () => {
+        try {
+          const container = document.getElementById('registerRecaptcha');
+          if (container && container.dataset.widgetId && window.grecaptcha) {
+            grecaptcha.reset(Number(container.dataset.widgetId));
+          }
+        } catch {}
+      });
+    }
   }
 
   setupProfileModal() {
@@ -642,12 +685,27 @@ class HeaderUnificado {
     if (!registerData.direccion) delete registerData.direccion;
     delete registerData.confirmarContrasena;
 
+
+    // Obtener token de reCAPTCHA si existe el widget
+    let recaptchaToken = null;
+    try {
+      const container = document.getElementById('registerRecaptcha');
+      if (window.grecaptcha && container) {
+        const widgetId = container.dataset.widgetId ? Number(container.dataset.widgetId) : undefined;
+        recaptchaToken = typeof widgetId === 'number' ? grecaptcha.getResponse(widgetId) : grecaptcha.getResponse();
+        if (!recaptchaToken) {
+          this.showErrorInElement('registroMensajeError', 'Por favor confirma que no eres un robot.');
+          return;
+        }
+      }
+    } catch {}
+
     try {
       const response = await fetch('/auth/registro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(registerData)
+        body: JSON.stringify({ ...registerData, recaptchaToken })
       });
       const data = await this.parseJSONSafe(response);
 
@@ -692,6 +750,14 @@ class HeaderUnificado {
       console.error('❌ Error en registro:', error);
       this.showErrorInElement('registroMensajeError', 'Error de conexión con el servidor');
     }
+    // Resetear captcha (si corresponde) para permitir reintentar
+    try {
+      const container = document.getElementById('registerRecaptcha');
+      if (window.grecaptcha && container) {
+        const widgetId = container.dataset.widgetId ? Number(container.dataset.widgetId) : undefined;
+        if (typeof widgetId === 'number') grecaptcha.reset(widgetId); else grecaptcha.reset();
+      }
+    } catch {}
   }
 
   async loadProfileData() {
