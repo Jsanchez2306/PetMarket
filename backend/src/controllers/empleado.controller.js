@@ -21,10 +21,15 @@ function validarCedula(cedula) {
   if (!/^[0-9]{6,15}$/.test(v)) return 'La cédula debe tener entre 6 y 15 dígitos numéricos';
   return null;
 }
-function validarEmail(email) {
+function validarEmail(email, esParaCrear = false) {
   if (isEmpty(email)) return 'El correo electrónico es obligatorio';
   const v = normStr(email).toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'El formato del correo electrónico no es válido';
+  
+  if (esParaCrear && !v.endsWith('@petmarket.com')) {
+    return 'El correo debe ser de PetMarket (debe terminar con @petmarket.com)';
+  }
+  
   return null;
 }
 function validarTelefono(telefono) {
@@ -47,7 +52,7 @@ function validarCargo(cargo) {
   return null;
 }
 function validarPassword(contrasena, requerida = true) {
-  if (!requerida && isEmpty(contrasena)) return null; // opcional en editar
+  if (!requerida && isEmpty(contrasena)) return null; 
   if (isEmpty(contrasena)) return 'La contraseña es obligatoria';
   const v = String(contrasena);
   if (v.length < 6) return 'La contraseña debe tener al menos 6 caracteres y contener letras y números';
@@ -95,7 +100,7 @@ exports.crearEmpleado = async (req, res) => {
     // Validaciones de contenido
     const eNom = validarNombre(data.nombre); if (eNom) errores.nombre = eNom;
     const eCed = validarCedula(data.cedula); if (eCed) errores.cedula = eCed;
-    const eEml = validarEmail(data.email); if (eEml) errores.email = eEml;
+    const eEml = validarEmail(data.email, true); if (eEml) errores.email = eEml; // true = validación para crear empleado
     const eTel = validarTelefono(data.telefono); if (eTel) errores.telefono = eTel;
     const eDir = validarDireccion(data.direccion); if (eDir) errores.direccion = eDir;
     const eCar = validarCargo(data.cargo); if (eCar) errores.cargo = eCar;

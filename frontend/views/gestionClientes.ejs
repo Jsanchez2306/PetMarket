@@ -107,7 +107,8 @@
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
                                 <div id="error-edit-email" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="email" class="form-control" id="edit-email" required />
+                                <input type="email" class="form-control" id="edit-email" disabled required style="background-color: #f8f9fa; opacity: 0.8; cursor: not-allowed;" />
+                                <small class="text-muted"><i class="fas fa-lock me-1"></i>El email no se puede modificar</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Teléfono</label>
@@ -124,7 +125,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Contraseña</label>
                                 <div id="error-edit-password" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                                <input type="text" class="form-control" id="edit-password"
+                                <input type="password" class="form-control" id="edit-password"
                                     placeholder="Dejar vacío para no cambiar" />
                                 <small class="text-muted">Mínimo 6 caracteres</small>
                             </div>
@@ -182,7 +183,7 @@
         </div>
 
         <!-- Modales de confirmación / eliminación -->
-        <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="confirmacionClienteModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content custom-modal">
                     <div class="modal-header custom-modal-header">
@@ -190,13 +191,13 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body text-center">
-                        <p>Operación realizada correctamente.</p>
+                        <p id="mensajeExitoCliente">Acción realizada correctamente.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade" id="confirmarEliminacionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="confirmarEliminacionClienteModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content custom-modal">
                     <div class="modal-header custom-modal-header">
@@ -206,13 +207,13 @@
                     <div class="modal-body">¿Estás seguro que deseas eliminar este cliente?</div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+                        <button type="button" class="btn btn-danger" id="btnConfirmarEliminarCliente">Eliminar</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade" id="eliminacionExitosaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="eliminacionClienteExitosaModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content custom-modal">
                     <div class="modal-header custom-modal-header">
@@ -230,7 +231,6 @@
             <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
             <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-            <script src="/js/modales.js"></script>
             <script src="/js/gestionClientes.js"></script>
             <script src="/js/headerUnificado.js"></script>
 </body>

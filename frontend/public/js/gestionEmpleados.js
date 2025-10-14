@@ -141,13 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // ignore y fallback
     }
 
-    const el = document.getElementById('confirmacionModal');
+    const el = document.getElementById('confirmacionEmpleadoModal');
     if (!el) {
       console.log('✅', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
       return;
     }
-    const p = el.querySelector('.modal-body p');
+    const p = el.querySelector('#mensajeExitoEmpleado');
     if (p) p.textContent = msg;
 
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -182,10 +182,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
-  function validarEmail(email) {
+  function validarEmail(email, esParaAgregar = false) {
     if (isEmpty(email)) return 'El correo electrónico es obligatorio';
     const v = String(email).trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'El formato del correo electrónico no es válido';
+    
+    // Validación específica para agregar empleados: debe ser del dominio petmarket.com
+    if (esParaAgregar && !v.endsWith('@petmarket.com')) {
+      return 'El correo debe ser de PetMarket (debe terminar con @petmarket.com)';
+    }
+    
     return null;
   }
 
@@ -324,11 +330,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
+        // Habilitar temporalmente los campos disabled para enviarlos
+        const cedulaField = document.getElementById('edit-cedula');
+        const emailField = document.getElementById('edit-email');
+        if (cedulaField) cedulaField.disabled = false;
+        if (emailField) emailField.disabled = false;
+        
         const res = await fetch(`/empleados/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(data)
         });
+        
+        // Volver a deshabilitar los campos
+        if (cedulaField) cedulaField.disabled = true;
+        if (emailField) emailField.disabled = true;
         const result = await parseResponse(res);
 
         if (!res.ok) {
@@ -388,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const errores = {};
       const eNom = validarNombre(data.nombre); if (eNom) errores.nombre = eNom;
       const eCed = validarCedula(data.cedula); if (eCed) errores.cedula = eCed;
-      const eEml = validarEmail(data.email); if (eEml) errores.email = eEml;
+      const eEml = validarEmail(data.email, true); if (eEml) errores.email = eEml; // true = validación para agregar empleados
       const eTel = validarTelefono(data.telefono); if (eTel) errores.telefono = eTel;
       const eDir = validarDireccion(data.direccion); if (eDir) errores.direccion = eDir;
       const eCar = validarCargo(data.cargo); if (eCar) errores.cargo = eCar;
@@ -442,10 +458,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     idEliminar = emp.id;
-    showModal('confirmarEliminacionModal');
+    showModal('confirmarEliminacionEmpleadoModal');
   });
 
-  const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
+  const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarEmpleado');
   if (btnConfirmarEliminar) {
     btnConfirmarEliminar.addEventListener('click', async () => {
       if (!idEliminar) return;
@@ -462,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('Error al eliminar', res.status);
           return;
         }
-        hideModal('confirmarEliminacionModal');
+        hideModal('confirmarEliminacionEmpleadoModal');
         toastOK('Empleado eliminado exitosamente.');
         idEliminar = null;
       } catch (err) {

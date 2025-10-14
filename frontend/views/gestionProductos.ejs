@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="description" content="PetMarket - Gestión de Productos.">
@@ -17,263 +18,283 @@
   <link rel="stylesheet" href="/css/buttons.css">
   <link rel="icon" href="/Imagenes/HuellaPerro.png">
   <style>
-    .img-preview { max-width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6; }
-    .dato-label { font-weight: 600; }
-    .table td, .table th { vertical-align: middle; }
-    .modal-body small.text-muted { font-size: .75rem; }
+    .img-preview {
+      max-width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+
+    .dato-label {
+      font-weight: 600;
+    }
+
+    .table td,
+    .table th {
+      vertical-align: middle;
+    }
+
+    .modal-body small.text-muted {
+      font-size: .75rem;
+    }
   </style>
 </head>
+
 <body>
-    <%- include('partials/headerUnificado') %>
+  <%- include('partials/headerUnificado') %>
 
-  <main class="container my-5 main-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold">Gestión de Productos <i class="fas fa-boxes-stacked"></i></h2>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto">
-        <i class="fas fa-plus"></i> Agregar Producto
-      </button>
-    </div>
+    <main class="container my-5 main-content">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Gestión de Productos <i class="fas fa-boxes-stacked"></i></h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto">
+          <i class="fas fa-plus"></i> Agregar Producto
+        </button>
+      </div>
 
-    <div class="table-responsive">
-      <table id="tablaProductos" class="table table-striped table-bordered dt-responsive nowrap text-center" style="width:100%;">
-        <thead class="table-primary">
-          <tr>
-            <th>Nombre</th>
-            <th>Stock</th>
-            <th>Precio (COL)</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% productos.forEach(prod => { %>
-            <tr
-              data-id="<%= prod._id %>"
-              data-nombre="<%- prod.nombre %>"
-              data-descripcion="<%- prod.descripcion %>"
-              data-imagen="<%= prod.imagen %>"
-              data-precio="<%= prod.precio %>"
-              data-stock="<%= prod.stock %>"
-              data-categoria="<%= prod.categoria %>"
-              data-fecha="<%= prod.fechaRegistro %>"
-            >
-              <td><%- prod.nombre %></td>
-              <td><%= prod.stock %></td>
-              <td>$ <%= prod.precio.toFixed(2) %></td>
-              <td>
-                <button class="btn btn-info btn-sm btn-ver" title="Ver"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-warning btn-sm btn-editar" title="Editar"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger btn-sm btn-eliminar" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-              </td>
+      <div class="table-responsive">
+        <table id="tablaProductos" class="table table-striped table-bordered dt-responsive nowrap text-center"
+          style="width:100%;">
+          <thead class="table-primary">
+            <tr>
+              <th>Nombre</th>
+              <th>Stock</th>
+              <th>Precio (COL)</th>
+              <th>Acciones</th>
             </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  </main>
+          </thead>
+          <tbody>
+            <% productos.forEach(prod=> { %>
+              <tr data-id="<%= prod._id %>" data-nombre="<%- prod.nombre %>" data-descripcion="<%- prod.descripcion %>"
+                data-imagen="<%= prod.imagen %>" data-precio="<%= prod.precio %>" data-stock="<%= prod.stock %>"
+                data-categoria="<%= prod.categoria %>" data-fecha="<%= prod.fechaRegistro %>">
+                <td><%- prod.nombre %></td>
+                <td>
+                  <%= prod.stock %>
+                </td>
+                <td>$ <%= prod.precio.toFixed(2) %>
+                </td>
+                <td>
+                  <button class="btn btn-info btn-sm btn-ver" title="Ver"><i class="fas fa-eye"></i></button>
+                  <button class="btn btn-warning btn-sm btn-editar" title="Editar"><i class="fas fa-edit"></i></button>
+                  <button class="btn btn-danger btn-sm btn-eliminar" title="Eliminar"><i
+                      class="fas fa-trash-alt"></i></button>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </main>
 
-  <!-- Modal Ver Producto -->
-  <div class="modal fade" id="modalVerProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content custom-modal">
-        <div class="modal-header custom-modal-header">
-          <h5 class="modal-title">Detalles del Producto</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body row g-4">
-          <div class="col-md-5 text-center">
-            <img id="verImagen" class="img-preview mb-2" alt="Imagen producto">
-            <div><small class="text-muted" id="verFecha"></small></div>
+    <!-- Modal Ver Producto -->
+    <div class="modal fade" id="modalVerProducto" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content custom-modal">
+          <div class="modal-header custom-modal-header">
+            <h5 class="modal-title">Detalles del Producto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="col-md-7">
-            <p><span class="dato-label">Nombre:</span> <span id="verNombre"></span></p>
-            <p><span class="dato-label">Descripción:</span> <span id="verDescripcion"></span></p>
-            <p><span class="dato-label">Precio:</span> $<span id="verPrecio"></span></p>
-            <p><span class="dato-label">Stock:</span> <span id="verStock"></span></p>
-            <p><span class="dato-label">Categoría:</span> <span id="verCategoria" class="badge bg-secondary"></span></p>
+          <div class="modal-body row g-4">
+            <div class="col-md-5 text-center">
+              <img id="verImagen" class="img-preview mb-2" alt="Imagen producto">
+              <div><small class="text-muted" id="verFecha"></small></div>
+            </div>
+            <div class="col-md-7">
+              <p><span class="dato-label">Nombre:</span> <span id="verNombre"></span></p>
+              <p><span class="dato-label">Descripción:</span> <span id="verDescripcion"></span></p>
+              <p><span class="dato-label">Precio:</span> $<span id="verPrecio"></span></p>
+              <p><span class="dato-label">Stock:</span> <span id="verStock"></span></p>
+              <p><span class="dato-label">Categoría:</span> <span id="verCategoria" class="badge bg-secondary"></span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal Agregar Producto -->
-  <div class="modal fade" id="modalAgregarProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content custom-modal">
-        <div class="modal-header custom-modal-header">
-          <h5 class="modal-title">Agregar Nuevo Producto</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formAgregarProducto" enctype="multipart/form-data">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Nombre</label>
-                <div id="error-add-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="text" class="form-control" id="add-nombre" name="nombre" required>
+    <!-- Modal Agregar Producto -->
+    <div class="modal fade" id="modalAgregarProducto" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content custom-modal">
+          <div class="modal-header custom-modal-header">
+            <h5 class="modal-title">Agregar Nuevo Producto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formAgregarProducto" enctype="multipart/form-data">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre</label>
+                  <div id="error-add-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="text" class="form-control" id="add-nombre" name="nombre" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Precio (COL)</label>
+                  <div id="error-add-precio" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="number" step="0.01" min="0" max="3000000" class="form-control" id="add-precio"
+                    name="precio" required>
+                  <small class="text-muted">Máximo permitido: $ 3.000.000</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Stock</label>
+                  <div id="error-add-stock" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="number" min="0" max="1000" class="form-control" id="add-stock" name="stock" required>
+                  <small class="text-muted">Máximo: 1000 unidades</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Categoría</label>
+                  <div id="error-add-categoria" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <select class="form-select" id="add-categoria" name="categoria" required>
+                    <option value="">Seleccione...</option>
+                    <option value="accesorios">Accesorios</option>
+                    <option value="ropa">Ropa</option>
+                    <option value="juguetes">Juguetes</option>
+                    <option value="alimentos">Alimentos</option>
+                    <option value="higiene">Higiene</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Descripción</label>
+                  <div id="error-add-descripcion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <textarea class="form-control" rows="3" id="add-descripcion" name="descripcion" required></textarea>
+                  <small class="text-muted">Mínimo 10 caracteres</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Imagen</label>
+                  <div id="error-add-imagen" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="file" accept="image/*" class="form-control" id="add-imagen" name="imagen" required>
+                  <small class="text-muted">Formatos: jpg, jpeg, png, webp, gif. Máx: 5MB</small>
+                </div>
+                <div class="col-md-6 d-flex flex-column align-items-center">
+                  <img id="previewAdd" class="img-preview d-none mt-2" alt="Preview">
+                </div>
               </div>
-              <div class="col-md-6">
-                <label class="form-label">Precio (COL)</label>
-                <div id="error-add-precio" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" step="0.01" min="0" max="3000000" class="form-control" id="add-precio" name="precio" required>
-                <small class="text-muted">Máximo permitido: $ 3.000.000</small>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Stock</label>
-                <div id="error-add-stock" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" min="0" max="1000" class="form-control" id="add-stock" name="stock" required>
-                <small class="text-muted">Máximo: 1000 unidades</small>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Categoría</label>
-                <div id="error-add-categoria" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <select class="form-select" id="add-categoria" name="categoria" required>
-                  <option value="">Seleccione...</option>
-                  <option value="accesorios">Accesorios</option>
-                  <option value="ropa">Ropa</option>
-                  <option value="juguetes">Juguetes</option>
-                  <option value="alimentos">Alimentos</option>
-                  <option value="higiene">Higiene</option>
-                </select>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Descripción</label>
-                <div id="error-add-descripcion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <textarea class="form-control" rows="3" id="add-descripcion" name="descripcion" required></textarea>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Imagen</label>
-                <div id="error-add-imagen" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="file" accept="image/*" class="form-control" id="add-imagen" name="imagen" required>
-                <small class="text-muted">Formatos: jpg, jpeg, png, webp, gif. Máx: 5MB</small>
-              </div>
-              <div class="col-md-6 d-flex flex-column align-items-center">
-                <img id="previewAdd" class="img-preview d-none mt-2" alt="Preview">
-              </div>
-            </div>
-            <button type="submit" class="btn btn-success w-100 mt-3">Agregar Producto</button>
-          </form>
+              <button type="submit" class="btn btn-success w-100 mt-3">Agregar Producto</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal Editar Producto -->
-  <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content custom-modal">
-        <div class="modal-header custom-modal-header">
-          <h5 class="modal-title">Editar Producto</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formEditarProducto" enctype="multipart/form-data">
-            <input type="hidden" id="editarId">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Nombre</label>
-                <div id="error-edit-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="text" class="form-control" id="edit-nombre" name="nombre" required>
+    <!-- Modal Editar Producto -->
+    <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content custom-modal">
+          <div class="modal-header custom-modal-header">
+            <h5 class="modal-title">Editar Producto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEditarProducto" enctype="multipart/form-data">
+              <input type="hidden" id="editarId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre</label>
+                  <div id="error-edit-nombre" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="text" class="form-control" id="edit-nombre" name="nombre" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Precio (COL)</label>
+                  <div id="error-edit-precio" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="number" step="0.01" min="0" max="3000000" class="form-control" id="edit-precio"
+                    name="precio" required>
+                  <small class="text-muted">Máximo permitido: $ 3.000.000</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Stock</label>
+                  <div id="error-edit-stock" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="number" min="0" max="1000" class="form-control" id="edit-stock" name="stock" required>
+                  <small class="text-muted">Máximo: 1000 unidades</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Categoría</label>
+                  <div id="error-edit-categoria" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <select class="form-select" id="edit-categoria" name="categoria" required>
+                    <option value="">Seleccione...</option>
+                    <option value="accesorios">Accesorios</option>
+                    <option value="ropa">Ropa</option>
+                    <option value="juguetes">Juguetes</option>
+                    <option value="alimentos">Alimentos</option>
+                    <option value="higiene">Higiene</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Descripción</label>
+                  <div id="error-edit-descripcion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <textarea class="form-control" rows="3" id="edit-descripcion" name="descripcion" required></textarea>
+                  <small class="text-muted">Mínimo 10 caracteres</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Imagen (opcional)</label>
+                  <div id="error-edit-imagen" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
+                  <input type="file" accept="image/*" class="form-control" id="edit-imagen" name="imagen">
+                  <small class="text-muted">Si no seleccionas una nueva, se mantiene la actual. Máx: 5MB</small>
+                </div>
+                <div class="col-md-6 d-flex flex-column align-items-center">
+                  <img id="previewEdit" class="img-preview mt-2" alt="Preview">
+                </div>
               </div>
-              <div class="col-md-6">
-                <label class="form-label">Precio (COL)</label>
-                <div id="error-edit-precio" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" step="0.01" min="0" max="3000000" class="form-control" id="edit-precio" name="precio" required>
-                <small class="text-muted">Máximo permitido: $ 3.000.000</small>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Stock</label>
-                <div id="error-edit-stock" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="number" min="0" max="1000" class="form-control" id="edit-stock" name="stock" required>
-                <small class="text-muted">Máximo: 1000 unidades</small>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Categoría</label>
-                <div id="error-edit-categoria" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <select class="form-select" id="edit-categoria" name="categoria" required>
-                  <option value="">Seleccione...</option>
-                  <option value="accesorios">Accesorios</option>
-                  <option value="ropa">Ropa</option>
-                  <option value="juguetes">Juguetes</option>
-                  <option value="alimentos">Alimentos</option>
-                  <option value="higiene">Higiene</option>
-                </select>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Descripción</label>
-                <div id="error-edit-descripcion" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <textarea class="form-control" rows="3" id="edit-descripcion" name="descripcion" required></textarea>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Imagen (opcional)</label>
-                <div id="error-edit-imagen" class="alert alert-danger d-none py-2 px-3 mb-1"></div>
-                <input type="file" accept="image/*" class="form-control" id="edit-imagen" name="imagen">
-                <small class="text-muted">Si no seleccionas una nueva, se mantiene la actual. Máx: 5MB</small>
-              </div>
-              <div class="col-md-6 d-flex flex-column align-items-center">
-                <img id="previewEdit" class="img-preview mt-2" alt="Preview">
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 mt-3">Guardar Cambios</button>
-          </form>
+              <button type="submit" class="btn btn-primary w-100 mt-3">Guardar Cambios</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modales de confirmación / eliminación -->
-  <div class="modal fade" id="confirmacionProductoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content custom-modal">
-        <div class="modal-header custom-modal-header">
-          <h5 class="modal-title">¡Éxito!</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body text-center">
-          <p id="mensajeExitoProducto">Acción realizada correctamente.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="confirmarEliminacionProductoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content custom-modal">
-        <div class="modal-header custom-modal-header">
-          <h5 class="modal-title">Confirmar eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">¿Estás seguro que deseas eliminar este producto?</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" id="btnConfirmarEliminarProducto">Eliminar</button>
+    <!-- Modales de confirmación / eliminación -->
+    <div class="modal fade" id="confirmacionProductoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+          <div class="modal-header custom-modal-header">
+            <h5 class="modal-title">¡Éxito!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p id="mensajeExitoProducto">Acción realizada correctamente.</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="modal fade" id="eliminacionProductoExitosaModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content custom-modal">
-        <div class="modal-header custom-modal-header">
-          <h5 class="modal-title">¡Eliminado!</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="confirmarEliminacionProductoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+          <div class="modal-header custom-modal-header">
+            <h5 class="modal-title">Confirmar eliminación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">¿Estás seguro que deseas eliminar este producto?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarProducto">Eliminar</button>
+          </div>
         </div>
-        <div class="modal-body">El producto ha sido eliminado exitosamente.</div>
       </div>
     </div>
-  </div>
 
-  <%- include('partials/footer') %>
+    <div class="modal fade" id="eliminacionProductoExitosaModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+          <div class="modal-header custom-modal-header">
+            <h5 class="modal-title">¡Eliminado!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">El producto ha sido eliminado exitosamente.</div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Scripts -->
-  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-  <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
-  <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Header unificado maneja toda la lógica de roles -->
-  <script src="/js/headerUnificado.js"></script>
-  <script src="/js/gestionProductos.js"></script>
-  <script src="/js/modales.js"></script>
+    <%- include('partials/footer') %>
+
+      <!-- Scripts -->
+      <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+      <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+      <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+      <!-- Header unificado maneja toda la lógica de roles -->
+      <script src="/js/headerUnificado.js"></script>
+      <script src="/js/gestionProductos.js"></script>
 </body>
+
 </html>

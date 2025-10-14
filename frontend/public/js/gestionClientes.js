@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('token');
 
   // ====== Config de validaciones (sincroniza con backend) ======
-  const NOMBRE_MIN = 3;     // Ajusta a 2 si el backend usa 2
+  const NOMBRE_MIN = 3;     
   const NOMBRE_MAX = 50;
 
   // ====== Inicializar DataTable (si está disponible via jQuery) ======
@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let tr = el.closest('tr');
     if (!tr) return null;
     if (tr.classList.contains('child')) {
-      // fila padre real (responsive DataTables)
       tr = tr.previousElementSibling;
     }
     return tr;
@@ -107,14 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showErrorModal(titulo, mensaje) {
-    // Usar el ModalManager global si está disponible, sino fallback a alert
     try {
       if (window.showModal && typeof window.showModal.error === 'function') {
         window.showModal.error(titulo, mensaje);
         return;
       }
     } catch (e) {
-      // ignore and fallback
     }
     alert(`${titulo}: ${mensaje}`);
   }
@@ -134,14 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // ignore and fallback
     }
 
-    const el = document.getElementById('confirmacionModal');
+    const el = document.getElementById('confirmacionClienteModal');
     if (!el) {
       // Fallback consola si no existe modal
       console.log('', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
       return;
     }
-    const p = el.querySelector('.modal-body p');
+    const p = el.querySelector('#mensajeExitoCliente');
     if (p) p.textContent = msg;
 
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -291,11 +288,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
+        // Habilitar temporalmente el campo email disabled para enviarlo
+        const emailField = document.getElementById('edit-email');
+        if (emailField) emailField.disabled = false;
+        
         const res = await fetch(`/clientes/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(data)
         });
+        
+        // Volver a deshabilitar el campo email
+        if (emailField) emailField.disabled = true;
         const result = await parseResponse(res);
 
         if (!res.ok) {
@@ -407,10 +411,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     idEliminar = data.id;
-    showModal('confirmarEliminacionModal');
+    showModal('confirmarEliminacionClienteModal');
   });
 
-  const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
+  const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarCliente');
   if (btnConfirmarEliminar) {
     btnConfirmarEliminar.addEventListener('click', async () => {
       if (!idEliminar) return;
@@ -427,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('Error al eliminar', res.status);
           return;
         }
-        hideModal('confirmarEliminacionModal');
+        hideModal('confirmarEliminacionClienteModal');
         toastOK('Cliente eliminado exitosamente.');
         idEliminar = null;
       } catch (err) {
