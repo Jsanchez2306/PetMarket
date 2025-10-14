@@ -1,7 +1,14 @@
+const { createLogger } = require('../utils/logger');
+const log = createLogger('auth');
+
+log.debug('controller loaded at', new Date().toISOString());
+
 const Cliente = require('../models/cliente.model');
 const Empleado = require('../models/empleado.model');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
+const bcrypt = require('bcryptjs');
+const { verifyRecaptcha } = require('../utils/recaptcha');
 
 
 exports.registro = async (req, res) => {
@@ -9,51 +16,8 @@ exports.registro = async (req, res) => {
     const { nombre, email, contrasena, telefono, direccion, recaptchaToken } = req.body;
 
     // Verificación de Google reCAPTCHA (si está habilitado y enforzada)
-    try {
-      const enabled = ((process.env.RECAPTCHA_ENABLED || 'false').trim().toLowerCase()) === 'true';
-      const enforce = ((process.env.RECAPTCHA_ENFORCE || 'false').trim().toLowerCase()) === 'true';
-      if (enabled && enforce) {
-        if (!recaptchaToken || typeof recaptchaToken !== 'string' || !recaptchaToken.trim()) {
-          return res.status(400).json({ mensaje: 'Validación reCAPTCHA requerida' });
-        }
-        const secret = process.env.RECAPTCHA_SECRET_KEY;
-        if (!secret) {
-          console.warn('⚠️ RECAPTCHA habilitado pero falta RECAPTCHA_SECRET_KEY');
-        } else {
-          const axios = require('axios');
-          const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
-          const params = new URLSearchParams();
-          params.append('secret', secret);
-          params.append('response', recaptchaToken);
-          // Enviar IP del cliente para mayor precisión
-          const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim();
-          if (clientIp) params.append('remoteip', clientIp);
-          const { data: gResp } = await axios.post(verifyURL, params, { timeout: 5000 });
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('🧪 reCAPTCHA resp (registro):', gResp);
-          }
-          if (!gResp || gResp.success !== true) {
-            const codes = Array.isArray(gResp && gResp['error-codes']) ? gResp['error-codes'] : [];
-            let mensaje = 'Validación reCAPTCHA fallida';
-            if (codes.includes('missing-input-response')) mensaje = 'Por favor completa el reCAPTCHA';
-            else if (codes.includes('invalid-input-response')) mensaje = 'reCAPTCHA inválido. Recarga la página e inténtalo de nuevo';
-            else if (codes.includes('timeout-or-duplicate')) mensaje = 'El reCAPTCHA expiró. Vuelve a marcar la casilla';
-            else if (codes.includes('invalid-input-secret') || codes.includes('missing-input-secret')) mensaje = 'Error de configuración del servidor reCAPTCHA';
-            else if (codes.includes('bad-request')) mensaje = 'Solicitud reCAPTCHA inválida';
-            const detalle = codes.join(', ') || 'fallo de verificación';
-            return res.status(400).json({ mensaje, detalle });
-          }
-        }
-      } else {
-        // No enforzar: seguir con el registro sin validar token
-        if (enabled && !enforce) {
-          console.log('ℹ️ reCAPTCHA habilitado en UI pero no enforzado en backend (solo visual) [registro]');
-        }
-      }
-    } catch (rcErr) {
-      console.error('❌ Error verificando reCAPTCHA (registro):', rcErr.message);
-      return res.status(400).json({ mensaje: 'Error al verificar reCAPTCHA' });
-    }
+    const rc = await verifyRecaptcha({ token: recaptchaToken, req, context: 'registro' });
+    if (!rc.ok) return res.status(400).json({ mensaje: rc.message, detalle: rc.detalle });
 
     if (!nombre || !email || !contrasena) {
       return res.status(400).json({ mensaje: 'Campos requeridos incompletos' });
@@ -123,69 +87,55 @@ exports.registro = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  log.debug('login start');
   try {
     const { email, contrasena, recaptchaToken } = req.body;
     if (!email || !contrasena) {
       return res.status(400).json({ mensaje: 'Faltan campos' });
     }
 
-    // Verificación de Google reCAPTCHA (si está habilitado y enforzada)
-    try {
-      const enabled = ((process.env.RECAPTCHA_ENABLED || 'false').trim().toLowerCase()) === 'true';
-      const enforce = ((process.env.RECAPTCHA_ENFORCE || 'false').trim().toLowerCase()) === 'true';
-      if (enabled && enforce) {
-        if (!recaptchaToken || typeof recaptchaToken !== 'string' || !recaptchaToken.trim()) {
-          return res.status(400).json({ mensaje: 'Validación reCAPTCHA requerida' });
-        }
-        const secret = process.env.RECAPTCHA_SECRET_KEY;
-        if (!secret) {
-          console.warn('⚠️ RECAPTCHA habilitado pero falta RECAPTCHA_SECRET_KEY');
-        } else {
-          const axios = require('axios');
-          const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
-          const params = new URLSearchParams();
-          params.append('secret', secret);
-          params.append('response', recaptchaToken);
-          // Enviar IP del cliente para mayor precisión
-          const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim();
-          if (clientIp) params.append('remoteip', clientIp);
-          const { data: gResp } = await axios.post(verifyURL, params, { timeout: 5000 });
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('🧪 reCAPTCHA resp:', gResp);
-          }
-          if (!gResp || gResp.success !== true) {
-            const codes = Array.isArray(gResp && gResp['error-codes']) ? gResp['error-codes'] : [];
-            let mensaje = 'Validación reCAPTCHA fallida';
-            if (codes.includes('missing-input-response')) mensaje = 'Por favor completa el reCAPTCHA';
-            else if (codes.includes('invalid-input-response')) mensaje = 'reCAPTCHA inválido. Recarga la página e inténtalo de nuevo';
-            else if (codes.includes('timeout-or-duplicate')) mensaje = 'El reCAPTCHA expiró. Vuelve a marcar la casilla';
-            else if (codes.includes('invalid-input-secret') || codes.includes('missing-input-secret')) mensaje = 'Error de configuración del servidor reCAPTCHA';
-            else if (codes.includes('bad-request')) mensaje = 'Solicitud reCAPTCHA inválida';
-            const detalle = codes.join(', ') || 'fallo de verificación';
-            return res.status(400).json({ mensaje, detalle });
-          }
-        }
-      } else {
-        // No enforzar: seguir con el login sin validar token
-        if (enabled && !enforce) {
-          console.log('ℹ️ reCAPTCHA habilitado en UI pero no enforzado en backend (solo visual)');
-        }
-      }
-    } catch (rcErr) {
-      console.error('❌ Error verificando reCAPTCHA:', rcErr.message);
-      return res.status(400).json({ mensaje: 'Error al verificar reCAPTCHA' });
-    }
+    // reCAPTCHA
+    const rc = await verifyRecaptcha({ token: recaptchaToken, req, context: 'login' });
+    if (!rc.ok) return res.status(400).json({ mensaje: rc.message, detalle: rc.detalle });
 
-    const emailLimpio = email.trim().toLowerCase();
-    let usuario = await Cliente.findOne({ email: emailLimpio });
-    let tipoUsuario = 'cliente';
+  const emailLimpio = email.trim().toLowerCase();
+  log.debug('lookup', emailLimpio);
+    
+    // Preferir Empleado primero por si existe el mismo correo en ambas colecciones
+    let usuario = await Empleado.findOne({ email: emailLimpio });
+    let tipoUsuario = 'empleado';
 
     if (!usuario) {
-      usuario = await Empleado.findOne({ email: emailLimpio });
-      tipoUsuario = 'empleado';
+      console.log('👤 No encontrado en Empleados, buscando en Clientes...');
+      usuario = await Cliente.findOne({ email: emailLimpio });
+      tipoUsuario = 'cliente';
     }
 
-    if (!usuario || usuario.contrasena !== contrasena.trim()) {
+    log.debug('found', !!usuario, 'tipo:', tipoUsuario, 'rol:', usuario?.rol);
+
+    // Verificación híbrida: soporta hash bcrypt o texto plano
+  const provided = contrasena.trim();
+  log.debug('pwd in:', provided?.substring(0, 6) + '***');
+    
+    let passwordOK = false;
+    try {
+      if (!usuario) { 
+        passwordOK = false;
+        console.log('❌ No hay usuario, password fail');
+      } else if (usuario.contrasena && usuario.contrasena.startsWith('$2')) {
+        passwordOK = await bcrypt.compare(provided, usuario.contrasena);
+        log.debug('bcrypt compare:', passwordOK);
+      } else {
+        passwordOK = (usuario.contrasena === provided);
+        log.debug('plain compare:', passwordOK);
+      }
+    } catch (e) { 
+      passwordOK = false; 
+      log.error('pwd verify error:', e.message);
+    }
+
+    if (!passwordOK) {
+      log.debug('login failed: wrong creds');
       return res.status(401).json({ mensaje: 'Correo o contraseña incorrectos' });
     }
 
@@ -264,7 +214,17 @@ exports.actualizarPerfil = async (req, res) => {
     }
     if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
 
-    if (usuario.contrasena !== contrasenaActual.trim()) {
+    // Verificación híbrida de contraseña actual
+    let passOK = false;
+    try {
+      if (usuario.contrasena && usuario.contrasena.startsWith('$2')) {
+        passOK = await bcrypt.compare(contrasenaActual.trim(), usuario.contrasena);
+      } else {
+        passOK = (usuario.contrasena === contrasenaActual.trim());
+      }
+    } catch (e) { passOK = false; }
+
+    if (!passOK) {
       return res.status(401).json({ mensaje: 'Contraseña actual incorrecta' });
     }
 

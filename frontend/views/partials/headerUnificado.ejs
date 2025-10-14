@@ -327,6 +327,40 @@
 <script>
   window.onLoginRecaptchaLoad = function () {
     window.recaptchaApiReady = true;
+
+    // Intentar renderizar inmediatamente si los contenedores existen (modal abierto o no)
+    try {
+      const tryRender = (id) => {
+        const el = document.getElementById(id);
+        if (el && typeof el.dataset.rendered === 'undefined' && window.grecaptcha) {
+          const widgetId = grecaptcha.render(el, {
+            sitekey: window.LOGIN_RECAPTCHA_SITE_KEY,
+            theme: 'light',
+            size: 'normal',
+            callback: () => {
+              const errorId = id === 'loginRecaptcha' ? 'loginMensajeError' : 'registroMensajeError';
+              const errorEl = document.getElementById(errorId);
+              if (errorEl) errorEl.classList.add('d-none');
+            },
+            'expired-callback': () => {
+              const errorId = id === 'loginRecaptcha' ? 'loginMensajeError' : 'registroMensajeError';
+              const errorEl = document.getElementById(errorId);
+              if (errorEl) {
+                errorEl.textContent = 'El reCAPTCHA expiró. Vuelve a marcar la casilla.';
+                errorEl.classList.remove('d-none');
+              }
+            }
+          });
+          el.dataset.rendered = 'true';
+          el.dataset.widgetId = String(widgetId);
+          console.log('✅ reCAPTCHA renderizado onLoad:', id, 'widgetId:', widgetId);
+        }
+      };
+      tryRender('loginRecaptcha');
+      tryRender('registerRecaptcha');
+    } catch (e) {
+      console.warn('⚠️ No se pudo renderizar reCAPTCHA onLoad:', e.message);
+    }
   };
   // Helper para saber si el API está listo
   window.isRecaptchaReady = function () { return !!(window.recaptchaApiReady && window.grecaptcha); };

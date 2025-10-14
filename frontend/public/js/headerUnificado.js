@@ -554,12 +554,16 @@ class HeaderUnificado {
         const widgetId = container.dataset.widgetId ? Number(container.dataset.widgetId) : undefined;
         recaptchaToken = typeof widgetId === 'number' ? grecaptcha.getResponse(widgetId) : grecaptcha.getResponse();
         if (!recaptchaToken) {
-          // Mostrar mensaje amigable si no ha pasado el captcha
-          if (errorAlert) {
-            errorAlert.textContent = 'Por favor confirma que no eres un robot.';
-            errorAlert.classList.remove('d-none');
+          // En localhost permitimos continuar aunque no haya token (backend no lo exige)
+          const isLocal = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+          if (!isLocal) {
+            // Mostrar mensaje amigable si no ha pasado el captcha fuera de local
+            if (errorAlert) {
+              errorAlert.textContent = 'Por favor confirma que no eres un robot.';
+              errorAlert.classList.remove('d-none');
+            }
+            return;
           }
-          return;
         }
       }
     } catch {}

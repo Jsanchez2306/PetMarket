@@ -1,3 +1,4 @@
+console.log('🔥 AUTH ROUTES CARGADAS - ' + new Date().toISOString());
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -6,7 +7,17 @@ const { validarAuth } = require('../middlewares/validateAuth');
 
 // Rutas para registro y login
 router.post('/registro', authController.registro);
-router.post('/login', authController.login);
+// Logger ligero para diagnosticar llegada a la ruta
+router.post('/login', (req, res, next) => {
+	try {
+		console.log('🚨 [AUTH] POST /auth/login');
+		if (req && req.body) {
+			const email = (req.body.email || '').toString();
+			console.log('� email:', email);
+		}
+	} catch {}
+	next();
+}, authController.login);
 
 // Ruta para recuperación de contraseña
 router.post('/recuperar-password', authController.recuperarPassword);

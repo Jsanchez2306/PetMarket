@@ -1,3 +1,33 @@
+/* Carrusel: proporción consistente para imagen y video */
+#miCarrusel {
+  max-width: min(96vw, 980px);
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.12);
+  border: 2px solid #e6e6e6;
+  background: #fff;
+}
+#miCarrusel .carousel-inner { border-radius: inherit; overflow: hidden; }
+#miCarrusel .carousel-item { height: auto; }
+
+.big-carousel-img,
+.publicidad1,
+.publicidad2,
+.video1 {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+.big-carousel-img,
+.publicidad1,
+.publicidad2 {
+  object-fit: cover;
+  background: #f8f9fa;
+}
+.video1 { border: 0; background: #111; }
+
+@media (max-width: 576px) {
+  #miCarrusel { max-width: 98vw; }
+}
 main {
   flex: 1
 }
