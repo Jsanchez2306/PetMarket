@@ -71,10 +71,7 @@ cartSchema.pre('save', function(next) {
   // Calcular total
   this.total = this.subtotal + this.iva;
   
-  console.log('🧮 Calculando totales del carrito:');
-  console.log('  - Subtotal:', this.subtotal);
-  console.log('  - IVA (19%):', this.iva);
-  console.log('  - Total:', this.total);
+  
   
   next();
 });
@@ -148,11 +145,7 @@ cartSchema.methods.recalculateTotals = function() {
   // Calcular total
   this.total = this.subtotal + this.iva;
   
-  console.log('🔄 Totales recalculados:');
-  console.log('  - Items válidos:', validItems.length);
-  console.log('  - Subtotal:', this.subtotal);
-  console.log('  - IVA (19%):', this.iva);
-  console.log('  - Total:', this.total);
+  
   
   return {
     subtotal: this.subtotal,

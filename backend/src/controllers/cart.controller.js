@@ -7,26 +7,19 @@ const Producto = require('../models/producto.model');
 exports.renderizarCarrito = async (req, res) => {
   try {
     // CAMBIO: Carrito ahora funciona con localStorage, no requiere autenticación para ver
-    console.log('🛒 Renderizando carrito (localStorage mode)');
     return res.render('carrito', { 
       cart: { items: [], subtotal: 0, iva: 0, total: 0 },
       message: 'Carrito manejado con localStorage' 
     });
-
-    console.log('🛒 Renderizando carrito para usuario:', userId);
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
     
     if (!cart) {
-      console.log('📭 No hay carrito para este usuario');
       return res.render('carrito', { cart: { items: [], subtotal: 0, iva: 0, total: 0 } });
     }
-
-    console.log('🔍 Carrito encontrado con', cart.items.length, 'items');
 
     // Filtrar items con productos eliminados (product es null)
     const validItems = cart.items.filter(item => {
       if (item.product === null) {
-        console.log('⚠️ Item con producto eliminado encontrado');
         return false;
       }
       
@@ -35,7 +28,6 @@ exports.renderizarCarrito = async (req, res) => {
       const quantity = Number(item.quantity);
       
       if (isNaN(price) || isNaN(quantity) || price < 0 || quantity <= 0) {
-        console.log('⚠️ Item con datos inválidos:', { price: item.price, quantity: item.quantity });
         return false;
       }
       
@@ -44,7 +36,6 @@ exports.renderizarCarrito = async (req, res) => {
     
     // Si hay items inválidos, limpiar y recalcular
     if (validItems.length !== cart.items.length) {
-      console.log(`🧹 Limpiando ${cart.items.length - validItems.length} items inválidos del carrito`);
       cart.items = validItems;
       
       // Usar el método del modelo para recalcular
@@ -60,8 +51,7 @@ exports.renderizarCarrito = async (req, res) => {
       total: Number(cart.total) || 0
     };
 
-    console.log('💰 Totales del carrito:', cartData);
-    res.render('carrito', { cart: cartData });
+  res.render('carrito', { cart: cartData });
   } catch (error) {
     console.error('❌ Error al renderizar carrito:', error);
     res.status(500).send('Error al cargar el carrito');
@@ -86,11 +76,9 @@ exports.obtenerCarrito = async (req, res) => {
       });
     }
 
-    console.log('📡 API: Obteniendo carrito para usuario:', userId);
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+  const cart = await Cart.findOne({ user: userId }).populate('items.product');
     
     if (!cart) {
-      console.log('📭 API: No hay carrito para este usuario');
       return res.status(200).json({
         items: [],
         subtotal: 0,
@@ -100,12 +88,9 @@ exports.obtenerCarrito = async (req, res) => {
       });
     }
 
-    console.log('🔍 API: Carrito encontrado con', cart.items.length, 'items');
-
     // Filtrar items válidos
     const validItems = cart.items.filter(item => {
       if (item.product === null) {
-        console.log('⚠️ API: Item con producto eliminado encontrado');
         return false;
       }
       
@@ -114,7 +99,6 @@ exports.obtenerCarrito = async (req, res) => {
       const quantity = Number(item.quantity);
       
       if (isNaN(price) || isNaN(quantity) || price < 0 || quantity <= 0) {
-        console.log('⚠️ API: Item con datos inválidos:', { price: item.price, quantity: item.quantity });
         return false;
       }
       
@@ -123,7 +107,6 @@ exports.obtenerCarrito = async (req, res) => {
     
     // Si hay items inválidos, limpiar y recalcular
     if (validItems.length !== cart.items.length) {
-      console.log(`🧹 API: Limpiando ${cart.items.length - validItems.length} items inválidos del carrito`);
       cart.items = validItems;
       cart.recalculateTotals();
       await cart.save();
@@ -138,8 +121,7 @@ exports.obtenerCarrito = async (req, res) => {
       itemCount: cart.items.reduce((sum, item) => sum + Number(item.quantity), 0)
     };
 
-    console.log('💰 API: Totales del carrito:', response);
-    res.status(200).json(response);
+  res.status(200).json(response);
   } catch (error) {
     console.error('❌ API: Error al obtener carrito:', error);
     res.status(500).json({ mensaje: 'Error al obtener el carrito', error: error.message });
@@ -150,59 +132,43 @@ exports.obtenerCarrito = async (req, res) => {
  * Agregar producto al carrito - DESPROTEGIDA para localStorage
  */
 exports.agregarAlCarrito = async (req, res) => {
-  console.log('🛒 === INICIO AGREGAR AL CARRITO ===');
+  
   
   try {
     const userId = req.session?.user?.id || req.user?.id;
-    console.log('UserId extraído:', userId);
+    
     
     // Si no hay usuario, devolver respuesta para localStorage
     if (!userId) {
-      console.log('📱 Sin usuario - operación manejada por localStorage');
       return res.status(200).json({ 
         mensaje: 'Operación manejada por localStorage en el frontend',
         localStorage: true 
       });
     }
-
     const { productId, quantity = 1 } = req.body;
-    console.log('📦 Datos del request:', { productId, quantity });
-
-    console.log('🔍 Buscando producto en BD...');
     // Verificar que el producto existe
     const producto = await Producto.findById(productId);
-    console.log('Producto encontrado:', producto ? 'SÍ' : 'NO');
+    
     
     if (!producto) {
-      console.log('❌ Producto no encontrado en BD:', productId);
       return res.status(404).json({ mensaje: 'Producto no encontrado' });
     }
 
-    console.log('✅ Producto:', { 
-      id: producto._id, 
-      nombre: producto.nombre, 
-      stock: producto.stock, 
-      precio: producto.precio 
-    });
+    
 
     // Verificar stock disponible
     if (producto.stock < quantity) {
-      console.log('❌ Stock insuficiente:', { disponible: producto.stock, solicitado: quantity });
       return res.status(400).json({ 
         mensaje: 'Stock insuficiente', 
         stockDisponible: producto.stock 
       });
     }
 
-    console.log('🔍 Buscando carrito existente...');
-    // Buscar o crear carrito
-    let cart = await Cart.findOne({ user: userId });
-    console.log('Carrito existente:', cart ? 'SÍ' : 'NO');
+  // Buscar o crear carrito
+  let cart = await Cart.findOne({ user: userId });
     
     if (!cart) {
-      console.log('🆕 Creando nuevo carrito...');
       cart = new Cart({ user: userId, items: [] });
-      console.log('Nuevo carrito creado:', cart);
     }
 
     // Verificar si el producto ya está en el carrito
@@ -210,7 +176,7 @@ exports.agregarAlCarrito = async (req, res) => {
       item.product.toString() === productId
     );
 
-    console.log('Producto ya en carrito:', existingItemIndex > -1 ? 'SÍ' : 'NO');
+    
 
     if (existingItemIndex > -1) {
       // Verificar que la cantidad total no exceda el stock
@@ -223,7 +189,7 @@ exports.agregarAlCarrito = async (req, res) => {
         });
       }
       cart.items[existingItemIndex].quantity = newQuantity;
-      console.log('📝 Cantidad actualizada a:', newQuantity);
+      
     } else {
       // Agregar nuevo item
       const newItem = {
@@ -232,28 +198,19 @@ exports.agregarAlCarrito = async (req, res) => {
         price: producto.precio
       };
       cart.items.push(newItem);
-      console.log('➕ Nuevo item agregado:', newItem);
+      
     }
 
-    console.log('💾 Guardando carrito...');
     await cart.save();
-    console.log('✅ Carrito guardado');
     
-    console.log('🔍 Obteniendo carrito actualizado...');
     // Obtener carrito actualizado con productos populados
     const updatedCart = await Cart.findOne({ user: userId }).populate('items.product');
-    console.log('Carrito actualizado obtenido:', !!updatedCart);
-    
     const itemCount = updatedCart.items.reduce((sum, item) => sum + item.quantity, 0);
-    console.log('Total de items en carrito:', itemCount);
-    
     const response = {
       mensaje: 'Producto agregado al carrito',
       cart: updatedCart,
       itemCount: itemCount
     };
-    
-    console.log('✅ Enviando respuesta exitosa');
     res.status(200).json(response);
     
   } catch (error) {
@@ -267,7 +224,7 @@ exports.agregarAlCarrito = async (req, res) => {
     });
   }
   
-  console.log('🛒 === FIN AGREGAR AL CARRITO ===');
+  
 };
 
 /**

@@ -3,22 +3,14 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
-
-
-console.log('📦 === APP SIMPLE INICIANDO ===');
-
-// Conexión a MongoDB
-console.log('🔌 Conectando a MongoDB...');
 require('./config/connection');
 
 // Importar modelos para registrarlos
-console.log('📋 Registrando modelos...');
 require('./models/cart.model');
 require('./models/producto.model');
 require('./models/cliente.model');
 require('./models/factura.model'); //  Importa el modelo factura también
 require('./models/venta.model'); //  Importa el modelo venta
-console.log('✅ Modelos registrados');
 app.set('views', path.join(__dirname, '../frontend/views'));
 app.set('view engine', 'ejs');
 
@@ -27,29 +19,21 @@ app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-console.log('📦 Middlewares configurados');
-
 // Archivos estáticos
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
-
-console.log('📦 Archivos estáticos configurados');
 
 // Vistas
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', '..', 'frontend', 'views'));
 
-console.log('📦 Vistas configuradas');
-
 // Sesiones
 const session = require('express-session');
 app.use(session({ 
-    secret: 'tu_secreto', 
-    resave: false,    
-    saveUninitialized: true,    
-    cookie: { secure: false }
+  secret: 'tu_secreto', 
+  resave: false,    
+  saveUninitialized: true,    
+  cookie: { secure: false }
 }));
-
-console.log('📦 Sesiones configuradas');
 
 // Para obtener IP real detrás de proxies (Render/NGROK)
 app.set('trust proxy', true);
@@ -71,18 +55,15 @@ const noCache = (req, res, next) => {
 app.use(['/panel', '/clientes', '/empleados', '/facturas', '/productos', '/ventas', '/dashboard'], noCache);
 
 // RUTAS DEL CARRITO - USANDO VERSIÓN DESPROTEGIDA
-console.log('🛒 Cargando rutas del carrito (localStorage compatible)...');
 try {
-    const cartRoutes = require('./routes/cart.routes');
-    app.use('/carrito', cartRoutes);
-    console.log('✅ Rutas del carrito cargadas (desprotegidas para localStorage)');
+  const cartRoutes = require('./routes/cart.routes');
+  app.use('/carrito', cartRoutes);
 } catch (error) {
-    console.error('❌ ERROR con rutas del carrito:', error.message);
-    console.error('❌ Stack:', error.stack);
+  console.error('ERROR con rutas del carrito:', error.message);
+  console.error('Stack:', error.stack);
 }
 
 // Otras rutas básicas
-console.log('📦 Cargando otras rutas...');
 try {
     const indexRoutes = require('./routes/index.routes');
     const authRoutes = require('./routes/auth.routes');
@@ -90,10 +71,10 @@ try {
     const clienteRoutes = require('./routes/cliente.routes');
     const panelRoutes = require('./routes/panel.routes');
     const empleadoRoutes = require('./routes/empleado.routes');
-    const facturaRoutes = require('./routes/factura.routes'); // ✅ agregado
-    const mercadopagoRoutes = require('./routes/mercadopago.routes'); // ✅ nuevo
-    const ventasRoutes = require('./routes/ventas.routes'); // ✅ nuevo para gestión de ventas
-    const dashboardRoutes = require('./routes/dashboard.routes'); // ✅ nuevo para dashboard
+    const facturaRoutes = require('./routes/factura.routes');
+    const mercadopagoRoutes = require('./routes/mercadopago.routes');
+    const ventasRoutes = require('./routes/ventas.routes');
+    const dashboardRoutes = require('./routes/dashboard.routes');
 
     app.use('/', indexRoutes);
     app.use('/auth', authRoutes);
@@ -101,10 +82,10 @@ try {
     app.use('/clientes', clienteRoutes);
     app.use('/panel', panelRoutes);
     app.use('/empleados', empleadoRoutes);
-    app.use('/facturas', facturaRoutes); // ✅ agregado
-    app.use('/mercadopago', mercadopagoRoutes); // ✅ nuevo
-    app.use('/ventas', ventasRoutes); // ✅ nuevo para gestión de ventas
-    app.use('/dashboard', dashboardRoutes); // ✅ nuevo para dashboard
+  app.use('/facturas', facturaRoutes);
+  app.use('/mercadopago', mercadopagoRoutes);
+  app.use('/ventas', ventasRoutes);
+  app.use('/dashboard', dashboardRoutes);
 
     // Health check endpoint para Render
     app.get('/health', (req, res) => {
@@ -116,13 +97,12 @@ try {
         });
     });
 
-    console.log('✅ Rutas básicas cargadas');
+    
 } catch (error) {
-    console.error('❌ ERROR con rutas básicas:', error.message);
-    console.error('Stack del error:', error.stack);
+  console.error('ERROR con rutas básicas:', error.message);
+  console.error('Stack del error:', error.stack);
 }
 
-console.log('📦 === APP SIMPLE CONFIGURADA ===');
 
 // Middleware de manejo de errores de subida (Multer / formato)
 const multer = require('multer');

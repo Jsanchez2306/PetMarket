@@ -143,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const el = document.getElementById('confirmacionEmpleadoModal');
     if (!el) {
-      console.log('✅', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
       return;
     }
@@ -158,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
       }, reloadDelayMs);
     } else {
-      console.log('✅', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
     }
   }

@@ -8,11 +8,6 @@ const { enviarFacturaPorCorreo } = require('../services/email.service');
 const crypto = require('crypto');
 
 // Configurar Mercado Pago (SDK v2.x)
-console.log('🔑 Variables de entorno Mercado Pago:', {
-  ACCESS_TOKEN: process.env.MERCADOPAGO_ACCESS_TOKEN ? 'ENCONTRADO' : 'NO ENCONTRADO',
-  PUBLIC_KEY: process.env.MERCADOPAGO_PUBLIC_KEY ? 'ENCONTRADO' : 'NO ENCONTRADO',
-  BASE_URL: process.env.BASE_URL || 'NO ENCONTRADO'
-});
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'TEST-4753465907432673-093012-6a41fd026329faee121a3570c2a47a6a-516025911'
@@ -44,13 +39,13 @@ exports.testPreferencia = async (req, res) => {
       external_reference: `TEST-${Date.now()}`
     };
 
-    console.log('🧪 Probando configuración básica de Mercado Pago');
-    console.log('📋 Preferencia de prueba:', JSON.stringify(testPreferenceData, null, 2));
+    
 
     const preference = new Preference(client);
     const response = await preference.create({ body: testPreferenceData });
 
-    console.log('✅ Prueba exitosa:', response.id);
+  console.log('Prueba exitosa:', response.id);
+    
 
     res.json({
       success: true,
@@ -92,13 +87,14 @@ exports.testToken = async (req, res) => {
       notification_url: `${process.env.BASE_URL || 'http://localhost:3191'}/mercadopago/webhook`
     };
 
-    console.log('🔑 Probando token de acceso...');
-    console.log('🔑 Token actual:', process.env.MERCADOPAGO_ACCESS_TOKEN?.substring(0, 20) + '...');
+  console.log('Probando token de acceso...');
+    
 
     const preference = new Preference(client);
     const response = await preference.create({ body: testPreferenceData });
 
-    console.log('✅ Token válido! Preferencia creada:', response.id);
+  console.log('Token válido! Preferencia creada:', response.id);
+    
 
     res.json({
       success: true,
@@ -122,7 +118,8 @@ exports.testToken = async (req, res) => {
  */
 exports.testDescuentoStock = async (req, res) => {
   try {
-    console.log('🧪 TEST: Descontando stock de golosinas Dogjoy...');
+  console.log('TEST: Descontando stock de golosinas Dogjoy...');
+    
 
     // Buscar las golosinas Dogjoy
     const producto = await Producto.findOne({
@@ -130,12 +127,14 @@ exports.testDescuentoStock = async (req, res) => {
     });
 
     if (!producto) {
-      console.log('❌ No se encontró el producto');
+      
       return res.status(404).json({ mensaje: 'Producto no encontrado' });
     }
 
-    console.log(`📦 Producto encontrado: ${producto.nombre}`);
-    console.log(`📊 Stock actual: ${producto.stock}`);
+  console.log(`Producto encontrado: ${producto.nombre}`);
+      
+  console.log(`Stock actual: ${producto.stock}`);
+      
 
     // Descontar 2 unidades
     const cantidadADescontar = 2;
@@ -147,7 +146,8 @@ exports.testDescuentoStock = async (req, res) => {
         { new: true }
       );
 
-      console.log(`✅ Stock actualizado: ${producto.stock} -> ${resultado.stock}`);
+  console.log(`Stock actualizado: ${producto.stock} -> ${resultado.stock}`);
+      
 
       res.json({
         mensaje: 'Stock descontado exitosamente',
@@ -220,13 +220,15 @@ exports.testColombia = async (req, res) => {
       external_reference: `TEST-COLOMBIA-${Date.now()}`
     };
 
-    console.log('🇨🇴 Probando configuración específica para Colombia');
-    console.log('📋 Preferencia Colombia:', JSON.stringify(testPreferenceData, null, 2));
+  console.log('Probando configuración específica para Colombia');
+    
+  console.log('Preferencia Colombia:', JSON.stringify(testPreferenceData, null, 2));
 
-    const preference = new Preference(client);
+  const preference = new Preference(client);
     const response = await preference.create({ body: testPreferenceData });
 
-    console.log('✅ Prueba Colombia exitosa:', response.id);
+  console.log('Prueba Colombia exitosa:', response.id);
+    
 
     res.json({
       success: true,
@@ -251,21 +253,21 @@ exports.testColombia = async (req, res) => {
  */
 exports.crearPreferenciaLocalStorage = async (req, res) => {
   try {
-    console.log('🔥🛒 ===== CREAR PREFERENCIA LOCALSTORAGE - DEBUG =====');
+  console.log('===== CREAR PREFERENCIA LOCALSTORAGE - DEBUG =====');
     const userId = req.session.user?.id || req.user?.id;
-    console.log('👤 Usuario ID:', userId);
+    
 
     if (!userId) {
-      console.log('❌ Usuario no autenticado');
+  console.log('Usuario no autenticado');
       return res.status(401).json({ mensaje: 'Usuario no autenticado' });
     }
 
     const { items } = req.body; // Recibir items del localStorage
-    console.log('📦 Body completo recibido:', req.body);
-    console.log('🛒 Items recibidos del localStorage:', items);
+  console.log('Body completo recibido:', req.body);
+    
 
     if (!items || items.length === 0) {
-      console.log('❌ Carrito vacío');
+  console.log('Carrito vacío');
       return res.status(400).json({ mensaje: 'El carrito está vacío' });
     }
 
@@ -317,14 +319,18 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
       external_reference: `LSCART-${userId}-${Date.now()}` // LSCART = LocalStorage Cart
     };
 
-    console.log('🛒 Creando preferencia de Mercado Pago desde localStorage para usuario:', usuario.email);
-    console.log('🛍️ Items verificados:', JSON.stringify(itemsVerificados, null, 2));
+  console.log('Creando preferencia de Mercado Pago desde localStorage para usuario:', usuario.email);
+    
+  console.log('Items verificados:', JSON.stringify(itemsVerificados, null, 2));
+    
 
     // Crear preferencia en Mercado Pago
     const preference = new Preference(client);
     const response = await preference.create({ body: preferenceData });
 
-    console.log('✅ Preferencia creada desde localStorage:', response.id);
+  console.log('Preferencia creada desde localStorage:', response.id);
+    
+    
 
     res.status(200).json({
       mensaje: 'Preferencia creada exitosamente',
@@ -402,21 +408,16 @@ exports.crearPreferencia = async (req, res) => {
       external_reference: `CART-${userId}-${Date.now()}`
     };
 
-    console.log('🛒 Creando preferencia de Mercado Pago para usuario:', usuario.email);
-    console.log('🔗 URLs configuradas:', {
-      success: preferenceData.back_urls.success,
-      failure: preferenceData.back_urls.failure,
-      pending: preferenceData.back_urls.pending,
-      webhook: preferenceData.notification_url
-    });
-    console.log('🛍️ Items del carrito:', JSON.stringify(items, null, 2));
-    console.log('📋 Preferencia completa:', JSON.stringify(preferenceData, null, 2));
-
-    // Crear preferencia en Mercado Pago usando SDK v2.x
+  console.log('Creando preferencia de Mercado Pago para usuario:', usuario.email);
+    
+  console.log('Items del carrito:', JSON.stringify(items, null, 2));
+    
+  // Crear preferencia en Mercado Pago usando SDK v2.x
     const preference = new Preference(client);
     const response = await preference.create({ body: preferenceData });
 
-    console.log('✅ Preferencia creada:', response.id);
+  console.log('Preferencia creada:', response.id);
+    
 
     res.status(200).json({
       mensaje: 'Preferencia creada exitosamente',
@@ -442,14 +443,14 @@ function validarFirmaWebhook(req) {
   const xRequestId = req.headers['x-request-id'];
 
   if (!xSignature || !xRequestId) {
-    console.log('⚠️ Headers de firma faltantes');
+  console.log('Headers de firma faltantes');
     return false;
   }
 
   // En modo TEST, la validación es menos estricta
   const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.log('⚠️ MERCADOPAGO_WEBHOOK_SECRET no configurado - omitiendo validación en desarrollo');
+  console.log('MERCADOPAGO_WEBHOOK_SECRET no configurado - omitiendo validación en desarrollo');
     return true; // Permitir en desarrollo
   }
 
@@ -465,7 +466,7 @@ function validarFirmaWebhook(req) {
     });
 
     if (!ts || !hash) {
-      console.log('❌ Formato de firma inválido');
+    console.log('Formato de firma inválido');
       return false;
     }
 
@@ -476,7 +477,7 @@ function validarFirmaWebhook(req) {
     const sha = hmac.digest('hex');
 
     const isValid = sha === hash;
-    console.log('🔐 Validación de firma:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
+  console.log('Validación de firma:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
 
     return isValid;
   } catch (error) {
@@ -490,7 +491,7 @@ function validarFirmaWebhook(req) {
  */
 exports.webhook = async (req, res) => {
   try {
-    console.log('🔔 Webhook recibido:', {
+    console.log('Webhook recibido:', {
       body: req.body,
       headers: {
         'x-signature': req.headers['x-signature'],
@@ -514,7 +515,7 @@ exports.webhook = async (req, res) => {
       // Obtener información del pago
       const paymentResponse = await payment.get({ id: paymentId });
 
-      console.log('💳 Información del pago:', {
+      console.log('Información del pago:', {
         id: paymentResponse.id,
         status: paymentResponse.status,
         external_reference: paymentResponse.external_reference
@@ -540,17 +541,17 @@ exports.success = async (req, res) => {
   try {
     const { collection_id, collection_status, external_reference, payment_id } = req.query;
 
-    console.log('🎉🔥 ===== PÁGINA DE ÉXITO - INICIO DEBUG COMPLETO =====');
-    console.log('✅ Llegada a página de éxito:', {
+    console.log('===== PAGINA DE EXITO - INICIO DEBUG COMPLETO =====');
+    console.log('Llegada a página de éxito:', {
       collection_id,
       collection_status,
       external_reference,
       payment_id,
       fullQuery: req.query
     });
-    console.log('🕐 Timestamp:', new Date().toISOString());
-    console.log('🔍 External Reference recibido:', external_reference);
-    console.log('🔍 ¿Empieza con LSCART?', external_reference?.startsWith('LSCART-') || false);
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('External Reference recibido:', external_reference);
+    console.log('¿Empieza con LSCART?', external_reference?.startsWith('LSCART-') || false);
 
     // Usar payment_id o collection_id
     const paymentId = payment_id || collection_id;
@@ -563,7 +564,7 @@ exports.success = async (req, res) => {
 
     // Si llegamos a la página de éxito, el pago fue exitoso
     if (paymentId) {
-      console.log('🎉 Pago considerado aprobado por llegada a página de éxito');
+  console.log('Pago considerado aprobado por llegada a página de éxito');
       pagoAprobado = true;
 
       // CORREGIDO: Obtener external_reference del pago en lugar de la URL
@@ -572,10 +573,10 @@ exports.success = async (req, res) => {
       // Si no hay external_reference en URL, obtenerlo del pago
       if (!externalReferenceFromPayment && paymentId) {
         try {
-          console.log('🔍 Obteniendo external_reference desde el pago...');
+          console.log('Obteniendo external_reference desde el pago...');
           const paymentResponse = await payment.get({ id: paymentId });
           externalReferenceFromPayment = paymentResponse.external_reference;
-          console.log('🔍 External_reference desde pago:', externalReferenceFromPayment);
+          console.log('External_reference desde pago:', externalReferenceFromPayment);
         } catch (error) {
           console.error('❌ Error obteniendo external_reference del pago:', error);
         }
@@ -583,50 +584,50 @@ exports.success = async (req, res) => {
 
       // Si hay external_reference (desde URL o desde pago), procesar checkout localStorage
       if (externalReferenceFromPayment && externalReferenceFromPayment.startsWith('LSCART-')) {
-        console.log('🛒✅ PROCESANDO PAGO EXITOSO DESDE localStorage CHECKOUT');
-        console.log('🎯 External Reference:', externalReferenceFromPayment);
-        console.log('🛒 Procesando pago exitoso desde localStorage checkout');
+  console.log('PROCESANDO PAGO EXITOSO DESDE localStorage CHECKOUT');
+  console.log('External Reference:', externalReferenceFromPayment);
+  console.log('Procesando pago exitoso desde localStorage checkout');
 
         try {
           // Format: LSCART-userId-timestamp
           const [, userId, timestamp] = externalReferenceFromPayment.split('-');
-          console.log('👤 Usuario:', userId, 'Timestamp:', timestamp);
+          console.log('Usuario:', userId, 'Timestamp:', timestamp);
 
           // NUEVO: Descontar stock de productos comprados
-          console.log('📦🔥 INICIANDO DESCUENTO DE STOCK DE PRODUCTOS');
+          console.log('INICIANDO DESCUENTO DE STOCK DE PRODUCTOS');
 
           try {
             const paymentResponse = await payment.get({ id: paymentId });
-            console.log('💳 Obteniendo items del pago para descuento de stock...');
+            console.log('Obteniendo items del pago para descuento de stock...');
 
             if (paymentResponse.additional_info && paymentResponse.additional_info.items) {
               const items = paymentResponse.additional_info.items;
-              console.log('📋 Items encontrados para descuento:', items.length);
+              console.log('Items encontrados para descuento:', items.length);
 
               for (const item of items) {
-                console.log(`🔍 Procesando item: ${item.title} (cantidad: ${item.quantity})`);
+                console.log(`Procesando item: ${item.title} (cantidad: ${item.quantity})`);
 
                 // Buscar producto por ID si está disponible, sino por nombre
                 let producto = null;
 
                 if (item.id) {
                   producto = await Producto.findById(item.id);
-                  console.log(`🔍 Búsqueda por ID (${item.id}):`, producto ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO');
+                  console.log(`Búsqueda por ID (${item.id}):`, producto ? 'ENCONTRADO' : 'NO ENCONTRADO');
                 }
 
                 if (!producto) {
                   producto = await Producto.findOne({
                     nombre: { $regex: new RegExp(item.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }
                   });
-                  console.log(`🔍 Búsqueda por nombre ("${item.title}"):`, producto ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO');
+                  console.log(`Búsqueda por nombre ("${item.title}"):`, producto ? 'ENCONTRADO' : 'NO ENCONTRADO');
                 }
 
                 if (producto) {
                   const cantidadComprada = item.quantity;
                   const stockAntes = producto.stock;
 
-                  console.log(`📦 PRODUCTO: ${producto.nombre}`);
-                  console.log(`📊 Stock antes: ${stockAntes}, Cantidad comprada: ${cantidadComprada}`);
+                  console.log(`PRODUCTO: ${producto.nombre}`);
+                  console.log(`Stock antes: ${stockAntes}, Cantidad comprada: ${cantidadComprada}`);
 
                   if (stockAntes >= cantidadComprada) {
                     const resultado = await Producto.findByIdAndUpdate(
@@ -635,40 +636,40 @@ exports.success = async (req, res) => {
                       { new: true }
                     );
 
-                    console.log(`🎉✅ STOCK ACTUALIZADO EXITOSAMENTE!`);
-                    console.log(`📊 ${producto.nombre}: ${stockAntes} → ${resultado.stock}`);
+                    console.log(`STOCK ACTUALIZADO EXITOSAMENTE!`);
+                    console.log(`${producto.nombre}: ${stockAntes} -> ${resultado.stock}`);
                   } else {
-                    console.warn(`⚠️ Stock insuficiente para ${producto.nombre}`);
+                    console.warn(`Stock insuficiente para ${producto.nombre}`);
                     if (stockAntes > 0) {
                       const resultado = await Producto.findByIdAndUpdate(
                         producto._id,
                         { $inc: { stock: -stockAntes } },
                         { new: true }
                       );
-                      console.log(`📦 Stock parcial actualizado: ${stockAntes} → ${resultado.stock}`);
+                      console.log(`Stock parcial actualizado: ${stockAntes} -> ${resultado.stock}`);
                     }
                   }
                 } else {
-                  console.error(`❌ No se encontró producto: "${item.title}"`);
+                  console.error(`No se encontró producto: "${item.title}"`);
                 }
               }
 
-              console.log('✅🎉 DESCUENTO DE STOCK COMPLETADO');
+              console.log('DESCUENTO DE STOCK COMPLETADO');
             } else {
-              console.warn('⚠️ No se encontraron items en el pago');
+              console.warn('No se encontraron items en el pago');
             }
           } catch (stockError) {
             console.error('❌ Error en descuento de stock:', stockError);
           }
 
           // Mensaje informativo: el carrito se limpiará por el script del frontend
-          console.log('🧹 El carrito será limpiado automáticamente por el script del frontend');
+          console.log('El carrito será limpiado automáticamente por el script del frontend');
 
         } catch (lsError) {
           console.error('❌ Error procesando checkout localStorage:', lsError);
         }
       } else {
-        console.log('🛒 Pago exitoso sin external_reference (posible pago manual o de prueba)');
+  console.log('Pago exitoso sin external_reference (posible pago manual o de prueba)');
       }
     }
 
@@ -677,7 +678,7 @@ exports.success = async (req, res) => {
     if (paymentId) {
       try {
         const paymentResponse = await payment.get({ id: paymentId });
-        console.log('💳 Estado del pago desde MP API:', paymentResponse.status);
+    console.log('Estado del pago desde MP API:', paymentResponse.status);
 
         if (paymentResponse.status === 'approved') {
           pagoAprobado = true;
@@ -716,7 +717,7 @@ exports.success = async (req, res) => {
         // Calcular total
         totalCompra = productosComprados.reduce((total, item) => total + item.subtotal, 0);
 
-        console.log('🛒 Productos encontrados:', productosComprados.length);
+  console.log('Productos encontrados:', productosComprados.length);
 
       } catch (paymentError) {
         console.error('⚠️ Error al obtener detalles del pago desde MP API:', paymentError);
@@ -726,7 +727,7 @@ exports.success = async (req, res) => {
 
     // Si no se pudieron obtener productos y hay un paymentId, mostrar productos de ejemplo
     if (productosComprados.length === 0 && paymentId && pagoAprobado) {
-      console.log('📦 No se encontraron productos específicos, usando información genérica');
+  console.log('No se encontraron productos específicos, usando información genérica');
       productosComprados = [{
         nombre: 'Compra realizada con éxito',
         cantidad: 1,
@@ -736,7 +737,7 @@ exports.success = async (req, res) => {
     }
 
     // 📧 ENVIAR FACTURA POR CORREO AUTOMÁTICAMENTE - DESPUÉS DE OBTENER PRODUCTOS
-    console.log('🔍 Estado antes de enviar factura:', {
+    console.log('Estado antes de enviar factura:', {
       pagoAprobado,
       productosLength: productosComprados.length,
       hasUser: !!req.session.user,
@@ -746,7 +747,7 @@ exports.success = async (req, res) => {
 
     if (pagoAprobado && productosComprados.length > 0) {
       try {
-        console.log('📧 Enviando factura automática por correo...');
+  console.log('Enviando factura automática por correo...');
         await enviarFacturaAutomatica(req.session.user, {
           paymentId,
           status: collection_status || 'approved',

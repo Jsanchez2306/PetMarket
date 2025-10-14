@@ -13,11 +13,10 @@ const getResendClient = () => {
 // Función para enviar factura por correo
 exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactura) => {
   try {
-    console.log('📧 Enviando factura por correo a:', clienteEmail);
     
     // Validar API Key
     if (!process.env.RESEND_API_KEY) {
-      console.error('❌ ERROR: RESEND_API_KEY no está configurado');
+      console.error('ERROR: RESEND_API_KEY no está configurado');
       if (process.env.NODE_ENV === 'production') {
         return {
           success: false,
@@ -44,40 +43,29 @@ exports.enviarFacturaPorCorreo = async (clienteEmail, clienteNombre, datosFactur
       text: `Hola ${clienteNombre}, tu compra en PetMarket ha sido procesada exitosamente.`
     };
 
-    console.log('📤 Enviando email con Resend...');
-    
     // Enviar email con retry
     let lastError = null;
     for (let intento = 1; intento <= 3; intento++) {
       try {
-        console.log(`📧 Intento ${intento}/3`);
-        
         const { data, error } = await resend.emails.send(emailOptions);
 
         if (error) {
           lastError = error;
-          console.error(`❌ Error en intento ${intento}:`, error);
-          
           if (intento < 3) {
             const tiempoEspera = Math.pow(2, intento) * 1000;
-            console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
             await new Promise(resolve => setTimeout(resolve, tiempoEspera));
           }
           continue;
         }
 
-        console.log('✅ Email enviado exitosamente:', data);
-        
         return {
           success: true,
           mensaje: `Factura enviada exitosamente a ${clienteEmail}`,
           emailId: data.id
         };
-        
+
       } catch (error) {
         lastError = error;
-        console.error(`❌ Excepción en intento ${intento}:`, error.message);
-        
         if (intento < 3) {
           const tiempoEspera = Math.pow(2, intento) * 1000;
           await new Promise(resolve => setTimeout(resolve, tiempoEspera));

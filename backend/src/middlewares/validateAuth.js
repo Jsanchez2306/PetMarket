@@ -10,13 +10,11 @@ function isAjaxJson(req) {
 }
 
 function validarAuth(req, res, next) {
-  console.log('🔐 === VALIDANDO AUTENTICACIÓN ===');
-  console.log('🔐 URL:', req.url, 'Method:', req.method);
-  console.log('🔐 Session user:', req.session?.user);
+  
 
   // 1) Sesión de servidor
   if (req.session && req.session.user) {
-    console.log('✅ Usuario autenticado por sesión');
+    
     req.user = req.session.user;
     return next();
   }
@@ -36,7 +34,7 @@ function validarAuth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('🔐 Token decodificado:', decoded);
+    
     req.user = decoded;
     next();
   } catch (error) {
@@ -47,7 +45,7 @@ function validarAuth(req, res, next) {
 
 // Middleware específico para carrito (acepta sesión o JWT)
 function validarAuthCarrito(req, res, next) {
-  console.log('🔐 Validando autenticación para carrito');
+  
   if (req.session?.user?.id) {
     req.user = req.session.user;
     return next();
@@ -60,7 +58,7 @@ function validarAuthCarrito(req, res, next) {
       req.user = decoded;
       return next();
     } catch (error) {
-      console.log('❌ Token JWT inválido:', error.message);
+      
     }
   }
   if (isAjaxJson(req)) return res.status(401).json({ mensaje: 'Usuario no autenticado' });
@@ -69,7 +67,7 @@ function validarAuthCarrito(req, res, next) {
 
 // Solo admins
 function validarAdmin(req, res, next) {
-  console.log('🔐 === VALIDANDO ROL ADMINISTRADOR ===');
+  
   if (!req.user) {
     if (isAjaxJson(req)) return res.status(401).json({ mensaje: 'No autenticado' });
     return res.redirect('/restriccion');
@@ -84,7 +82,7 @@ function validarAdmin(req, res, next) {
 
 // Empleado o superior
 function validarEmpleado(req, res, next) {
-  console.log('🔐 === VALIDANDO ROL EMPLEADO ===');
+  
   if (!req.user) {
     if (isAjaxJson(req)) return res.status(401).json({ mensaje: 'No autenticado' });
     return res.redirect('/restriccion');

@@ -18,14 +18,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 🔒 Escuchar cambios de estado de autenticación desde headerUnificado
     document.addEventListener('userStateChanged', function(event) {
-        console.log('🔄 Estado de usuario cambió, actualizando protecciones del carrito');
         verificarEstadoBotonPago();
         protegerBotonesCarrito();
     });
     
     // 🔒 Escuchar evento de limpieza de autenticación
     document.addEventListener('authStateCleared', function(event) {
-        console.log('🧹 Estado de autenticación limpiado, actualizando protecciones del carrito');
         verificarEstadoBotonPago();
         protegerBotonesCarrito();
     });
@@ -94,11 +92,7 @@ function sincronizarCarritoDesdeServidor() {
                 product: { _id: item.dataset.productId }
             }));
             
-            console.log('🔄 Carrito sincronizado desde servidor:', carritoData);
-            console.log('💰 Totales sincronizados:');
-            console.log('  - Subtotal:', subtotal);
-            console.log('  - IVA:', iva);
-            console.log('  - Total:', total);
+            
             
             // 🔒 Proteger botones después de sincronizar
             setTimeout(() => protegerBotonesCarrito(), 100);
@@ -322,7 +316,7 @@ window.eliminarItem = eliminarItem;
 
 async function mostrarFacturaModal() {
     try {
-        console.log('📄 Preparando factura modal...');
+        
         
         // Obtener información del usuario
         const userInfo = await obtenerInformacionUsuario();
@@ -346,7 +340,7 @@ async function mostrarFacturaModal() {
         const facturaModal = new bootstrap.Modal(document.getElementById('facturaModal'));
         facturaModal.show();
         
-        console.log('✅ Factura modal mostrada');
+        
         
     } catch (error) {
         console.error('❌ Error mostrando factura modal:', error);
@@ -494,7 +488,7 @@ async function procesarPagoMercadoPago() {
             return;
         }
 
-        console.log('🛒 Enviando items del carrito a Mercado Pago:', cart);
+        
 
         // Crear preferencia en Mercado Pago con items del localStorage
         const response = await fetch('/mercadopago/create-preference', {
@@ -592,8 +586,7 @@ async function procesarPago() {
 
         // Obtener el total del DOM con debug mejorado
         const totalElement = document.getElementById('totalAmount');
-        console.log('🔍 Total element:', totalElement);
-        console.log('🔍 Total element content:', totalElement?.textContent);
+        
         
         let totalAmount = 0;
         
@@ -605,19 +598,16 @@ async function procesarPago() {
                 .replace(/,/g, '')          // Quitar comas si las hay
                 .trim();                    // Quitar espacios
                 
-            console.log('🔍 Total text cleaned:', totalText);
             totalAmount = parseInt(totalText) || 0;
-            console.log('🔍 Total amount parsed:', totalAmount);
         }
         
         // Verificar que el total sea válido
         if (isNaN(totalAmount) || totalAmount <= 0) {
-            console.error('❌ Total inválido:', totalAmount);
+            console.error('Total inválido:', totalAmount);
             
             // Intentar obtener el total desde carritoData como fallback
             if (carritoData && carritoData.total) {
                 totalAmount = carritoData.total;
-                console.log('🔄 Usando total desde carritoData:', totalAmount);
             } else {
                 mostrarToast('Error: No se pudo calcular el total del carrito', 'error');
                 return;

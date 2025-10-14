@@ -22,14 +22,14 @@ function buildMongoUri() {
 
 exports.backupDatabase = (cb = () => {}) => {
   if (!ENABLE) {
-    console.log('⏭️  Backup desactivado (ENABLE_BACKUP != true)');
+    console.log('Backup desactivado (ENABLE_BACKUP != true)');
     return cb(null, 'disabled');
   }
 
   const mongoUri = buildMongoUri();
   if (!mongoUri) {
     const err = new Error('No hay MONGO_URI ni variables DB_* suficientes');
-    console.error('❌', err.message);
+  console.error(err.message);
     return cb(err);
   }
 
@@ -47,8 +47,8 @@ exports.backupDatabase = (cb = () => {}) => {
       if (stderr) console.error(stderr);
       return cb(err);
     }
-    console.log('✅ Respaldo OK →', archive);
-    if (stdout) console.log(stdout);
+  console.log('Respaldo OK →', archive);
+  if (stdout) console.log(stdout);
     cb(null, archive);
   });
 };

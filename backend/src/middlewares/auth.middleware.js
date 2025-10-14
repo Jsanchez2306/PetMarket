@@ -71,7 +71,7 @@ const requireAuth = async (req, res, next) => {
       tipoUsuario: usuario.tipoUsuario || 'cliente'
     };
 
-    console.log(`✅ Usuario autenticado: ${usuario.email} (${usuario.rol || 'cliente'})`);
+  console.log(`Usuario autenticado: ${usuario.email} (${usuario.rol || 'cliente'})`);
     next();
     
   } catch (error) {

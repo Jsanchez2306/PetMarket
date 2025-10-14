@@ -79,7 +79,7 @@ exports.registro = async (req, res) => {
       tipoUsuario: 'cliente',
       rol: 'cliente'
     });
-    console.log('✅ Cliente registrado y autenticado:', clienteSeguro);
+    
   } catch (error) {
     console.error('Error al registrar cliente:', error);
     res.status(500).json({ mensaje: 'Error al registrar cliente', error: error.message });
@@ -106,7 +106,6 @@ exports.login = async (req, res) => {
     let tipoUsuario = 'empleado';
 
     if (!usuario) {
-      console.log('👤 No encontrado en Empleados, buscando en Clientes...');
       usuario = await Cliente.findOne({ email: emailLimpio });
       tipoUsuario = 'cliente';
     }
@@ -119,9 +118,8 @@ exports.login = async (req, res) => {
     
     let passwordOK = false;
     try {
-      if (!usuario) { 
+        if (!usuario) { 
         passwordOK = false;
-        console.log('❌ No hay usuario, password fail');
       } else if (usuario.contrasena && usuario.contrasena.startsWith('$2')) {
         passwordOK = await bcrypt.compare(provided, usuario.contrasena);
         log.debug('bcrypt compare:', passwordOK);
@@ -165,7 +163,7 @@ exports.login = async (req, res) => {
       tipoUsuario,
       rol: rolFinal
     });
-    console.log('Login exitoso:', usuarioSeguro.email, '- Tipo:', tipoUsuario, '- Rol:', rolFinal);
+    
   } catch (err) {
     console.error('Error en login:', err);
     res.status(500).json({ mensaje: 'Error en el servidor' });
@@ -187,8 +185,7 @@ exports.obtenerPerfil = async (req, res) => {
 
     const usuarioData = usuario.toObject();
     usuarioData.tipoUsuario = tipoUsuario;
-    res.status(200).json(usuarioData);
-    console.log('✅ Perfil obtenido:', usuarioData.email, '- Tipo:', tipoUsuario);
+  res.status(200).json(usuarioData);
   } catch (error) {
     console.error('Error al obtener perfil:', error);
     res.status(500).json({ mensaje: 'Error interno del servidor' });
@@ -277,7 +274,7 @@ exports.actualizarPerfil = async (req, res) => {
       token: nuevoToken, 
       usuario: usuarioSeguro 
     });
-    console.log('✅ Perfil actualizado:', usuarioSeguro.email, '- Tipo:', tipoUsuario);
+    
   } catch (error) {
     console.error('Error al actualizar perfil:', error);
     res.status(500).json({ mensaje: 'Error al actualizar perfil', error: error.message });
@@ -302,8 +299,7 @@ exports.eliminarCuenta = async (req, res) => {
 
     await Cliente.findByIdAndDelete(clienteId);
 
-    res.status(200).json({ mensaje: 'Usuario eliminado correctamente' });
-    console.log('✅ Cliente eliminado:', cliente.email);
+  res.status(200).json({ mensaje: 'Usuario eliminado correctamente' });
   } catch (error) {
     console.error('Error al eliminar cuenta:', error);
     res.status(500).json({ mensaje: 'Error al eliminar cuenta', error: error.message });
@@ -424,14 +420,12 @@ exports.recuperarPassword = async (req, res) => {
     };
 
     // Enviar email con retry
-    console.log('📧 Enviando email de recuperación con Resend...');
+    
     
     let lastError = null;
     for (let intento = 1; intento <= 3; intento++) {
       try {
-        console.log(`📧 Intento ${intento}/3 - Enviando a: ${emailLimpio}`);
-        
-        const { data, error } = await resend.emails.send(emailOptions);
+  const { data, error } = await resend.emails.send(emailOptions);
 
         if (error) {
           lastError = error;
@@ -439,13 +433,12 @@ exports.recuperarPassword = async (req, res) => {
           
           if (intento < 3) {
             const tiempoEspera = Math.pow(2, intento) * 1000;
-            console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
             await new Promise(resolve => setTimeout(resolve, tiempoEspera));
           }
           continue;
         }
 
-        console.log('✅ Email de recuperación enviado exitosamente:', data);
+        
         return res.status(200).json({ 
           mensaje: `Hemos enviado una nueva contraseña temporal a ${emailLimpio}. Revisa tu correo electrónico.` 
         });
@@ -465,7 +458,7 @@ exports.recuperarPassword = async (req, res) => {
     throw lastError || new Error('Falló después de 3 intentos');
 
   } catch (error) {
-    console.error('❌ Error al recuperar contraseña:', error);
+  console.error('Error al recuperar contraseña:', error);
     
     // En producción, la contraseña ya se cambió, así que informar eso
     if (process.env.NODE_ENV === 'production') {
@@ -500,7 +493,7 @@ exports.logout = async (req, res) => {
       }
       res.clearCookie('connect.sid');
       res.status(200).json({ mensaje: 'Sesión cerrada exitosamente', success: true });
-      console.log('✅ Sesión cerrada exitosamente');
+      
     });
   } catch (error) {
     console.error('Error en logout:', error);

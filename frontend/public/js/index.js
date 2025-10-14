@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeHomePage() {
-    console.log('🏠 Inicializando página de inicio');
+    
     
     // Detener video del carrusel cuando no está activo
     const carousel = document.getElementById('miCarrusel');
@@ -104,7 +104,7 @@ function bloquearBotonesCompraAdmin() {
         });
     }
     
-    console.log('🔒 Botones de compra bloqueados para administrador');
+    
 }
 
 function restaurarBotonesCompra() {
@@ -134,7 +134,7 @@ function restaurarBotonesCompra() {
         boton.removeAttribute('data-bs-toggle');
     });
     
-    console.log('✅ Botones de compra restaurados');
+    
 }
 
 // Función para actualizar botones cuando cambia el estado del usuario

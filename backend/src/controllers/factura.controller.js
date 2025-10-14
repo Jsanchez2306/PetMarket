@@ -193,8 +193,7 @@ exports.crearFactura = async (req, res) => {
         fechaEntrega: new Date() // Inmediatamente entregado
       });
 
-      await nuevaVenta.save();
-      console.log('✅ Venta creada desde factura manual:', nuevaVenta._id);
+  await nuevaVenta.save();
       
     } catch (ventaError) {
       console.error('⚠️ Error al crear venta desde factura manual:', ventaError);
@@ -205,8 +204,6 @@ exports.crearFactura = async (req, res) => {
       mensaje: 'Factura creada exitosamente', 
       factura: facturaGuardada 
     });
-
-    console.log('✅ Factura creada:', facturaGuardada._id, '- Total:', total);
   } catch (error) {
     console.error('Error al crear factura:', error);
     res.status(500).json({ mensaje: 'Error al crear factura', error: error.message });

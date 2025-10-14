@@ -11,7 +11,7 @@ class HeaderUnificado {
   }
 
   init() {
-    console.log('🎯 Inicializando Header Unificado');
+    
     this.setupEventListeners();
     this.loadUserInfo();
     this.updateHeader();
@@ -85,7 +85,7 @@ class HeaderUnificado {
         const postLoginAction = sessionStorage.getItem('postLoginAction');
         if (!postLoginAction) {
           const currentPage = window.location.pathname + window.location.search;
-          console.log('💾 Guardando página actual para post-login:', currentPage);
+          
           sessionStorage.setItem('postLoginRedirect', currentPage);
         }
 
@@ -113,7 +113,7 @@ class HeaderUnificado {
               });
               container.dataset.rendered = 'true';
               container.dataset.widgetId = String(widgetId);
-              console.log('✅ reCAPTCHA renderizado (widgetId):', widgetId);
+              
             }
           }
         } catch (e) {
@@ -126,7 +126,7 @@ class HeaderUnificado {
         // Solo limpiar si no se hizo login exitoso (no hay postLoginAction)
         const postLoginAction = sessionStorage.getItem('postLoginAction');
         if (!postLoginAction && !this.userInfo) {
-          console.log('🧹 Limpiando redirección guardada (modal cerrado sin login)');
+          
           sessionStorage.removeItem('postLoginRedirect');
         }
 
@@ -166,7 +166,7 @@ class HeaderUnificado {
               });
               container.dataset.rendered = 'true';
               container.dataset.widgetId = String(widgetId);
-              console.log('✅ reCAPTCHA registro renderizado (widgetId):', widgetId);
+              
             }
           }
         } catch (e) {
@@ -212,20 +212,20 @@ class HeaderUnificado {
 
   loadUserInfo() {
     if (!this.token) {
-      console.log('❌ No hay token disponible');
+      
       return;
     }
     
     // Verificar que el token tenga el formato correcto
     if (typeof this.token !== 'string' || this.token === 'null' || this.token === 'undefined') {
-      console.log('❌ Token inválido (null/undefined)');
+      
       this.clearAuth();
       return;
     }
     
     const tokenParts = this.token.split('.');
     if (tokenParts.length !== 3) {
-      console.log('❌ Token malformado (no tiene 3 partes)');
+      
       this.clearAuth();
       return;
     }
@@ -235,13 +235,13 @@ class HeaderUnificado {
       const now = Date.now() / 1000;
       
       if (payload.exp && payload.exp < now) {
-        console.log('❌ Token expirado');
+        
         this.clearAuth();
         return;
       }
       
       this.userInfo = payload;
-      console.log('✅ Información del usuario cargada:', this.userInfo);
+      
       this.verifyServerSession();
     } catch (error) {
       console.error('❌ Error al decodificar token:', error);
@@ -256,11 +256,11 @@ class HeaderUnificado {
         credentials: 'include'
       });
       if (!response.ok) {
-        console.log('⚠️ Sesión del servidor inactiva, revalidando...');
+        
         await this.revalidateSession();
       }
     } catch (error) {
-      console.log('❌ Error verificando sesión del servidor:', error);
+      
     }
   }
 
@@ -269,7 +269,7 @@ class HeaderUnificado {
     
     // Verificar que el token sea válido antes de enviarlo
     if (typeof this.token !== 'string' || this.token.split('.').length !== 3) {
-      console.log('❌ Token malformado, limpiando autenticación');
+      
       this.clearAuth();
       this.updateHeader();
       return;
@@ -290,32 +290,32 @@ class HeaderUnificado {
       });
       
       if (response.ok) {
-        console.log('✅ Sesión del servidor revalidada');
+        
       } else {
-        console.log('❌ No se pudo revalidar la sesión del servidor');
+        
         // Si es error 401, limpiar autenticación
         if (response.status === 401) {
-          console.log('🔑 Token inválido en revalidación, limpiando auth');
+          
           this.clearAuth();
           this.updateHeader();
         }
       }
     } catch (error) {
-      console.log('❌ Error revalidando sesión:', error);
+      
     }
   }
 
   updateHeader() {
     // Verificar carrito ANTES de actualizar header
     const carritoAntes = localStorage.getItem('petmarket_cart');
-    console.log('🛒 Carrito ANTES de updateHeader:', carritoAntes ? 'EXISTE' : 'NO EXISTE');
+    
     
     if (!this.userInfo) this.showPublicHeader();
     else this.showAuthenticatedHeader();
     
     // Verificar carrito DESPUÉS de actualizar header
     const carritoDespues = localStorage.getItem('petmarket_cart');
-    console.log('🛒 Carrito DESPUÉS de updateHeader:', carritoDespues ? 'EXISTE' : 'NO EXISTE');
+    
     
     // Solo verificar ruta protegida si NO hay usuario autenticado
     if (!this.userInfo) {
@@ -447,7 +447,7 @@ class HeaderUnificado {
         }
       }
       
-      console.log(`🛒 Carrito localStorage: ${cart.length} productos, ${itemCount} items`);
+      
     } catch (error) {
       console.error('Error cargando carrito desde localStorage:', error);
     }
@@ -476,12 +476,12 @@ class HeaderUnificado {
   // NUEVO: Cargar contador de ventas sin entregar
   async loadSalesCount() {
     if (!this.token) {
-      console.log('📋 No hay token disponible para cargar contador de ventas');
+      
       return;
     }
 
     try {
-      console.log('📋 Cargando contador de ventas...');
+      
       
       const response = await fetch('/ventas/api/ventas/sin-entregar/count', {
         headers: {
@@ -503,14 +503,14 @@ class HeaderUnificado {
           }
         }
         
-        console.log(`📋 Ventas sin entregar: ${data.count}`);
+        
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
         console.warn('No se pudo cargar el contador de ventas:', response.status, errorData.message);
         
         // Si es error 401, el token podría estar expirado
         if (response.status === 401) {
-          console.log('🔑 Token inválido para ventas, limpiando autenticación');
+          
           this.clearAuth();
           this.updateHeader();
         }
@@ -577,12 +577,12 @@ class HeaderUnificado {
       });
       const data = await this.parseJSONSafe(response);
       if (response.ok) {
-        console.log('🔐 Login exitoso, procesando token...');
+        
         
         if (data.token && typeof data.token === 'string' && data.token.trim()) {
           this.token = data.token.trim();
           localStorage.setItem('token', this.token);
-          console.log('✅ Token guardado correctamente');
+          
         } else {
           console.error('❌ Token inválido recibido del servidor:', data.token);
           this.showErrorMessage('Error', 'Token de autenticación inválido');
@@ -591,14 +591,14 @@ class HeaderUnificado {
         
         // Verificar carrito ANTES de cargar info
         const carritoAntes = localStorage.getItem('petmarket_cart');
-        console.log('🛒 Carrito ANTES de loadUserInfo:', carritoAntes ? 'EXISTE' : 'NO EXISTE');
+        
         
         this.loadUserInfo();
         this.updateHeader();
         
         // Verificar carrito DESPUÉS de cargar info
         const carritoDespues = localStorage.getItem('petmarket_cart');
-        console.log('🛒 Carrito DESPUÉS de loadUserInfo:', carritoDespues ? 'EXISTE' : 'NO EXISTE');
+        
         
         // NUEVO: Disparar evento de login exitoso
         document.dispatchEvent(new CustomEvent('loginSuccess', {
@@ -612,7 +612,7 @@ class HeaderUnificado {
         const postLoginAction = sessionStorage.getItem('postLoginAction');
         if (postLoginAction === 'checkout') {
             // No hacer redirect, el carrito-localStorage.js manejará el pago
-            console.log('🛒 Login exitoso para checkout - no redirecting');
+          
             return;
         }
 
@@ -888,7 +888,7 @@ class HeaderUnificado {
 
   // IMPORTANTE: cerrar sesión del servidor también
   async logout() {
-    console.log('🚪 Cerrando sesión');
+    
     
     try {
       await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
@@ -922,7 +922,7 @@ class HeaderUnificado {
   }
 
   clearAuth() {
-    console.log('🧹 Limpiando autenticación (PRESERVANDO carrito)...');
+    
     
     // Limpiar propiedades de la clase
     this.token = null;
@@ -930,7 +930,7 @@ class HeaderUnificado {
     
     // PRESERVAR el carrito antes de limpiar
     const carritoBackup = localStorage.getItem('petmarket_cart');
-    console.log('💾 Respaldando carrito:', carritoBackup ? 'SÍ' : 'NO');
+    
     
     // Limpiar solo elementos de autenticación, NO todo el localStorage
     try {
@@ -944,17 +944,17 @@ class HeaderUnificado {
       // RESTAURAR el carrito si existía
       if (carritoBackup) {
         localStorage.setItem('petmarket_cart', carritoBackup);
-        console.log('🛒 Carrito restaurado después de limpiar auth');
+        
       }
       
-      console.log('✅ Autenticación limpiada (carrito preservado)');
+      
     } catch (e) {
       console.warn('⚠️ Error limpiando localStorage:', e);
       // Fallback: restaurar carrito de todas formas
       if (carritoBackup) {
         try {
           localStorage.setItem('petmarket_cart', carritoBackup);
-          console.log('🛒 Carrito restaurado en fallback');
+        
         } catch (e2) {
           console.error('❌ Error restaurando carrito:', e2);
         }
@@ -969,7 +969,7 @@ class HeaderUnificado {
       if (justLoggedOut) {
         sessionStorage.setItem('justLoggedOut', 'true');
       }
-      console.log('✅ sessionStorage limpiado');
+        
     } catch (e) {
       console.warn('⚠️ Error limpiando sessionStorage:', e);
     }
@@ -1084,13 +1084,13 @@ class HeaderUnificado {
       return; // No es ruta protegida, no hacer nada
     }
     
-    console.log('🔒 Verificando acceso a ruta protegida:', currentPath);
+    
     
     // Si acabamos de hacer logout, ser más estricto
     const justLoggedOut = sessionStorage.getItem('justLoggedOut');
     if (justLoggedOut) {
       sessionStorage.removeItem('justLoggedOut');
-      console.log('🚪 Usuario acabó de hacer logout, redirigiendo...');
+      
       window.location.replace('/restriccion');
       return;
     }
@@ -1100,7 +1100,7 @@ class HeaderUnificado {
       // Dar un poco de tiempo para que cargue la autenticación
       setTimeout(() => {
         if (!this.token || !this.userInfo) {
-          console.log('❌ Sin autenticación después del delay, redirigiendo...');
+          
           window.location.replace('/restriccion');
         }
       }, 500); // Dar 500ms para cargar
@@ -1109,12 +1109,12 @@ class HeaderUnificado {
     
     // Si hay información de usuario, verificar permisos localmente primero
     if (this.userInfo && this.hasPermissionForRoute(window.location.href, this.userInfo)) {
-      console.log('✅ Permisos locales válidos para usuario:', this.userInfo.email, 'Rol:', this.userInfo.rol);
+      
       return; // Todo bien, no hacer más verificaciones agresivas
     }
     
     // Si no hay permisos locales, redirigir
-    console.log('❌ Sin permisos locales, redirigiendo...');
+    
     window.location.replace('/restriccion');
   }
   
@@ -1130,13 +1130,13 @@ class HeaderUnificado {
       });
       
       if (!response.ok) {
-        console.log('⚠️ Sesión del servidor inválida');
+        
         // No redirigir inmediatamente, solo limpiar auth
         this.clearAuth();
         this.updateHeader();
       }
     } catch (error) {
-      console.log('⚠️ Error verificando sesión del servidor:', error);
+      
     }
   }
 
@@ -1148,19 +1148,19 @@ class HeaderUnificado {
       const url = new URL(href, window.location.origin);
       const path = url.pathname;
       
-      console.log('🔍 Verificando permisos para:', path, 'Usuario:', user);
+      
       
       // Rutas que requieren permisos de admin
       if (/^\/(panel|clientes|empleados|facturas|productos)\/?$/.test(path)) {
         const isAdmin = user.rol === 'admin' || user.rol === 'administrador';
-        console.log('🔐 Ruta administrativa. Es admin?', isAdmin, 'Rol:', user.rol);
+        
         return isAdmin;
       }
       
       // Ventas: admins y empleados
       if (/^\/ventas\/?$/.test(path)) {
         const isAdminOrEmployee = user.rol === 'admin' || user.tipoUsuario === 'empleado';
-        console.log('🔐 Ruta de ventas. Es admin/empleado?', isAdminOrEmployee, 'Rol:', user.rol, 'Tipo:', user.tipoUsuario);
+        
         return isAdminOrEmployee;
       }
       
@@ -1301,7 +1301,7 @@ class HeaderUnificado {
         button.disabled = false;
       }, 2000);
 
-      console.log('🛒 Producto agregado al carrito localStorage:', productoId);
+      
       
     } catch (error) {
       console.error('❌ Error al agregar al carrito:', error);
@@ -1346,7 +1346,7 @@ class HeaderUnificado {
   // Función para limpiar todas las cookies de forma exhaustiva
   clearAllCookies() {
     try {
-      console.log('🍪 Limpiando todas las cookies...');
+      
       
       // Obtener todas las cookies
       const cookies = document.cookie.split(";");
@@ -1387,7 +1387,7 @@ class HeaderUnificado {
         document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname};`;
       });
       
-      console.log('✅ Cookies limpiadas');
+      
     } catch (e) {
       console.warn('⚠️ Error limpiando cookies:', e);
     }
@@ -1398,7 +1398,7 @@ class HeaderUnificado {
     if (!window.indexedDB) return;
     
     try {
-      console.log('🗄️ Limpiando IndexedDB...');
+      
       
       // Obtener todas las bases de datos y eliminarlas
       if (indexedDB.databases) {
@@ -1406,7 +1406,7 @@ class HeaderUnificado {
           databases.forEach(db => {
             if (db.name) {
               const deleteReq = indexedDB.deleteDatabase(db.name);
-              deleteReq.onsuccess = () => console.log(`✅ Base de datos ${db.name} eliminada`);
+              deleteReq.onsuccess = () => {};
               deleteReq.onerror = () => console.warn(`⚠️ Error eliminando base de datos ${db.name}`);
             }
           });
@@ -1420,7 +1420,7 @@ class HeaderUnificado {
   // Función para limpiar el historial del navegador
   clearBrowserHistory() {
     try {
-      console.log('📜 Limpiando historial del navegador...');
+      
       
       // Reemplazar toda la historia con una entrada vacía
       if (window.history && window.history.replaceState) {
@@ -1437,7 +1437,7 @@ class HeaderUnificado {
       // Prevenir el botón atrás
       window.addEventListener('popstate', this.preventBackButton.bind(this));
       
-      console.log('✅ Historial limpiado');
+      
     } catch (e) {
       console.warn('⚠️ Error limpiando historial:', e);
     }
@@ -1450,7 +1450,7 @@ class HeaderUnificado {
       event.preventDefault();
       event.stopPropagation();
       window.history.pushState(null, '', '/');
-      console.log('🚫 Botón atrás bloqueado después del logout');
+      
       return false;
     }
   }
@@ -1486,7 +1486,7 @@ class HeaderUnificado {
       }
     });
     
-    console.log('✅ Header fijo configurado - GARANTIZADO SIEMPRE VISIBLE');
+    
   }
 
   //  NUEVA FUNCIÓN: Animación de producto volando al carrito
@@ -1495,14 +1495,14 @@ class HeaderUnificado {
       // Encontrar la tarjeta del producto
       const productCard = button.closest('.card, .product-card');
       if (!productCard) {
-        console.log('No se encontró la tarjeta del producto');
+        
         return;
       }
 
       // Encontrar el icono del carrito en el header
       const carritoIcon = document.querySelector('.fa-shopping-cart, [href*="carrito"]');
       if (!carritoIcon) {
-        console.log('No se encontró el icono del carrito');
+        
         return;
       }
 
@@ -1581,7 +1581,7 @@ class HeaderUnificado {
         carritoIcon.style.animation = '';
       }, 1200);
 
-      console.log('✨ Animación mejorada de producto al carrito iniciada');
+      
 
     } catch (error) {
       console.error('Error en animación de producto al carrito:', error);
@@ -1591,7 +1591,7 @@ class HeaderUnificado {
   // Función para forzar recarga completa sin caché
   forceCompleteReload(url = '/') {
     try {
-      console.log('🔄 Forzando recarga completa...');
+      
       
       // Limpiar todos los elementos del DOM que puedan contener datos
       const elementsToClean = ['input', 'textarea', 'select'];
@@ -1635,7 +1635,7 @@ class HeaderUnificado {
         window.updateCatalogoButtons();
       }
       
-      console.log('📡 Estado de usuario notificado a otras páginas');
+      
     } catch (error) {
       console.error('Error notificando cambio de estado:', error);
     }

@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Usamos confirmacionProductoModal si existe; si no, fallback a consola y recarga.
     const el = document.getElementById('confirmacionProductoModal');
     if (!el) {
-      console.log('✅', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
       return;
     }
@@ -106,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
       }, reloadDelayMs);
     } else {
-      console.log('✅', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
     }
   }

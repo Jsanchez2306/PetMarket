@@ -133,8 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const el = document.getElementById('confirmacionClienteModal');
     if (!el) {
-      // Fallback consola si no existe modal
-      console.log('', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
       return;
     }
@@ -149,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
       }, reloadDelayMs);
     } else {
-      console.log('', msg);
       setTimeout(() => window.location.reload(), reloadDelayMs);
     }
   }
