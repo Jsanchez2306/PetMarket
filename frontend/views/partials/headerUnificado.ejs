@@ -281,9 +281,9 @@
           <div id="loginMensajeError" class="alert alert-danger d-none text-center" role="alert"></div>
 
           <% if (RECAPTCHA_ENABLED && RECAPTCHA_SITE_KEY) { %>
-          <!-- Google reCAPTCHA v2 -->
+          <!-- Google reCAPTCHA v2 (render explícito dentro del modal) -->
           <div class="mb-3 d-flex justify-content-center">
-            <div id="loginRecaptcha" class="g-recaptcha" data-sitekey="<%= RECAPTCHA_SITE_KEY %>"></div>
+            <div id="loginRecaptcha" data-sitekey="<%= RECAPTCHA_SITE_KEY %>"></div>
           </div>
           <% } %>
           <button type="submit" class="btn btn-primary w-100">Ingresar</button>
@@ -317,7 +317,16 @@
 
 <!-- Script de Google reCAPTCHA (solo si está habilitado) -->
 <% if (RECAPTCHA_ENABLED && RECAPTCHA_SITE_KEY) { %>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+  window.onLoginRecaptchaLoad = function () {
+    window.recaptchaApiReady = true;
+  };
+  // Helper para saber si el API está listo
+  window.isRecaptchaReady = function () { return !!(window.recaptchaApiReady && window.grecaptcha); };
+  // Exponer site key por si se requiere en scripts externos
+  window.LOGIN_RECAPTCHA_SITE_KEY = '<%= RECAPTCHA_SITE_KEY %>';
+  </script>
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onLoginRecaptchaLoad&hl=es" async defer></script>
 <% } %>
 
 <!-- Modal para actualizar datos de perfil -->

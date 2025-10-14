@@ -88,6 +88,37 @@ class HeaderUnificado {
           console.log('💾 Guardando página actual para post-login:', currentPage);
           sessionStorage.setItem('postLoginRedirect', currentPage);
         }
+
+        // Render explícito de reCAPTCHA si el API está listo
+        try {
+          const container = document.getElementById('loginRecaptcha');
+          if (container && window.isRecaptchaReady && window.isRecaptchaReady()) {
+            if (typeof container.dataset.rendered === 'undefined') {
+              const widgetId = grecaptcha.render(container, { 
+                sitekey: window.LOGIN_RECAPTCHA_SITE_KEY,
+                theme: 'light',
+                size: 'normal',
+                callback: () => {
+                  // Limpia mensajes de error cuando el usuario completa el captcha
+                  const errorAlert = document.getElementById('loginMensajeError');
+                  if (errorAlert) errorAlert.classList.add('d-none');
+                },
+                'expired-callback': () => {
+                  const errorAlert = document.getElementById('loginMensajeError');
+                  if (errorAlert) {
+                    errorAlert.textContent = 'El reCAPTCHA expiró. Vuelve a marcar la casilla.';
+                    errorAlert.classList.remove('d-none');
+                  }
+                }
+              });
+              container.dataset.rendered = 'true';
+              container.dataset.widgetId = String(widgetId);
+              console.log('✅ reCAPTCHA renderizado (widgetId):', widgetId);
+            }
+          }
+        } catch (e) {
+          console.warn('⚠️ No se pudo renderizar reCAPTCHA en modal:', e.message);
+        }
       });
 
       // Limpiar redirección si se cierra el modal sin login
@@ -98,6 +129,14 @@ class HeaderUnificado {
           console.log('🧹 Limpiando redirección guardada (modal cerrado sin login)');
           sessionStorage.removeItem('postLoginRedirect');
         }
+
+        // Resetear reCAPTCHA del modal si existe
+        try {
+          const container = document.getElementById('loginRecaptcha');
+          if (container && container.dataset.widgetId && window.grecaptcha) {
+            grecaptcha.reset(Number(container.dataset.widgetId));
+          }
+        } catch {}
       });
     }
   }
@@ -115,6 +154,17 @@ class HeaderUnificado {
 
     const deleteForm = document.getElementById('formEliminarCuenta');
     if (deleteForm) deleteForm.addEventListener('submit', (e) => this.handleDeleteAccount(e));
+  }
+
+  // Sanea cadenas para evitar caracteres de control o no imprimibles
+  sanitize(str) {
+    try {
+      if (!str) return '';
+      return String(str)
+        .replace(/[\u0000-\u001F\u007F]/g, '')
+        .normalize('NFC')
+        .trim();
+    } catch { return String(str || '').trim(); }
   }
 
   loadUserInfo() {
@@ -264,8 +314,10 @@ class HeaderUnificado {
   updateUserInfo(nombre, email, rol, tipoUsuario) {
     const userDisplayName = document.getElementById('userDisplayName');
     const dropdownUserName = document.getElementById('dropdownUserName');
-    if (userDisplayName) userDisplayName.textContent = nombre || email;
-    if (dropdownUserName) dropdownUserName.textContent = nombre || email;
+    // Sanear nombre para evitar caracteres de control u otros símbolos extraños
+    const safeName = this.sanitize(nombre) || this.sanitize(email);
+    if (userDisplayName) userDisplayName.textContent = safeName;
+    if (dropdownUserName) dropdownUserName.textContent = safeName;
 
     const userIcon = document.getElementById('userIcon');
     const dropdownUserIcon = document.getElementById('dropdownUserIcon');
@@ -454,8 +506,10 @@ class HeaderUnificado {
     // Obtener token de reCAPTCHA si existe el widget
     let recaptchaToken = null;
     try {
-      if (window.grecaptcha && document.getElementById('loginRecaptcha')) {
-        recaptchaToken = grecaptcha.getResponse();
+      const container = document.getElementById('loginRecaptcha');
+      if (window.grecaptcha && container) {
+        const widgetId = container.dataset.widgetId ? Number(container.dataset.widgetId) : undefined;
+        recaptchaToken = typeof widgetId === 'number' ? grecaptcha.getResponse(widgetId) : grecaptcha.getResponse();
         if (!recaptchaToken) {
           // Mostrar mensaje amigable si no ha pasado el captcha
           if (errorAlert) {
@@ -535,7 +589,7 @@ class HeaderUnificado {
           }
         } catch {}
 
-        const nombreUsuario = (data.usuario && (data.usuario.nombre || data.usuario.email)) || email;
+  const nombreUsuario = this.sanitize((data.usuario && (data.usuario.nombre || data.usuario.email)) || email);
         const tipoTexto = data.rol === 'admin' ? 'admin' : (data.tipoUsuario === 'empleado' ? 'empleado' : 'cliente');
 
         const msg = document.getElementById('loginBienvenidaMensaje');
@@ -566,7 +620,13 @@ class HeaderUnificado {
       }
     }
     // Resetear captcha (si corresponde) para permitir reintentar
-    try { if (window.grecaptcha && document.getElementById('loginRecaptcha')) grecaptcha.reset(); } catch {}
+    try { 
+      const container = document.getElementById('loginRecaptcha');
+      if (window.grecaptcha && container) {
+        const widgetId = container.dataset.widgetId ? Number(container.dataset.widgetId) : undefined;
+        if (typeof widgetId === 'number') grecaptcha.reset(widgetId); else grecaptcha.reset();
+      }
+    } catch {}
   }
 
   async handleRegister(e) {
@@ -602,7 +662,7 @@ class HeaderUnificado {
           localStorage.setItem('token', data.token);
           this.loadUserInfo();
           this.updateHeader();
-          const nombreUsuario = (data.usuario && (data.usuario.nombre || data.usuario.email)) || registerData.email;
+          const nombreUsuario = this.sanitize((data.usuario && (data.usuario.nombre || data.usuario.email)) || registerData.email);
           const tipoTexto = data.rol === 'admin' ? 'admin' : (data.tipoUsuario === 'empleado' ? 'empleado' : 'cliente');
           mensaje = `¡Bienvenido ${tipoTexto}, ${nombreUsuario}!`;
           if (data.rol === 'admin') redirectUrl = '/panel';

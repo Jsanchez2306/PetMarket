@@ -81,10 +81,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ mensaje: 'Faltan campos' });
     }
 
-    // Verificación de Google reCAPTCHA (si está habilitado)
+    // Verificación de Google reCAPTCHA (si está habilitado y enforzada)
     try {
       const enabled = ((process.env.RECAPTCHA_ENABLED || 'false').trim().toLowerCase()) === 'true';
-      if (enabled) {
+      const enforce = ((process.env.RECAPTCHA_ENFORCE || 'false').trim().toLowerCase()) === 'true';
+      if (enabled && enforce) {
         if (!recaptchaToken || typeof recaptchaToken !== 'string' || !recaptchaToken.trim()) {
           return res.status(400).json({ mensaje: 'Validación reCAPTCHA requerida' });
         }
@@ -97,12 +98,29 @@ exports.login = async (req, res) => {
           const params = new URLSearchParams();
           params.append('secret', secret);
           params.append('response', recaptchaToken);
-          // opcional: params.append('remoteip', req.ip);
-          const { data: gResp } = await axios.post(verifyURL, params);
-          if (!gResp || gResp.success !== true) {
-            const reason = Array.isArray(gResp && gResp['error-codes']) ? gResp['error-codes'].join(', ') : 'fallo de verificación';
-            return res.status(400).json({ mensaje: 'reCAPTCHA inválido', detalle: reason });
+          // Enviar IP del cliente para mayor precisión
+          const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim();
+          if (clientIp) params.append('remoteip', clientIp);
+          const { data: gResp } = await axios.post(verifyURL, params, { timeout: 5000 });
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('🧪 reCAPTCHA resp:', gResp);
           }
+          if (!gResp || gResp.success !== true) {
+            const codes = Array.isArray(gResp && gResp['error-codes']) ? gResp['error-codes'] : [];
+            let mensaje = 'Validación reCAPTCHA fallida';
+            if (codes.includes('missing-input-response')) mensaje = 'Por favor completa el reCAPTCHA';
+            else if (codes.includes('invalid-input-response')) mensaje = 'reCAPTCHA inválido. Recarga la página e inténtalo de nuevo';
+            else if (codes.includes('timeout-or-duplicate')) mensaje = 'El reCAPTCHA expiró. Vuelve a marcar la casilla';
+            else if (codes.includes('invalid-input-secret') || codes.includes('missing-input-secret')) mensaje = 'Error de configuración del servidor reCAPTCHA';
+            else if (codes.includes('bad-request')) mensaje = 'Solicitud reCAPTCHA inválida';
+            const detalle = codes.join(', ') || 'fallo de verificación';
+            return res.status(400).json({ mensaje, detalle });
+          }
+        }
+      } else {
+        // No enforzar: seguir con el login sin validar token
+        if (enabled && !enforce) {
+          console.log('ℹ️ reCAPTCHA habilitado en UI pero no enforzado en backend (solo visual)');
         }
       }
     } catch (rcErr) {

@@ -51,9 +51,13 @@ app.use(session({
 
 console.log('📦 Sesiones configuradas');
 
+// Para obtener IP real detrás de proxies (Render/NGROK)
+app.set('trust proxy', true);
+
 // Exponer configuración básica a las vistas (EJS)
 app.locals.RECAPTCHA_ENABLED = ((process.env.RECAPTCHA_ENABLED || 'false').trim().toLowerCase()) === 'true';
 app.locals.RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || '';
+app.locals.RECAPTCHA_ENFORCE = ((process.env.RECAPTCHA_ENFORCE || 'false').trim().toLowerCase()) === 'true';
 
 // Middleware para prevenir caché en rutas administrativas
 const noCache = (req, res, next) => {
