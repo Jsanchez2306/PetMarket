@@ -1,11 +1,6 @@
-/* Carrusel: proporción consistente para imagen y video */
-#miCarrusel {
-  max-width: min(96vw, 980px);
-  border-radius: 1.5rem;
-  box-shadow: 0 6px 28px rgba(0,0,0,0.12);
-  border: 2px solid #e6e6e6;
-  background: #fff;
-}
+/* Carrusel: full-width banner y consistente */
+#miCarrusel { width: 100%; background: transparent; border: none; box-shadow: none; border-radius: 0; margin-top: -1px; }
+#miCarrusel .carousel-inner { border-radius: 0; overflow: hidden; }
 #miCarrusel .carousel-inner { border-radius: inherit; overflow: hidden; }
 #miCarrusel .carousel-item { height: auto; }
 
@@ -15,19 +10,55 @@
 .video1 {
   display: block;
   width: 100%;
-  aspect-ratio: 16/9;
+  aspect-ratio: 4/1; /* coincide con el banner original (evita recorte) */
 }
+.big-carousel-img { object-fit: cover; object-position: 50% 40%; }
 .big-carousel-img,
 .publicidad1,
-.publicidad2 {
-  object-fit: cover;
-  background: #f8f9fa;
+.publicidad2 { object-fit: cover; background: #f8f9fa; }
+.video1 { border: 0; background: #000; height: auto; }
+
+/* Overlay suave para mejorar contraste y estética del banner */
+#miCarrusel .carousel-item { position: relative; }
+#miCarrusel .carousel-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.10), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.10));
 }
-.video1 { border: 0; background: #111; }
+
+/* Contenedor para el slide de video con misma proporción que las imágenes */
+.banner-ratio { width: 100%; aspect-ratio: 4/1; }
+.banner-ratio > iframe { width: 100%; height: 100%; display: block; }
+
+/* Indicadores elegantes del carrusel */
+#miCarrusel .carousel-indicators { gap: 10px; margin-bottom: 10px; }
+#miCarrusel .carousel-indicators [data-bs-target] {
+  width: 9px; height: 9px; border-radius: 50%;
+  background-color: rgba(51,76,117,0.35);
+  border: 1px solid rgba(51,76,117,0.5);
+  transition: all .25s ease;
+}
+#miCarrusel .carousel-indicators .active { background-color: #334C75; transform: scale(1.1); }
+
+/* Hover sutil en imágenes */
+#miCarrusel .carousel-item img { transition: transform .6s ease; }
+#miCarrusel .carousel-item:hover img { transform: scale(1.02); }
 
 @media (max-width: 576px) {
-  #miCarrusel { max-width: 98vw; }
+  #miCarrusel .big-carousel-img,
+  #miCarrusel .video1,
+  #miCarrusel .banner-ratio { aspect-ratio: 16/9; }
 }
+
+/* Ajustes de encuadre por slide si hace falta */
+.big-carousel-img { object-fit: cover; object-position: 50% 50%; }
+.big-carousel-img.banner1 { object-fit: contain; object-position: 50% 50%; background: #0b2f4f; }
+.big-carousel-img.banner3 { object-fit: contain; object-position: 50% 50%; background: #ffffff; }
+
+/* Desactivar overlay en el primer slide si es necesario */
+#miCarrusel .carousel-item.no-overlay::after { background: none !important; }
 main {
   flex: 1
 }
@@ -104,5 +135,22 @@ body {
   background-color: #334C75;
   color: #ffffff
 }
+
+/* Stats debajo del carrusel */
+.stats-section { max-width: 1200px; margin: 16px auto 0; padding: 0 16px; }
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 14px 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.stat-icon { color: #000000; font-size: 22px; margin-bottom: 4px; }
+.stat-value { font-weight: 800; font-size: 20px; color: #000000; line-height: 1.1; }
+.stat-label { font-size: 13px; color: #6c757d; }
+
+/* Ajustes de margen para pegar carrusel al header */
+.container.mt-0 { margin-top: 0 !important; }
+.big-carousel.mx-auto.my-3 { margin-top: 12px !important; margin-bottom: 12px !important; }
 
 

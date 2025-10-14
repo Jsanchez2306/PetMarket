@@ -2,7 +2,6 @@
   <a class="navbar-brand d-flex align-items-center" href="/nosotros" id="logoLink">
     <img src="../Imagenes/PetMarket_Logo.png" alt="Pet Market Logo" height="40" class="me-2">
     <span class="fw-bold d-none d-md-inline"></span>
-    <!-- Badge dinámico para mostrar rol -->
     <span class="badge ms-2 small d-none" id="roleBadge"></span>
   </a>
 
@@ -11,9 +10,7 @@
   </button>
 
   <div class="collapse navbar-collapse justify-content-between" id="navbarUnificado">
-    <!-- Navegación Principal - Se adapta según el rol -->
     <ul class="navbar-nav ms-3 mb-2 mb-lg-0" id="mainNavigation">
-      <!-- Links para usuarios no autenticados y clientes -->
       <li class="nav-item client-nav public-nav">
         <a class="nav-link" href="/">Inicio</a>
       </li>
@@ -44,8 +41,8 @@
           id="carritoContador">0</span>
       </a>
 
-      <!-- NUEVO: Botón de ventas - SOLO PARA EMPLEADOS Y ADMINS -->
-      <a href="/ventas" class="btn btn-outline-light btn-primary position-relative me-2 d-none" id="ventasBtn">
+      <!-- SOLO PARA EMPLEADOS Y ADMINS -->
+      <a href="/ventas" class="btn btn-outline-light btn-primary position-relative me-3 d-none" id="ventasBtn">
         <i class="fas fa-receipt"></i>
         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning d-none"
           id="ventasContador">0</span>
