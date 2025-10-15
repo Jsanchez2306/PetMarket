@@ -70,6 +70,12 @@ async function subirCloudinaryDesdeBuffer(buffer) {
 const CATEGORIAS_VALIDAS = ['accesorios', 'ropa', 'juguetes', 'alimentos', 'higiene'];
 
 // =================== Renderizar Vista ===================
+/**
+ * Renderizar la vista de gestión de productos.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página con la lista de productos
+ * @author codenova
+ */
 exports.renderizarGestionProductos = async (req, res) => {
   try {
     const productos = await Producto.find().sort({ fechaRegistro: -1 });
@@ -82,6 +88,12 @@ exports.renderizarGestionProductos = async (req, res) => {
 };
 
 // =================== Obtener Productos API ===================
+/**
+ * Obtener todos los productos.
+ * @params _req, res - solicitud y respuesta HTTP
+ * @return Lista de productos en formato JSON
+ * @author codenova
+ */
 exports.obtenerProductos = async (_req, res) => {
   try {
     const productos = await Producto.find();
@@ -93,6 +105,12 @@ exports.obtenerProductos = async (_req, res) => {
 };
 
 // NUEVA FUNCIÓN: Obtener producto por ID
+/**
+ * Obtener producto por ID.
+ * @params req, res - id del producto en req.params
+ * @return Producto encontrado o mensaje de error
+ * @author codenova
+ */
 exports.obtenerProductoPorId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -115,6 +133,12 @@ exports.obtenerProductoPorId = async (req, res) => {
 };
 
 // =================== Crear Producto ===================
+/**
+ * Crear un nuevo producto.
+ * @params req, res - datos del producto en req.body y archivo de imagen en req.file
+ * @return Producto creado o errores de validación
+ * @author codenova
+ */
 exports.crearProducto = async (req, res) => {
   try {
     const { nombre, descripcion, precio, stock, categoria } = req.body;
@@ -184,7 +208,7 @@ exports.crearProducto = async (req, res) => {
 
     res.status(201).json(producto);
   } catch (err) {
-    console.error('ERROR CREAR PRODUCTO:', err);
+  console.error('ERROR CREAR PRODUCTO:', err);
     if (err.message && err.message.includes('Formato no permitido')) {
       return res.status(400).json({ errores: { imagen: err.message } });
     }
@@ -203,6 +227,12 @@ exports.crearProducto = async (req, res) => {
 };
 
 // =================== Actualizar Producto ===================
+/**
+ * Actualizar un producto existente.
+ * @params req, res - id del producto en req.params y datos a actualizar
+ * @return Producto actualizado o mensaje de error
+ * @author codenova
+ */
 exports.actualizarProducto = async (req, res) => {
   try {
     const { id } = req.params;
@@ -302,7 +332,7 @@ exports.actualizarProducto = async (req, res) => {
     const actualizado = await Producto.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     res.json(actualizado);
   } catch (err) {
-    console.error('ERROR ACTUALIZAR PRODUCTO:', err);
+  console.error('ERROR ACTUALIZAR PRODUCTO:', err);
     if (err.message && err.message.includes('Formato no permitido')) {
       return res.status(400).json({ errores: { imagen: err.message } });
     }
@@ -321,6 +351,12 @@ exports.actualizarProducto = async (req, res) => {
 };
 
 // =================== Eliminar Producto ===================
+/**
+ * Eliminar un producto.
+ * @params req, res - id del producto en req.params
+ * @return Estado de eliminación o mensaje de error
+ * @author codenova
+ */
 exports.eliminarProducto = async (req, res) => {
   try {
     const { id } = req.params;
@@ -339,23 +375,35 @@ exports.eliminarProducto = async (req, res) => {
 
     res.sendStatus(200);
   } catch (err) {
-    console.error('Error al eliminar producto:', err);
+  console.error('Error al eliminar producto:', err);
     res.sendStatus(500);
   }
 };
 
 // =================== Aleatorios y Filtros (igual) ===================
+/**
+ * Obtener productos aleatorios.
+ * @params req, res - cantidad en req.query
+ * @return Lista de productos aleatorios
+ * @author codenova
+ */
 exports.obtenerProductosAleatorios = async (req, res) => {
   try {
     const { cantidad = 3 } = req.query;
     const productos = await Producto.aggregate([{ $sample: { size: parseInt(cantidad) } }]);
     res.status(200).json(productos);
   } catch (err) {
-    console.error('Error al obtener productos aleatorios:', err);
+  console.error('Error al obtener productos aleatorios:', err);
     res.status(500).json({ mensaje: 'Error al obtener productos aleatorios', error: err.message });
   }
 };
 
+/**
+ * Obtener productos con filtros y paginación.
+ * @params req, res - filtros y paginación en req.query
+ * @return Lista de productos filtrados y datos de paginación
+ * @author codenova
+ */
 exports.obtenerProductosConFiltros = async (req, res) => {
   try {
     const { categoria, busqueda, pagina = 1, limite = 9 } = req.query;
@@ -383,7 +431,7 @@ exports.obtenerProductosConFiltros = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Error al obtener productos con filtros:', err);
+  console.error('Error al obtener productos con filtros:', err);
     res.status(500).json({ mensaje: 'Error al obtener productos con filtros', error: err.message });
   }
 };

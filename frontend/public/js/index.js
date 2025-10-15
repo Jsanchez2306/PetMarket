@@ -85,10 +85,10 @@ function bloquearBotonesCompraAdmin() {
         // Cambiar el texto
         const textoBoton = boton.childNodes[boton.childNodes.length - 1];
         if (textoBoton && textoBoton.nodeType === Node.TEXT_NODE) {
-            textoBoton.textContent = ' Admin - No disponible';
+            textoBoton.textContent = ' No disponible';
         } else {
             // Si no encuentra el nodo de texto, reemplazar todo el contenido
-            boton.innerHTML = '<i class="fas fa-lock me-2"></i>Admin - No disponible';
+            boton.innerHTML = '<i class="fas fa-lock me-2"></i>No disponible';
         }
         
         // Agregar tooltip explicativo

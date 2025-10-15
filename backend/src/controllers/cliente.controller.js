@@ -40,6 +40,12 @@ function validarPassword(contrasena, requerida = true) {
 }
 
 /* ================== Vista ================== */
+/**
+ * Renderizar la vista de gestión de clientes.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página con la lista de clientes
+ * @author codenova
+ */
 exports.renderizarGestionClientes = async (req, res) => {
   try {
     const clientes = await Cliente.find();
@@ -51,6 +57,12 @@ exports.renderizarGestionClientes = async (req, res) => {
 };
 
 /* ================== API Lista ================== */
+/**
+ * Obtener todos los clientes.
+ * @params _req, res - solicitud y respuesta HTTP
+ * @return Lista de clientes en formato JSON
+ * @author codenova
+ */
 exports.obtenerClientes = async (_req, res) => {
   try {
     const clientes = await Cliente.find();
@@ -62,6 +74,12 @@ exports.obtenerClientes = async (_req, res) => {
 };
 
 /* ================== Buscar por Email ================== */
+/**
+ * Buscar cliente por email.
+ * @params req, res - email en query params
+ * @return Cliente encontrado o mensaje de error
+ * @author codenova
+ */
 exports.buscarClientePorEmail = async (req, res) => {
   try {
     const email = normStr(req.query.email)?.toLowerCase();
@@ -74,12 +92,18 @@ exports.buscarClientePorEmail = async (req, res) => {
     delete seguro.contrasena;
     res.json(seguro);
   } catch (err) {
-    console.error('Error al buscar cliente:', err);
+  console.error('Error al buscar cliente:', err);
     res.status(500).json({ mensaje: 'Error al buscar cliente', error: err.message });
   }
 };
 
 /* ================== Crear Cliente ================== */
+/**
+ * Crear un nuevo cliente.
+ * @params req, res - datos del cliente en req.body
+ * @return Cliente creado o errores de validación
+ * @author codenova
+ */
 exports.crearCliente = async (req, res) => {
   try {
     const data = { ...req.body };
@@ -132,6 +156,12 @@ exports.crearCliente = async (req, res) => {
 };
 
 /* ================== Actualizar Cliente ================== */
+/**
+ * Actualizar un cliente existente.
+ * @params req, res - id del cliente en req.params y datos a actualizar
+ * @return Cliente actualizado o mensaje de error
+ * @author codenova
+ */
 exports.actualizarCliente = async (req, res) => {
   try {
     const { id } = req.params;
@@ -223,6 +253,12 @@ exports.actualizarCliente = async (req, res) => {
 };
 
 /* ================== Eliminar Cliente ================== */
+/**
+ * Eliminar un cliente.
+ * @params req, res - id del cliente en req.params
+ * @return Estado de eliminación o mensaje de error
+ * @author codenova
+ */
 exports.eliminarCliente = async (req, res) => {
   try {
     const { id } = req.params;

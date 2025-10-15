@@ -61,28 +61,46 @@ function validarPassword(contrasena, requerida = true) {
 }
 
 // ================== Renderizar vista ==================
+/**
+ * Renderizar la vista de gestión de empleados.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página con la lista de empleados
+ * @author codenova
+ */
 exports.renderizarGestionEmpleados = async (req, res) => {
   try {
     const empleados = await Empleado.find();
     res.render('gestionEmpleados', { empleados });
   } catch (err) {
-    console.error('Error al obtener empleados para la vista:', err);
+  console.error('Error al obtener empleados para la vista:', err);
     res.status(500).send('Error al obtener empleados');
   }
 };
 
 // ================== API: Obtener empleados ==================
+/**
+ * Obtener todos los empleados.
+ * @params _req, res - solicitud y respuesta HTTP
+ * @return Lista de empleados en formato JSON
+ * @author codenova
+ */
 exports.obtenerEmpleados = async (_req, res) => {
   try {
     const empleados = await Empleado.find();
     res.status(200).json(empleados);
   } catch (err) {
-    console.error('Error al obtener empleados (API):', err);
+  console.error('Error al obtener empleados (API):', err);
     res.status(500).json({ mensaje: 'Error al obtener empleados', error: err.message });
   }
 };
 
 // ================== Crear empleado ==================
+/**
+ * Crear un nuevo empleado.
+ * @params req, res - datos del empleado en req.body
+ * @return Empleado creado o errores de validación
+ * @author codenova
+ */
 exports.crearEmpleado = async (req, res) => {
   try {
     const data = { ...req.body };
@@ -124,7 +142,7 @@ exports.crearEmpleado = async (req, res) => {
     res.status(201).json(nuevoEmpleado);
 
   } catch (err) {
-    console.error('Error al crear empleado:', err);
+  console.error('Error al crear empleado:', err);
 
     if (err.name === 'ValidationError') {
       const errores = {};
@@ -143,6 +161,12 @@ exports.crearEmpleado = async (req, res) => {
 };
 
 // ================== Actualizar empleado ==================
+/**
+ * Actualizar un empleado existente.
+ * @params req, res - id del empleado en req.params y datos a actualizar
+ * @return Empleado actualizado o mensaje de error
+ * @author codenova
+ */
 exports.actualizarEmpleado = async (req, res) => {
   try {
     const { id } = req.params;
@@ -194,7 +218,7 @@ exports.actualizarEmpleado = async (req, res) => {
     res.json(actualizado);
 
   } catch (err) {
-    console.error('Error al actualizar empleado:', err);
+  console.error('Error al actualizar empleado:', err);
 
     if (err.name === 'ValidationError') {
       const errores = {};
@@ -213,6 +237,12 @@ exports.actualizarEmpleado = async (req, res) => {
 };
 
 // ================== Eliminar empleado ==================
+/**
+ * Eliminar un empleado.
+ * @params req, res - id del empleado en req.params
+ * @return Estado de eliminación o mensaje de error
+ * @author codenova
+ */
 exports.eliminarEmpleado = async (req, res) => {
   try {
     const { id } = req.params;
@@ -220,7 +250,7 @@ exports.eliminarEmpleado = async (req, res) => {
     if (!eliminado) return res.status(404).json({ mensaje: 'Empleado no encontrado' });
     res.sendStatus(200);
   } catch (err) {
-    console.error('Error al eliminar empleado:', err);
+  console.error('Error al eliminar empleado:', err);
     res.sendStatus(500);
   }
 };

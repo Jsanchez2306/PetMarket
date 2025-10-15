@@ -7,8 +7,12 @@ const { Resend } = require('resend');
 const fs = require('fs');
 const path = require('path');
 
+
 /**
- * Renderiza la página de crear factura (vista EJS)
+ * Renderizar la vista para crear factura.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página de creación de factura
+ * @author codenova
  */
 exports.renderizarCrearFactura = async (req, res) => {
   try {
@@ -35,6 +39,12 @@ exports.renderizarCrearFactura = async (req, res) => {
 /**
  * Renderiza la gestión de facturas (vista EJS)
  */
+/**
+ * Renderizar la vista de gestión de facturas.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página con la lista de facturas
+ * @author codenova
+ */
 exports.renderizarGestionFacturas = async (req, res) => {
   try {
     const facturas = await Factura.find();
@@ -60,8 +70,12 @@ exports.renderizarGestionFacturas = async (req, res) => {
   }
 };
 
+
 /**
- * Crear una nueva factura manual (empleados)
+ * Crear una nueva factura.
+ * @params req, res - datos de la factura en req.body
+ * @return Factura creada o errores de validación
+ * @author codenova
  */
 exports.crearFactura = async (req, res) => {
   try {
@@ -196,7 +210,7 @@ exports.crearFactura = async (req, res) => {
   await nuevaVenta.save();
       
     } catch (ventaError) {
-      console.error('⚠️ Error al crear venta desde factura manual:', ventaError);
+      console.error(' Error al crear venta desde factura manual:', ventaError);
       // No devolvemos error porque la factura se creó exitosamente
     }
 
@@ -211,7 +225,10 @@ exports.crearFactura = async (req, res) => {
 };
 
 /**
- * Obtener todas las facturas (API)
+ * Obtener todas las facturas (API).
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Lista de facturas en formato JSON
+ * @author codenova
  */
 exports.obtenerFacturas = async (req, res) => {
   try {
@@ -228,7 +245,10 @@ exports.obtenerFacturas = async (req, res) => {
 };
 
 /**
- * Obtener una factura por ID
+ * Obtener una factura por ID.
+ * @params req, res - id de la factura en req.params
+ * @return Factura encontrada o mensaje de error
+ * @author codenova
  */
 exports.obtenerFacturaPorId = async (req, res) => {
   try {
@@ -250,7 +270,10 @@ exports.obtenerFacturaPorId = async (req, res) => {
 };
 
 /**
- * Actualizar una factura por ID
+ * Actualizar una factura por ID.
+ * @params req, res - id de la factura y datos a actualizar
+ * @return Factura actualizada o mensaje de error
+ * @author codenova
  */
 exports.actualizarFactura = async (req, res) => {
   try {
@@ -265,7 +288,10 @@ exports.actualizarFactura = async (req, res) => {
 };
 
 /**
- * Eliminar una factura por ID
+ * Eliminar una factura por ID.
+ * @params req, res - id de la factura en req.params
+ * @return Estado de eliminación o mensaje de error
+ * @author codenova
  */
 exports.eliminarFactura = async (req, res) => {
   try {
@@ -280,19 +306,24 @@ exports.eliminarFactura = async (req, res) => {
 };
 
 /**
- * Configurar cliente de Resend
+ * Configurar cliente de Resend.
+ * @return Instancia de Resend o null si no hay API Key
+ * @author codenova
  */
 const configurarResend = () => {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.error('❌ RESEND_API_KEY no está configurado');
+    console.error(' RESEND_API_KEY no está configurado');
     return null;
   }
   return new Resend(apiKey);
 };
 
 /**
- * Generar HTML de la factura para correo
+ * Generar HTML de la factura para correo.
+ * @params factura, clienteInfo, empleado - datos de la factura y participantes
+ * @return HTML en formato string
+ * @author codenova
  */
 const generarHTMLFactura = (factura, clienteInfo, empleado) => {
   const fechaFormateada = new Date(factura.fecha).toLocaleDateString('es-CO');
@@ -412,7 +443,10 @@ const generarHTMLFactura = (factura, clienteInfo, empleado) => {
 };
 
 /**
- * Enviar factura por correo electrónico
+ * Enviar factura por correo electrónico.
+ * @params req, res - id de la factura en req.params
+ * @return Estado del envío y detalles del email
+ * @author codenova
  */
 exports.enviarFacturaPorCorreo = async (req, res) => {
   try {
@@ -453,7 +487,7 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
     const resend = configurarResend();
     
     if (!resend) {
-      console.error('⚠️ Servicio de email no disponible - API Key no configurado');
+      console.error(' Servicio de email no disponible - API Key no configurado');
       if (process.env.NODE_ENV === 'production') {
         return res.status(500).json({ 
           mensaje: 'Servicio de correo temporalmente no disponible.' 
@@ -475,29 +509,29 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
     };
 
     // Enviar email con retry
-    console.log('📧 Enviando factura con Resend...');
+    console.log(' Enviando factura con Resend...');
     
     let lastError = null;
     for (let intento = 1; intento <= 3; intento++) {
       try {
-        console.log(`📧 Intento ${intento}/3 - Enviando factura a: ${clienteInfo.email}`);
+        console.log(` Intento ${intento}/3 - Enviando factura a: ${clienteInfo.email}`);
         
         const { data, error } = await resend.emails.send(emailOptions);
 
         if (error) {
           lastError = error;
-          console.error(`❌ Error en intento ${intento}:`, error);
+          console.error(` Error en intento ${intento}:`, error);
           
           if (intento < 3) {
             const tiempoEspera = Math.pow(2, intento) * 1000;
-            console.log(`⏳ Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
+            console.log(` Esperando ${tiempoEspera/1000}s antes del siguiente intento...`);
             await new Promise(resolve => setTimeout(resolve, tiempoEspera));
           }
           continue;
         }
 
-        console.log('✅ Factura enviada exitosamente:', data);
-        console.log(`✅ Factura enviada por correo a ${clienteInfo.email}`);
+        console.log(' Factura enviada exitosamente:', data);
+        console.log(` Factura enviada por correo a ${clienteInfo.email}`);
         return res.status(200).json({ 
           mensaje: 'Factura enviada exitosamente por correo electrónico',
           email: clienteInfo.email,
@@ -506,7 +540,7 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
         
       } catch (error) {
         lastError = error;
-        console.error(`❌ Excepción en intento ${intento}:`, error.message);
+        console.error(` Excepción en intento ${intento}:`, error.message);
         
         if (intento < 3) {
           const tiempoEspera = Math.pow(2, intento) * 1000;
@@ -519,11 +553,11 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
     throw lastError || new Error('Falló después de 3 intentos');
 
   } catch (error) {
-    console.error('❌ Error al enviar factura por correo:', error);
+    console.error(' Error al enviar factura por correo:', error);
     
     // En producción, no fallar completamente
     if (process.env.NODE_ENV === 'production') {
-      console.error('⚠️ Email de factura falló en producción');
+      console.error(' Email de factura falló en producción');
       return res.status(500).json({ 
         mensaje: `Factura generada correctamente, pero falló el envío por email: ${error.message || 'Error desconocido'}` 
       });
@@ -537,7 +571,10 @@ exports.enviarFacturaPorCorreo = async (req, res) => {
 };
 
 /**
- * Generar PDF de la factura para impresión
+ * Generar PDF de la factura para impresión.
+ * @params req, res - id de la factura en req.params
+ * @return HTML de la factura para impresión
+ * @author codenova
  */
 exports.generarFacturaPDF = async (req, res) => {
   try {
@@ -583,7 +620,7 @@ exports.generarFacturaPDF = async (req, res) => {
     
     res.send(htmlFactura);
     
-    console.log(`✅ PDF de factura generado para impresión: ${factura._id}`);
+    console.log(` PDF de factura generado para impresión: ${factura._id}`);
 
   } catch (error) {
     console.error('Error al generar PDF de factura:', error);

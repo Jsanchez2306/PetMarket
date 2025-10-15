@@ -56,7 +56,7 @@ function inicializarEventos() {
         });
     }
 
-    // ✨ NUEVO: Evento para agregar efectos visuales al botón de compra
+    //  NUEVO: Evento para agregar efectos visuales al botón de compra
     document.addEventListener('click', function(e) {
         const button = e.target.closest('.btn-comprar');
         if (button && !button.disabled) {
@@ -215,7 +215,7 @@ function mostrarProductos(productos) {
                         data-producto="${producto._id}"
                         ${producto.stock === 0 || isAdmin ? 'disabled' : ''}>
                   <i class="fas fa-${isAdmin ? 'lock' : 'shopping-cart'} me-2"></i>
-                  ${isAdmin ? 'Admin - No disponible' : (producto.stock === 0 ? 'Sin stock' : 'Agregar al carrito')}
+                  ${isAdmin ? ' No disponible' : (producto.stock === 0 ? 'Sin stock' : 'Agregar al carrito')}
                 </button>
               </div>
             </div>

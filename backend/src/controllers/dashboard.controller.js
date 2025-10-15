@@ -4,8 +4,12 @@ const Producto = require('../models/producto.model');
 const Venta = require('../models/venta.model');
 const Factura = require('../models/factura.model');
 
+
 /**
- * Obtener estadísticas completas del dashboard
+ * Obtener estadísticas generales del sistema.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estadísticas de ventas, productos, clientes, empleados
+ * @author codenova
  */
 const obtenerEstadisticas = async (req, res) => {
   try {
@@ -175,7 +179,7 @@ const obtenerEstadisticas = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error obteniendo estadísticas del dashboard:', error);
+  console.error('Error obteniendo estadísticas del dashboard:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
@@ -184,8 +188,12 @@ const obtenerEstadisticas = async (req, res) => {
   }
 };
 
+
 /**
- * Obtener productos con bajo stock (para alertas)
+ * Obtener productos con bajo stock.
+ * @params req, res - límite en req.query
+ * @return Lista de productos con bajo stock
+ * @author codenova
  */
 const obtenerProductosBajoStock = async (req, res) => {
   try {
@@ -207,7 +215,7 @@ const obtenerProductosBajoStock = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error obteniendo productos con bajo stock:', error);
+  console.error('Error obteniendo productos con bajo stock:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
@@ -216,8 +224,12 @@ const obtenerProductosBajoStock = async (req, res) => {
   }
 };
 
+
 /**
- * Obtener actividad reciente
+ * Obtener actividad reciente (ventas y clientes).
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Listado de ventas y clientes recientes
+ * @author codenova
  */
 const obtenerActividadReciente = async (req, res) => {
   try {
@@ -250,7 +262,7 @@ const obtenerActividadReciente = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error obteniendo actividad reciente:', error);
+  console.error('Error obteniendo actividad reciente:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',

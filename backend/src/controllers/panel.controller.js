@@ -2,6 +2,12 @@ const Producto = require('../models/producto.model');
 const Cliente = require('../models/cliente.model');
 const Empleado = require('../models/empleado.model');
 
+/**
+ * Renderizar la vista del panel principal.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página del panel con estadísticas
+ * @author codenova
+ */
 exports.mostrarPanel = async (req, res) => {
     try {
         const cantidadProductos = await Producto.countDocuments();
@@ -31,6 +37,12 @@ exports.mostrarPanel = async (req, res) => {
     }
 };
 
+/**
+ * Obtener estadísticas para el panel.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estadísticas de productos, clientes y empleados
+ * @author codenova
+ */
 exports.obtenerEstadisticas = async (req, res) => {
     try {
         console.log('📊 Endpoint /api/estadisticas llamado');

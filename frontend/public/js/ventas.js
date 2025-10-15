@@ -80,10 +80,10 @@ class VentasManager {
   async loadVentas(page = 1) {
     try {
       // Mostrar loading con modal personalizado si está disponible
-      const loadingId = window.showModal ? 
-        window.showModal.loading('Cargando ventas...') : null;
+      // const loadingId = window.showModal ? 
+      //   window.showModal.loading('Cargando ventas...') : null;
       
-      if (!loadingId) this.showLoading(); // Fallback
+      // if (!loadingId) this.showLoading(); // Fallback
       
       const token = localStorage.getItem('token');
       if (!token) {

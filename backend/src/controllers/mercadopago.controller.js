@@ -7,7 +7,7 @@ const Venta = require('../models/venta.model');
 const { enviarFacturaPorCorreo } = require('../services/email.service');
 const crypto = require('crypto');
 
-// Configurar Mercado Pago (SDK v2.x)
+// Configurar Mercado Pago
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'TEST-4753465907432673-093012-6a41fd026329faee121a3570c2a47a6a-516025911'
@@ -15,8 +15,12 @@ const client = new MercadoPagoConfig({
 
 const payment = new Payment(client);
 
+
 /**
- * Función de prueba para verificar configuración básica de Mercado Pago
+ * Función de prueba para verificar configuración básica de Mercado Pago.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Preferencia de prueba creada y URL
+ * @author codenova
  */
 exports.testPreferencia = async (req, res) => {
   try {
@@ -55,7 +59,7 @@ exports.testPreferencia = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error en prueba de Mercado Pago:', error);
+    console.error(' Error en prueba de Mercado Pago:', error);
     res.status(500).json({
       error: 'Error en configuración de Mercado Pago',
       message: error.message,
@@ -64,8 +68,12 @@ exports.testPreferencia = async (req, res) => {
   }
 };
 
+
 /**
- * Función para probar si el token de acceso es válido
+ * Función para probar si el token de acceso es válido.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Preferencia de prueba creada y estado del token
+ * @author codenova
  */
 exports.testToken = async (req, res) => {
   try {
@@ -104,7 +112,7 @@ exports.testToken = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Token inválido:', error.message);
+    console.error(' Token inválido:', error.message);
     res.status(500).json({
       error: 'Token de acceso inválido',
       message: error.message,
@@ -113,8 +121,12 @@ exports.testToken = async (req, res) => {
   }
 };
 
+
 /**
- * Función de prueba para descontar stock manualmente
+ * Función de prueba para descontar stock manualmente.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estado del descuento de stock
+ * @author codenova
  */
 exports.testDescuentoStock = async (req, res) => {
   try {
@@ -165,7 +177,7 @@ exports.testDescuentoStock = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('❌ Error en test de descuento:', error);
+    console.error(' Error en test de descuento:', error);
     res.status(500).json({
       mensaje: 'Error en test de descuento',
       error: error.message
@@ -173,8 +185,12 @@ exports.testDescuentoStock = async (req, res) => {
   }
 };
 
+
 /**
- * Función de prueba específica para Colombia
+ * Función de prueba específica para Colombia.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Preferencia de prueba creada para Colombia
+ * @author codenova
  */
 exports.testColombia = async (req, res) => {
   try {
@@ -239,7 +255,7 @@ exports.testColombia = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error en prueba Colombia:', error);
+    console.error(' Error en prueba Colombia:', error);
     res.status(500).json({
       error: 'Error en configuración Colombia',
       message: error.message,
@@ -248,8 +264,12 @@ exports.testColombia = async (req, res) => {
   }
 };
 
+
 /**
- * Crear preferencia de pago desde localStorage
+ * Crear preferencia de pago desde localStorage.
+ * @params req, res - items del carrito en req.body
+ * @return Preferencia creada y URL de Mercado Pago
+ * @author codenova
  */
 exports.crearPreferenciaLocalStorage = async (req, res) => {
   try {
@@ -340,7 +360,7 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al crear preferencia desde localStorage:', error);
+    console.error(' Error al crear preferencia desde localStorage:', error);
     res.status(500).json({
       mensaje: 'Error al crear preferencia de pago',
       error: error.message
@@ -348,8 +368,12 @@ exports.crearPreferenciaLocalStorage = async (req, res) => {
   }
 };
 
+
 /**
- * Crear preferencia de pago en Mercado Pago (versión original para carrito BD)
+ * Crear preferencia de pago en Mercado Pago (carrito en base de datos).
+ * @params req, res - usuario autenticado y carrito en BD
+ * @return Preferencia creada y URL de Mercado Pago
+ * @author codenova
  */
 exports.crearPreferencia = async (req, res) => {
   try {
@@ -427,7 +451,7 @@ exports.crearPreferencia = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al crear preferencia de Mercado Pago:', error);
+    console.error(' Error al crear preferencia de Mercado Pago:', error);
     res.status(500).json({
       mensaje: 'Error al crear preferencia de pago',
       error: error.message
@@ -435,9 +459,13 @@ exports.crearPreferencia = async (req, res) => {
   }
 };
 
-// /**
-//  * Validar firma del webhook de MercadoPago para seguridad
-//  */
+
+/**
+ * Validar firma del webhook de MercadoPago para seguridad.
+ * @params req - solicitud HTTP con headers y body
+ * @return true si la firma es válida, false si no
+ * @author codenova
+ */
 function validarFirmaWebhook(req) {
   const xSignature = req.headers['x-signature'];
   const xRequestId = req.headers['x-request-id'];
@@ -481,13 +509,17 @@ function validarFirmaWebhook(req) {
 
     return isValid;
   } catch (error) {
-    console.error('❌ Error validando firma:', error);
+    console.error(' Error validando firma:', error);
     return false;
   }
 }
 
+
 /**
- * Webhook para recibir notificaciones de Mercado Pago
+ * Webhook para recibir notificaciones de Mercado Pago.
+ * @params req, res - datos del webhook en req.body
+ * @return Estado de procesamiento del webhook
+ * @author codenova
  */
 exports.webhook = async (req, res) => {
   try {
@@ -502,12 +534,12 @@ exports.webhook = async (req, res) => {
     // Validar firma del webhook para seguridad
     const firmaValida = validarFirmaWebhook(req);
     if (!firmaValida) {
-      console.log('❌ Firma de webhook inválida - rechazando');
+      console.log(' Firma de webhook inválida - rechazando');
       return res.status(401).json({ mensaje: 'Firma inválida' });
     }
 
     const { type, data } = req.body;
-    // console.log('✅ Webhook validado correctamente:', { type, data });
+    // console.log(' Webhook validado correctamente:', { type, data });
 
     if (type === 'payment') {
       const paymentId = data.id;
@@ -529,13 +561,17 @@ exports.webhook = async (req, res) => {
 
     res.status(200).json({ mensaje: 'Webhook procesado' });
   } catch (error) {
-    console.error('❌ Error en webhook:', error);
+    console.error(' Error en webhook:', error);
     res.status(500).json({ mensaje: 'Error en webhook' });
   }
 };
 
+
 /**
- * Página de éxito después del pago
+ * Página de éxito después del pago.
+ * @params req, res - parámetros de pago en req.query
+ * @return Renderiza la página de éxito y procesa venta/factura
+ * @author codenova
  */
 exports.success = async (req, res) => {
   try {
@@ -578,7 +614,7 @@ exports.success = async (req, res) => {
           externalReferenceFromPayment = paymentResponse.external_reference;
           console.log('External_reference desde pago:', externalReferenceFromPayment);
         } catch (error) {
-          console.error('❌ Error obteniendo external_reference del pago:', error);
+          console.error(' Error obteniendo external_reference del pago:', error);
         }
       }
 
@@ -659,14 +695,14 @@ exports.success = async (req, res) => {
               console.warn('No se encontraron items en el pago');
             }
           } catch (stockError) {
-            console.error('❌ Error en descuento de stock:', stockError);
+            console.error(' Error en descuento de stock:', stockError);
           }
 
           // Mensaje informativo: el carrito se limpiará por el script del frontend
           console.log('El carrito será limpiado automáticamente por el script del frontend');
 
         } catch (lsError) {
-          console.error('❌ Error procesando checkout localStorage:', lsError);
+          console.error(' Error procesando checkout localStorage:', lsError);
         }
       } else {
   console.log('Pago exitoso sin external_reference (posible pago manual o de prueba)');
@@ -709,7 +745,7 @@ exports.success = async (req, res) => {
                 });
               }
             } catch (err) {
-              console.warn('⚠️ No se pudo obtener detalles del producto:', item.productId);
+              console.warn(' No se pudo obtener detalles del producto:', item.productId);
             }
           }
         }
@@ -720,7 +756,7 @@ exports.success = async (req, res) => {
   console.log('Productos encontrados:', productosComprados.length);
 
       } catch (paymentError) {
-        console.error('⚠️ Error al obtener detalles del pago desde MP API:', paymentError);
+        console.error(' Error al obtener detalles del pago desde MP API:', paymentError);
         // No impedimos continuar si no podemos consultar la API
       }
     }
@@ -736,7 +772,7 @@ exports.success = async (req, res) => {
       }];
     }
 
-    // 📧 ENVIAR FACTURA POR CORREO AUTOMÁTICAMENTE - DESPUÉS DE OBTENER PRODUCTOS
+    //  ENVIAR FACTURA POR CORREO AUTOMÁTICAMENTE - DESPUÉS DE OBTENER PRODUCTOS
     console.log('Estado antes de enviar factura:', {
       pagoAprobado,
       productosLength: productosComprados.length,
@@ -756,16 +792,16 @@ exports.success = async (req, res) => {
           totalCompra,
           fechaCompra: new Date()
         });
-        console.log('✅ Factura enviada exitosamente por correo');
+        console.log(' Factura enviada exitosamente por correo');
       } catch (emailError) {
-        console.error('⚠️ Error enviando factura por correo (no crítico):', emailError.message);
-        console.error('📧 Stack del error:', emailError.stack);
+        console.error(' Error enviando factura por correo (no crítico):', emailError.message);
+        console.error(' Stack del error:', emailError.stack);
         // No bloqueamos la página de éxito si falla el correo
       }
 
-      // 🛒 GUARDAR VENTA EN BASE DE DATOS
+      //  GUARDAR VENTA EN BASE DE DATOS
       try {
-        console.log('💾 Guardando venta en base de datos...');
+        console.log(' Guardando venta en base de datos...');
         await guardarVentaEnBaseDatos({
           paymentId,
           status: collection_status || 'approved',
@@ -774,14 +810,14 @@ exports.success = async (req, res) => {
           totalCompra,
           usuario: req.session.user
         });
-        console.log('✅ Venta guardada exitosamente en base de datos');
+        console.log(' Venta guardada exitosamente en base de datos');
       } catch (ventaError) {
-        console.error('⚠️ Error guardando venta en base de datos (no crítico):', ventaError.message);
-        console.error('🛒 Stack del error:', ventaError.stack);
+        console.error(' Error guardando venta en base de datos (no crítico):', ventaError.message);
+        console.error(' Stack del error:', ventaError.stack);
         // No bloqueamos la página de éxito si falla guardar la venta
       }
     } else {
-      console.log('⚠️ No se procesaron datos adicionales - condiciones no cumplidas');
+      console.log(' No se procesaron datos adicionales - condiciones no cumplidas');
     }
 
     res.render('mercadopagoSuccess', {
@@ -794,7 +830,7 @@ exports.success = async (req, res) => {
       totalCompra: totalCompra
     });
   } catch (error) {
-    console.error('❌ Error en página de éxito:', error);
+    console.error(' Error en página de éxito:', error);
     res.render('mercadopagoSuccess', {
       usuario: req.session.user,
       error: 'Error al procesar el pago'
@@ -802,13 +838,17 @@ exports.success = async (req, res) => {
   }
 };
 
+
 /**
- * Página de pago fallido
+ * Página de pago fallido.
+ * @params req, res - parámetros de pago en req.query
+ * @return Renderiza la página de fallo
+ * @author codenova
  */
 exports.failure = (req, res) => {
   const { collection_id, collection_status, external_reference, payment_id } = req.query;
 
-  console.log('❌ Llegada a página de fallo:', {
+  console.log(' Llegada a página de fallo:', {
     collection_id,
     collection_status,
     external_reference,
@@ -824,8 +864,12 @@ exports.failure = (req, res) => {
   });
 };
 
+
 /**
- * Página de pago pendiente
+ * Página de pago pendiente.
+ * @params req, res - parámetros de pago en req.query
+ * @return Renderiza la página de pendiente o redirige en modo test
+ * @author codenova
  */
 exports.pending = async (req, res) => {
   const { collection_id, collection_status, external_reference, payment_id } = req.query;
@@ -840,19 +884,19 @@ exports.pending = async (req, res) => {
 
   const paymentId = payment_id || collection_id;
 
-  // 🧪 MODO TEST AUTOMÁTICO: Si detecta un token de TEST, los pagos "pendientes" se tratan como exitosos
+  //  MODO TEST AUTOMÁTICO: Si detecta un token de TEST, los pagos "pendientes" se tratan como exitosos
   const isTestMode = process.env.MERCADOPAGO_ACCESS_TOKEN?.includes('TEST-');
 
   if (isTestMode && paymentId) {
-    console.log('🧪 Modo TEST detectado - tratando pago pendiente como exitoso');
-    console.log('🎉 Redirigiendo automáticamente a página de éxito...');
+    console.log(' Modo TEST detectado - tratando pago pendiente como exitoso');
+    console.log(' Redirigiendo automáticamente a página de éxito...');
 
     // Redirigir a la página de éxito con los mismos parámetros
     const successUrl = `/mercadopago/success?payment_id=${paymentId}&collection_status=approved${external_reference ? `&external_reference=${external_reference}` : ''}`;
     return res.redirect(successUrl);
   }
 
-  console.log('⏳ Pago pendiente real:', { collection_id, collection_status, external_reference });
+  console.log(' Pago pendiente real:', { collection_id, collection_status, external_reference });
 
   res.render('mercadopagoPending', {
     usuario: req.session.user,
@@ -862,27 +906,31 @@ exports.pending = async (req, res) => {
   });
 };
 
+
 /**
- * Procesar pago aprobado - crear factura y actualizar stock
+ * Procesar pago aprobado - crear factura y actualizar stock.
+ * @params payment - datos del pago aprobado
+ * @return Factura creada
+ * @author codenova
  */
 async function procesarPagoAprobado(payment) {
   try {
     const externalReference = payment.external_reference;
     const userId = externalReference.split('-')[1]; // Extraer userId de la referencia
 
-    console.log('🔄 Procesando pago aprobado para usuario:', userId);
+    console.log(' Procesando pago aprobado para usuario:', userId);
 
     // Obtener carrito del usuario
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
     if (!cart || cart.items.length === 0) {
-      console.log('❌ Carrito no encontrado o vacío');
+      console.log(' Carrito no encontrado o vacío');
       return;
     }
 
     // Obtener datos del cliente
     const cliente = await Cliente.findById(userId);
     if (!cliente) {
-      console.log('❌ Cliente no encontrado');
+      console.log(' Cliente no encontrado');
       return;
     }
 
@@ -908,7 +956,7 @@ async function procesarPagoAprobado(payment) {
     });
 
     const facturaGuardada = await nuevaFactura.save();
-    console.log('✅ Factura creada:', facturaGuardada._id);
+    console.log(' Factura creada:', facturaGuardada._id);
 
     // Actualizar stock de productos
     for (const item of cart.items) {
@@ -916,72 +964,80 @@ async function procesarPagoAprobado(payment) {
         item.product._id,
         { $inc: { stock: -item.quantity } }
       );
-      console.log(`📦 Stock actualizado para ${item.product.nombre}: -${item.quantity}`);
+      console.log(` Stock actualizado para ${item.product.nombre}: -${item.quantity}`);
     }
 
     // Limpiar carrito
     cart.clearCart();
     await cart.save();
-    console.log('🧹 Carrito limpiado');
+    console.log(' Carrito limpiado');
 
     return facturaGuardada;
   } catch (error) {
-    console.error('❌ Error al procesar pago aprobado:', error);
+    console.error(' Error al procesar pago aprobado:', error);
     throw error;
   }
 }
 
+
 /**
- * Función para procesar descuento de stock de productos en localStorage checkout
+ * Procesar descuento de stock de productos en localStorage checkout.
+ * @params items, externalReference - productos comprados y referencia
+ * @return Estado del descuento de stock
+ * @author codenova
  */
 async function procesarDescuentoStock(items, externalReference) {
   try {
-    console.log('📦 Iniciando descuento de stock para localStorage checkout');
-    console.log('🔍 Items a procesar:', items);
+    console.log(' Iniciando descuento de stock para localStorage checkout');
+    console.log(' Items a procesar:', items);
 
     for (const item of items) {
       // Buscar el producto en la base de datos
       const producto = await Producto.findById(item.id);
 
       if (!producto) {
-        console.error(`❌ Producto no encontrado: ${item.id}`);
+        console.error(` Producto no encontrado: ${item.id}`);
         continue;
       }
 
       // Verificar que hay suficiente stock
       if (producto.stock < item.quantity) {
-        console.warn(`⚠️ Stock insuficiente para ${producto.nombre}: disponible ${producto.stock}, solicitado ${item.quantity}`);
+        console.warn(` Stock insuficiente para ${producto.nombre}: disponible ${producto.stock}, solicitado ${item.quantity}`);
         // Descontar el stock disponible
         const cantidadADescontar = Math.min(producto.stock, item.quantity);
         await Producto.findByIdAndUpdate(
           item.id,
           { $inc: { stock: -cantidadADescontar } }
         );
-        console.log(`📦 Stock actualizado para ${producto.nombre}: -${cantidadADescontar} (parcial)`);
+        console.log(` Stock actualizado para ${producto.nombre}: -${cantidadADescontar} (parcial)`);
       } else {
         // Descontar la cantidad completa
         await Producto.findByIdAndUpdate(
           item.id,
           { $inc: { stock: -item.quantity } }
         );
-        console.log(`📦 Stock actualizado para ${producto.nombre}: -${item.quantity}`);
+        console.log(` Stock actualizado para ${producto.nombre}: -${item.quantity}`);
       }
     }
 
-    console.log('✅ Descuento de stock completado para:', externalReference);
+    console.log(' Descuento de stock completado para:', externalReference);
 
   } catch (error) {
-    console.error('❌ Error procesando descuento de stock:', error);
+    console.error(' Error procesando descuento de stock:', error);
     throw error;
   }
 }
 
+
 /**
- * Función para enviar factura automáticamente después de pago exitoso
+ * Enviar factura automáticamente después de pago exitoso.
+ * @params usuario, datosFactura - datos del usuario y factura
+ * @return Resultado del envío de factura
+ * @author codenova
  */
 async function enviarFacturaAutomatica(usuario, datosFactura) {
   try {
-    console.log('📧 Iniciando envío automático de factura...');
+    console.log(' Iniciando envío automático de factura...');
 
     // Obtener información del cliente
     let clienteEmail = null;
@@ -1000,30 +1056,36 @@ async function enviarFacturaAutomatica(usuario, datosFactura) {
           clienteNombre = cliente.nombre;
         }
       } catch (err) {
-        console.warn('⚠️ No se pudo obtener cliente desde reference:', err.message);
+        console.warn(' No se pudo obtener cliente desde reference:', err.message);
       }
     }
 
     if (!clienteEmail) {
-      console.warn('⚠️ No se pudo determinar email del cliente para envío de factura');
+      console.warn(' No se pudo determinar email del cliente para envío de factura');
       return;
     }
 
-    console.log(`📧 Enviando factura a: ${clienteEmail} (${clienteNombre})`);
+    console.log(` Enviando factura a: ${clienteEmail} (${clienteNombre})`);
 
     // Enviar factura por correo
     const resultado = await enviarFacturaPorCorreo(clienteEmail, clienteNombre, datosFactura);
 
-    console.log('✅ Factura enviada exitosamente por correo');
+    console.log(' Factura enviada exitosamente por correo');
     return resultado;
 
   } catch (error) {
-    console.error('❌ Error en envío automático de factura:', error);
+    console.error(' Error en envío automático de factura:', error);
     throw error;
   }
 }
 
-// Función para guardar la venta en la base de datos
+
+/**
+ * Guardar la venta en la base de datos.
+ * @params datosVenta - información de la venta
+ * @return Venta guardada
+ * @author codenova
+ */
 async function guardarVentaEnBaseDatos(datosVenta) {
   try {
     console.log('💾 Iniciando guardado de venta...');
@@ -1054,7 +1116,7 @@ async function guardarVentaEnBaseDatos(datosVenta) {
           clienteInfo.direccion = cliente.direccion || '';
         }
       } catch (err) {
-        console.warn('⚠️ No se pudo obtener cliente desde BD:', err.message);
+        console.warn(' No se pudo obtener cliente desde BD:', err.message);
       }
     } else if (datosVenta.reference && datosVenta.reference.startsWith('LSCART-')) {
       // Intentar obtener usuario desde external_reference
@@ -1069,14 +1131,14 @@ async function guardarVentaEnBaseDatos(datosVenta) {
           clienteInfo.direccion = cliente.direccion || '';
         }
       } catch (err) {
-        console.warn('⚠️ No se pudo obtener cliente desde reference:', err.message);
+        console.warn(' No se pudo obtener cliente desde reference:', err.message);
       }
     }
 
     // Verificar que no exista ya una venta con este paymentId
     const ventaExistente = await Venta.findOne({ paymentId: datosVenta.paymentId });
     if (ventaExistente) {
-      console.log('⚠️ Ya existe una venta con este paymentId:', datosVenta.paymentId);
+      console.log(' Ya existe una venta con este paymentId:', datosVenta.paymentId);
       return ventaExistente;
     }
 
@@ -1120,12 +1182,12 @@ async function guardarVentaEnBaseDatos(datosVenta) {
     });
 
     await nuevaVenta.save();
-    console.log('✅ Venta guardada exitosamente con ID:', nuevaVenta._id);
+    console.log('Venta guardada exitosamente con ID:', nuevaVenta._id);
 
     return nuevaVenta;
 
   } catch (error) {
-    console.error('❌ Error guardando venta en base de datos:', error);
+    console.error(' Error guardando venta en base de datos:', error);
     throw error;
   }
 }

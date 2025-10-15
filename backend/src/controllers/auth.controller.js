@@ -11,6 +11,12 @@ const bcrypt = require('bcryptjs');
 const { verifyRecaptcha } = require('../utils/recaptcha');
 
 
+/**
+ * Registrar cliente.
+ * @params req, res - los datos ingresados en el formulario (req.body)
+ * @return la confirmación de registro en la base de datos y token de sesión
+ * @author codenova
+ */
 exports.registro = async (req, res) => {
   try {
     const { nombre, email, contrasena, telefono, direccion, recaptchaToken } = req.body;
@@ -86,6 +92,12 @@ exports.registro = async (req, res) => {
   }
 };
 
+/**
+ * Iniciar sesión de usuario (cliente o empleado).
+ * @params req, res - credenciales de acceso (email, contrasena, recaptchaToken)
+ * @return token de sesión y datos del usuario
+ * @author codenova
+ */
 exports.login = async (req, res) => {
   log.debug('login start');
   try {
@@ -170,6 +182,12 @@ exports.login = async (req, res) => {
   }
 };
 
+/**
+ * Obtener perfil del usuario autenticado.
+ * @params req, res - información de sesión
+ * @return datos del usuario sin contraseña
+ * @author codenova
+ */
 exports.obtenerPerfil = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -192,6 +210,12 @@ exports.obtenerPerfil = async (req, res) => {
   }
 };
 
+/**
+ * Actualizar perfil del usuario autenticado.
+ * @params req, res - datos a actualizar en req.body
+ * @return Perfil actualizado y nuevo token
+ * @author codenova
+ */
 exports.actualizarPerfil = async (req, res) => {
   try {
     const { nombre, telefono, direccion, contrasenaActual, contrasenaNueva } = req.body;
@@ -281,6 +305,12 @@ exports.actualizarPerfil = async (req, res) => {
   }
 };
 
+/**
+ * Eliminar la cuenta del usuario autenticado.
+ * @params req, res - contraseña de confirmación en req.body
+ * @return Estado de eliminación o mensaje de error
+ * @author codenova
+ */
 exports.eliminarCuenta = async (req, res) => {
   try {
     const { contrasena } = req.body;
@@ -319,12 +349,18 @@ function generarPasswordTemporal() {
 const configurarResend = () => {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.error('❌ RESEND_API_KEY no está configurado');
+    console.error(' RESEND_API_KEY no está configurado');
     return null;
   }
   return new Resend(apiKey);
 };
 
+/**
+ * Recuperar la contraseña de un cliente.
+ * @params req, res - email en req.body
+ * @return Estado del envío y nueva contraseña temporal
+ * @author codenova
+ */
 exports.recuperarPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -332,7 +368,7 @@ exports.recuperarPassword = async (req, res) => {
 
     const emailLimpio = email.trim().toLowerCase();
     const cliente = await Cliente.findOne({ email: emailLimpio });
-    if (!cliente) return res.status(404).json({ mensaje: 'El correo electrónico no está registrado en nuestro sistema' });
+    if (!cliente) return res.status(404).json({ mensaje: 'El correo electrónico no está registrado como cliente, si eres un empleado, por favor contacta al administrador.' });
 
     const nuevaPassword = generarPasswordTemporal();
     cliente.contrasena = nuevaPassword;
@@ -342,7 +378,7 @@ exports.recuperarPassword = async (req, res) => {
     const resend = configurarResend();
     
     if (!resend) {
-      console.error('⚠️ Servicio de email no disponible - API Key no configurado');
+      console.error(' Servicio de email no disponible - API Key no configurado');
       if (process.env.NODE_ENV === 'production') {
         return res.status(500).json({ 
           mensaje: 'Servicio de correo temporalmente no disponible. La contraseña se ha actualizado, contacta al administrador.' 
@@ -372,7 +408,7 @@ exports.recuperarPassword = async (req, res) => {
 
           <!-- Contenido principal -->
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h2 style="color: #28a745; margin-top: 0;">🔑 Nueva Contraseña Temporal</h2>
+            <h2 style="color: #28a745; margin-top: 0;"> Nueva Contraseña Temporal</h2>
             <p style="margin: 0; color: #666;">Hola <strong>${cliente.nombre}</strong>,</p>
             <p style="color: #666;">Hemos recibido una solicitud para recuperar tu contraseña. A continuación encontrarás tu nueva contraseña temporal:</p>
           </div>
@@ -389,7 +425,7 @@ exports.recuperarPassword = async (req, res) => {
           
           <!-- Instrucciones importantes -->
           <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #f57c00; margin-top: 0;">⚠️ Importante:</h3>
+            <h3 style="color: #f57c00; margin-top: 0;"> Importante:</h3>
             <ul style="color: #666; line-height: 1.8; padding-left: 20px;">
               <li>Esta es una contraseña temporal por seguridad</li>
               <li><strong>Te recomendamos cambiarla inmediatamente</strong> después de iniciar sesión</li>
@@ -402,7 +438,7 @@ exports.recuperarPassword = async (req, res) => {
           <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.BASE_URL || 'https://petmarket-vij4.onrender.com'}" 
                style="background-color: #4CAF50; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
-              🔐 Iniciar Sesión Ahora
+               Iniciar Sesión Ahora
             </a>
           </div>
 
@@ -429,7 +465,7 @@ exports.recuperarPassword = async (req, res) => {
 
         if (error) {
           lastError = error;
-          console.error(`❌ Error en intento ${intento}:`, error);
+          console.error(` Error en intento ${intento}:`, error);
           
           if (intento < 3) {
             const tiempoEspera = Math.pow(2, intento) * 1000;
@@ -445,7 +481,7 @@ exports.recuperarPassword = async (req, res) => {
         
       } catch (error) {
         lastError = error;
-        console.error(`❌ Excepción en intento ${intento}:`, error.message);
+        console.error(` Excepción en intento ${intento}:`, error.message);
         
         if (intento < 3) {
           const tiempoEspera = Math.pow(2, intento) * 1000;
@@ -471,6 +507,12 @@ exports.recuperarPassword = async (req, res) => {
   }
 };
 
+/**
+ * Verificar si hay sesión activa.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estado de autenticación y datos de usuario
+ * @author codenova
+ */
 exports.verificarSesion = async (req, res) => {
   try {
     if (req.session && req.session.user) {
@@ -484,6 +526,12 @@ exports.verificarSesion = async (req, res) => {
   }
 };
 
+/**
+ * Cerrar la sesión del usuario.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estado de cierre de sesión
+ * @author codenova
+ */
 exports.logout = async (req, res) => {
   try {
     req.session.destroy((err) => {
@@ -501,6 +549,12 @@ exports.logout = async (req, res) => {
   }
 };
 
+/**
+ * Revalidar la sesión del usuario con token.
+ * @params req, res - usuario en req.user
+ * @return Sesión revalidada y datos de usuario
+ * @author codenova
+ */
 exports.revalidarSesion = async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ mensaje: 'Token inválido' });
@@ -513,7 +567,7 @@ exports.revalidarSesion = async (req, res) => {
     };
     res.status(200).json({ mensaje: 'Sesión revalidada exitosamente', usuario: req.session.user });
   } catch (error) {
-    console.error('❌ Error revalidando sesión:', error);
+    console.error(' Error revalidando sesión:', error);
     res.status(500).json({ mensaje: 'Error al revalidar sesión' });
   }
 };

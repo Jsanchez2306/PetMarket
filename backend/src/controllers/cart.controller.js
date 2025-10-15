@@ -4,6 +4,12 @@ const Producto = require('../models/producto.model');
 /**
  * Renderizar la vista del carrito (AHORA SIN AUTENTICACIÓN - localStorage)
  */
+/**
+ * Renderizar la vista del carrito de compras.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Renderiza la página del carrito con los productos
+ * @author codenova
+ */
 exports.renderizarCarrito = async (req, res) => {
   try {
     // CAMBIO: Carrito ahora funciona con localStorage, no requiere autenticación para ver
@@ -53,13 +59,19 @@ exports.renderizarCarrito = async (req, res) => {
 
   res.render('carrito', { cart: cartData });
   } catch (error) {
-    console.error('❌ Error al renderizar carrito:', error);
+    console.error(' Error al renderizar carrito:', error);
     res.status(500).send('Error al cargar el carrito');
   }
 };
 
 /**
  * Obtener el carrito del usuario (API) - DESPROTEGIDA para localStorage
+ */
+/**
+ * Obtener los datos del carrito del usuario.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Carrito y productos en formato JSON
+ * @author codenova
  */
 exports.obtenerCarrito = async (req, res) => {
   try {
@@ -123,13 +135,19 @@ exports.obtenerCarrito = async (req, res) => {
 
   res.status(200).json(response);
   } catch (error) {
-    console.error('❌ API: Error al obtener carrito:', error);
+    console.error(' API: Error al obtener carrito:', error);
     res.status(500).json({ mensaje: 'Error al obtener el carrito', error: error.message });
   }
 };
 
 /**
  * Agregar producto al carrito - DESPROTEGIDA para localStorage
+ */
+/**
+ * Agregar producto al carrito.
+ * @params req, res - datos del producto y cantidad en req.body
+ * @return Carrito actualizado o mensaje de error
+ * @author codenova
  */
 exports.agregarAlCarrito = async (req, res) => {
   
@@ -214,9 +232,9 @@ exports.agregarAlCarrito = async (req, res) => {
     res.status(200).json(response);
     
   } catch (error) {
-    console.error('💥 ERROR COMPLETO:', error);
-    console.error('💥 Error stack:', error.stack);
-    console.error('💥 Error message:', error.message);
+    console.error(' ERROR COMPLETO:', error);
+    console.error(' Error stack:', error.stack);
+    console.error(' Error message:', error.message);
     res.status(500).json({ 
       mensaje: 'Error interno del servidor', 
       error: error.message,
@@ -227,8 +245,12 @@ exports.agregarAlCarrito = async (req, res) => {
   
 };
 
+
 /**
- * Actualizar cantidad de un producto en el carrito
+ * Actualizar cantidad de un producto en el carrito.
+ * @params req, res - id de producto y nueva cantidad
+ * @return Carrito actualizado o mensaje de error
+ * @author codenova
  */
 exports.actualizarCantidad = async (req, res) => {
   try {
@@ -283,7 +305,10 @@ exports.actualizarCantidad = async (req, res) => {
 };
 
 /**
- * Eliminar producto del carrito
+ * Eliminar producto del carrito.
+ * @params req, res - id de producto en req.params
+ * @return Carrito actualizado o mensaje de error
+ * @author codenova
  */
 exports.eliminarDelCarrito = async (req, res) => {
   try {
@@ -316,7 +341,10 @@ exports.eliminarDelCarrito = async (req, res) => {
 };
 
 /**
- * Limpiar todo el carrito
+ * Limpiar todo el carrito.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Carrito vacío y mensaje de confirmación
+ * @author codenova
  */
 exports.limpiarCarrito = async (req, res) => {
   try {
@@ -345,7 +373,10 @@ exports.limpiarCarrito = async (req, res) => {
 };
 
 /**
- * Procesar pago del carrito (redirige a Mercado Pago)
+ * Procesar pago del carrito (redirige a Mercado Pago).
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estado de redirección y total a pagar
+ * @author codenova
  */
 exports.procesarPago = async (req, res) => {
   try {
@@ -384,7 +415,10 @@ exports.procesarPago = async (req, res) => {
 };
 
 /**
- * Contar items en el carrito del usuario - DESPROTEGIDA para localStorage
+ * Contar items en el carrito del usuario (API).
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Número de items en el carrito
+ * @author codenova
  */
 exports.contarItems = async (req, res) => {
   try {
@@ -414,8 +448,10 @@ exports.contarItems = async (req, res) => {
 };
 
 /**
- * NUEVA FUNCIÓN: Checkout desde localStorage (requiere autenticación)
- * Crea preferencia de Mercado Pago para el pago
+ * Checkout desde localStorage (requiere autenticación).
+ * @params req, res - datos del carrito en req.body
+ * @return Preferencia de pago creada y URL de Mercado Pago
+ * @author codenova
  */
 exports.checkoutLocalStorage = async (req, res) => {
   try {
@@ -430,8 +466,8 @@ exports.checkoutLocalStorage = async (req, res) => {
       return res.status(400).json({ mensaje: 'No hay productos en el carrito' });
     }
 
-    console.log('💳 Procesando checkout localStorage para usuario:', userId);
-    console.log('🛒 Items recibidos:', items.length);
+    console.log(' Procesando checkout localStorage para usuario:', userId);
+    console.log(' Items recibidos:', items.length);
 
     // Verificar stock de todos los productos
     const productDetails = [];
@@ -509,15 +545,15 @@ exports.checkoutLocalStorage = async (req, res) => {
       }
     };
 
-    console.log('🛒 Creando preferencia de Mercado Pago para checkout localStorage');
-    console.log('📦 Items para MP:', mpItems.length);
-    console.log('💰 Total:', total);
+    console.log(' Creando preferencia de Mercado Pago para checkout localStorage');
+    console.log(' Items para MP:', mpItems.length);
+    console.log(' Total:', total);
 
     const preference = new Preference(client);
     const response = await preference.create({ body: preferenceData });
 
-    console.log('✅ Preferencia creada exitosamente:', response.id);
-    console.log('� URL de pago:', response.init_point);
+    console.log(' Preferencia creada exitosamente:', response.id);
+    console.log(' URL de pago:', response.init_point);
 
     // Responder con la URL de Mercado Pago
     res.status(200).json({
@@ -529,7 +565,7 @@ exports.checkoutLocalStorage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error en checkout localStorage:', error);
+    console.error(' Error en checkout localStorage:', error);
     res.status(500).json({ 
       mensaje: 'Error al procesar el pago', 
       error: error.message 

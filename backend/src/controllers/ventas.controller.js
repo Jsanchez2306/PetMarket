@@ -2,8 +2,12 @@ const Venta = require('../models/venta.model');
 const Cliente = require('../models/cliente.model');
 const Producto = require('../models/producto.model');
 
+
 /**
- * Obtener todas las ventas con filtros opcionales
+ * Obtener todas las ventas con filtros y paginación.
+ * @params req, res - filtros y paginación en req.query
+ * @return Lista de ventas y total
+ * @author codenova
  */
 const obtenerVentas = async (req, res) => {
   try {
@@ -54,7 +58,7 @@ const obtenerVentas = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error obteniendo ventas:', error);
+  console.error('Error obteniendo ventas:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error interno del servidor',
@@ -63,8 +67,12 @@ const obtenerVentas = async (req, res) => {
   }
 };
 
+
 /**
- * Obtener contador de ventas sin entregar
+ * Obtener contador de ventas sin entregar.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Número de ventas sin entregar
+ * @author codenova
  */
 const obtenerContadorSinEntregar = async (req, res) => {
   try {
@@ -76,7 +84,7 @@ const obtenerContadorSinEntregar = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error obteniendo contador de ventas sin entregar:', error);
+  console.error('Error obteniendo contador de ventas sin entregar:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error interno del servidor',
@@ -85,8 +93,12 @@ const obtenerContadorSinEntregar = async (req, res) => {
   }
 };
 
+
 /**
- * Actualizar estado de entrega de una venta
+ * Actualizar estado de entrega de una venta.
+ * @params req, res - id de venta y nuevo estado
+ * @return Venta actualizada o mensaje de error
+ * @author codenova
  */
 const actualizarEstadoEntrega = async (req, res) => {
   try {
@@ -126,7 +138,7 @@ const actualizarEstadoEntrega = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error actualizando estado de entrega:', error);
+  console.error('Error actualizando estado de entrega:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error interno del servidor',
@@ -135,8 +147,12 @@ const actualizarEstadoEntrega = async (req, res) => {
   }
 };
 
+
 /**
- * Obtener estadísticas de ventas
+ * Obtener estadísticas de ventas.
+ * @params req, res - solicitud y respuesta HTTP
+ * @return Estadísticas de ventas en formato JSON
+ * @author codenova
  */
 const obtenerEstadisticasVentas = async (req, res) => {
   try {
@@ -169,7 +185,7 @@ const obtenerEstadisticasVentas = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error obteniendo estadísticas de ventas:', error);
+  console.error('Error obteniendo estadísticas de ventas:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error interno del servidor',
