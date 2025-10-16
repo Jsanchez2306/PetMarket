@@ -12,7 +12,6 @@ router.get('/api/estadisticas', dashboardController.obtenerEstadisticas);
 router.get('/api/productos-bajo-stock', dashboardController.obtenerProductosBajoStock);
 router.get('/api/actividad-reciente', dashboardController.obtenerActividadReciente);
 
-// Ruta para renderizar vista del dashboard (si es necesario)
 router.get('/', (req, res) => {
   res.render('panel', {
     title: 'Dashboard Administrativo - PetMarket',

@@ -9,8 +9,8 @@ require('./config/connection');
 require('./models/cart.model');
 require('./models/producto.model');
 require('./models/cliente.model');
-require('./models/factura.model'); //  Importa el modelo factura también
-require('./models/venta.model'); //  Importa el modelo venta
+require('./models/factura.model'); 
+require('./models/venta.model'); 
 app.set('views', path.join(__dirname, '../frontend/views'));
 app.set('view engine', 'ejs');
 
@@ -54,7 +54,6 @@ const noCache = (req, res, next) => {
 // Aplicar no-cache a rutas administrativas
 app.use(['/panel', '/clientes', '/empleados', '/facturas', '/productos', '/ventas', '/dashboard'], noCache);
 
-// RUTAS DEL CARRITO - USANDO VERSIÓN DESPROTEGIDA
 try {
   const cartRoutes = require('./routes/cart.routes');
   app.use('/carrito', cartRoutes);

@@ -1,4 +1,4 @@
-const app = require('./app');  // USANDO VERSIÓN SIMPLE
+const app = require('./app'); 
 require('dotenv').config({ quiet: true });
 const backup = require('./config/backup');
 const cron = require('node-cron');

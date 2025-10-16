@@ -4,7 +4,6 @@ const cartController = require('../controllers/cart.controller');
 const { validarAuthCarrito } = require('../middlewares/validateAuth');
 
 
-// CAMBIO: Renderizar vista del carrito SIN autenticación (localStorage)
 router.get('/', cartController.renderizarCarrito);
 
 // API Routes - DESPROTEGIDAS para localStorage (excepto checkout)
