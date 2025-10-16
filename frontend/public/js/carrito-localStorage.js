@@ -9,7 +9,7 @@ let carritoData = {
 let confirmacionCallback = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🛒 Inicializando carrito localStorage');
+    console.log('Inicializando carrito localStorage');
     
     // Inicializar eventos
     inicializarEventos();
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Escuchar evento de carrito vaciado desde pago exitoso
     window.addEventListener('carritoVaciado', function(event) {
-        console.log('🎉 Carrito vaciado detectado:', event.detail);
+        console.log('Carrito vaciado detectado:', event.detail);
         if (event.detail.origen === 'pagoExitoso') {
             mostrarMensajePagoExitoso();
         }
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Escuchar cambios de estado de autenticación
     document.addEventListener('userStateChanged', function(event) {
-        console.log('🔄 Estado de usuario cambió, actualizando protecciones del carrito');
+        console.log('Estado de usuario cambió, actualizando protecciones del carrito');
         verificarEstadoBotonPago();
     });
 });
@@ -48,28 +48,28 @@ function inicializarEventos() {
     
     // Eventos delegados para botones dinámicos
     document.addEventListener('click', function(e) {
-        console.log('🖱️ Click detectado en:', e.target.tagName, e.target.className);
+        console.log('Click detectado en:', e.target.tagName, e.target.className);
         
         // Buscar el botón más cercano para manejar clics en iconos
         let target = e.target.closest('.btn-eliminar-item, .btn-cantidad-menos, .btn-cantidad-mas');
         
         if (target) {
-            console.log('🔍 Botón encontrado:', target.className, 'ProductID:', target.dataset.productId);
+            console.log('Botón encontrado:', target.className, 'ProductID:', target.dataset.productId);
             e.preventDefault(); // Prevenir comportamiento por defecto
             e.stopPropagation(); // Detener propagación
             
             if (target.classList.contains('btn-eliminar-item')) {
-                console.log('🗑️ Iniciando eliminación de producto');
+                console.log('Iniciando eliminación de producto');
                 eliminarDelCarrito(target.dataset.productId);
             } else if (target.classList.contains('btn-cantidad-menos')) {
-                console.log('➖ Disminuyendo cantidad');
+                console.log('Disminuyendo cantidad');
                 cambiarCantidad(target.dataset.productId, -1);
             } else if (target.classList.contains('btn-cantidad-mas')) {
-                console.log('➕ Aumentando cantidad');
+                console.log('Aumentando cantidad');
                 cambiarCantidad(target.dataset.productId, 1);
             }
         } else {
-            console.log('❌ No se encontró botón objetivo para:', e.target.className);
+            console.log('No se encontró botón objetivo para:', e.target.className);
         }
     });
     
@@ -87,15 +87,15 @@ function inicializarEventos() {
 function cargarCarritoDesdeLocalStorage() {
     try {
         const rawData = localStorage.getItem('petmarket_cart');
-        console.log('🔍 Raw localStorage data:', rawData);
+        console.log('Raw localStorage data:', rawData);
         
         const cartData = JSON.parse(rawData || '[]');
-        console.log('🔍 Parsed cart data:', cartData);
+        console.log('Parsed cart data:', cartData);
         
         // MIGRACIÓN: Agregar categoría a productos existentes que no la tengan
         const migratedCartData = cartData.map(item => {
             if (!item.categoria) {
-                console.log('🔄 Migrando producto sin categoría:', item.nombre);
+                console.log('Migrando producto sin categoría:', item.nombre);
                 return {
                     ...item,
                     categoria: 'Sin categoría'
@@ -106,7 +106,7 @@ function cargarCarritoDesdeLocalStorage() {
         
         // Si hubo migración, guardar los datos actualizados
         if (migratedCartData.some((item, index) => item.categoria !== cartData[index]?.categoria)) {
-            console.log('💾 Guardando datos migrados del carrito');
+            console.log('Guardando datos migrados del carrito');
             localStorage.setItem('petmarket_cart', JSON.stringify(migratedCartData));
         }
         
@@ -114,10 +114,10 @@ function cargarCarritoDesdeLocalStorage() {
         calcularTotales();
         renderizarCarrito();
         
-        console.log('🛒 Carrito cargado desde localStorage:', migratedCartData.length, 'productos');
-        console.log('🛒 Estado completo del carrito:', carritoData);
+        console.log('Carrito cargado desde localStorage:', migratedCartData.length, 'productos');
+        console.log('Estado completo del carrito:', carritoData);
     } catch (error) {
-        console.error('❌ Error cargando carrito desde localStorage:', error);
+        console.error('Error cargando carrito desde localStorage:', error);
         carritoData.items = [];
         renderizarCarrito();
     }
@@ -132,21 +132,21 @@ function guardarCarritoEnLocalStorage() {
             window.headerUnificado.loadCartCountFromLocalStorage();
         }
         
-        console.log('💾 Carrito guardado en localStorage');
+        console.log('Carrito guardado en localStorage');
     } catch (error) {
-        console.error('❌ Error guardando carrito en localStorage:', error);
+        console.error('Error guardando carrito en localStorage:', error);
     }
 }
 
 // === FUNCIONES DE MANIPULACIÓN DEL CARRITO ===
 
 function eliminarDelCarrito(productId) {
-    console.log('🗑️ Eliminando producto del carrito:', productId);
+    console.log('Eliminando producto del carrito:', productId);
     mostrarConfirmacion(
         '¿Eliminar producto?',
         '¿Estás seguro de que deseas eliminar este producto del carrito?',
         () => {
-            console.log('✅ Confirmado eliminar producto:', productId);
+            console.log('Confirmado eliminar producto:', productId);
             carritoData.items = carritoData.items.filter(item => item.productId !== productId);
             guardarCarritoEnLocalStorage();
             calcularTotales();
@@ -161,15 +161,15 @@ function eliminarDelCarrito(productId) {
 }
 
 function cambiarCantidad(productId, cambio) {
-    console.log('📊 Cambiando cantidad. ProductID:', productId, 'Cambio:', cambio);
+    console.log('Cambiando cantidad. ProductID:', productId, 'Cambio:', cambio);
     const item = carritoData.items.find(item => item.productId === productId);
     if (!item) {
-        console.error('❌ Item no encontrado:', productId);
+        console.error('Item no encontrado:', productId);
         return;
     }
     
     const nuevaCantidad = item.cantidad + cambio;
-    console.log('📊 Nueva cantidad:', nuevaCantidad, 'Stock disponible:', item.stock);
+    console.log('Nueva cantidad:', nuevaCantidad, 'Stock disponible:', item.stock);
     
     if (nuevaCantidad <= 0) {
         eliminarDelCarrito(productId);
@@ -177,7 +177,7 @@ function cambiarCantidad(productId, cambio) {
     }
     
     if (nuevaCantidad > item.stock) {
-        console.warn('⚠️ Stock insuficiente:', nuevaCantidad, '>', item.stock);
+        console.warn('Stock insuficiente:', nuevaCantidad, '>', item.stock);
         if (typeof showModal !== 'undefined') {
             showModal.error('Stock insuficiente', `Stock máximo disponible: ${item.stock}`);
         }
@@ -185,7 +185,7 @@ function cambiarCantidad(productId, cambio) {
     }
     
     item.cantidad = nuevaCantidad;
-    console.log('✅ Cantidad actualizada:', item.cantidad);
+    console.log('Cantidad actualizada:', item.cantidad);
     guardarCarritoEnLocalStorage();
     calcularTotales();
     renderizarCarrito();
@@ -248,7 +248,7 @@ function limpiarCarrito() {
 // === FUNCIÓN DE PAGO (REQUIERE AUTENTICACIÓN) ===
 
 function procesarPago() {
-    console.log('💳 Iniciando proceso de pago');
+    console.log('Iniciando proceso de pago');
     
     // Verificar si hay productos en el carrito
     if (carritoData.items.length === 0) {
@@ -258,9 +258,9 @@ function procesarPago() {
         return;
     }
     
-    // 🔒 VERIFICAR AUTENTICACIÓN OBLIGATORIA PARA PAGO
+    // VERIFICAR AUTENTICACIÓN OBLIGATORIA PARA PAGO
     if (!verificarAutenticacion()) {
-        console.log('❌ Usuario no autenticado, mostrando modal de login');
+        console.log('Usuario no autenticado, mostrando modal de login');
         mostrarModalLogin();
         return;
     }
@@ -299,7 +299,7 @@ function mostrarModalLogin() {
 }
 
 async function procesarPagoAutenticado() {
-    console.log('💳 Iniciando proceso de pago autenticado');
+    console.log('Iniciando proceso de pago autenticado');
     
     const pagarBtn = document.getElementById('pagarBtn');
     if (pagarBtn) {
@@ -309,7 +309,7 @@ async function procesarPagoAutenticado() {
     
     try {
         const token = localStorage.getItem('token');
-        console.log('🔑 Token encontrado:', token ? 'SÍ' : 'NO');
+        console.log('Token encontrado:', token ? 'SÍ' : 'NO');
         
         // Preparar datos del carrito para enviar al backend
         const orderData = {
@@ -322,9 +322,9 @@ async function procesarPagoAutenticado() {
             total: carritoData.total
         };
         
-        console.log('📦 Datos del pedido:', orderData);
-        console.log('🛒 Items a procesar:', orderData.items.length);
-        console.log('💰 Total a pagar:', orderData.total);
+        console.log('Datos del pedido:', orderData);
+        console.log('Items a procesar:', orderData.items.length);
+        console.log('Total a pagar:', orderData.total);
         
         const response = await fetch('/carrito/checkout', {
             method: 'POST',
@@ -336,20 +336,20 @@ async function procesarPagoAutenticado() {
             body: JSON.stringify(orderData)
         });
         
-        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+        console.log('Respuesta del servidor:', response.status, response.statusText);
         
         const data = await response.json();
-        console.log('📄 Datos de respuesta:', data);
+        console.log('Datos de respuesta:', data);
         
         if (response.ok) {
-            console.log('✅ Checkout exitoso, redirigiendo a Mercado Pago...');
+            console.log('Checkout exitoso, redirigiendo a Mercado Pago...');
             
             // NO limpiar carrito aún - se limpiará cuando el pago sea exitoso
-            console.log('⚠️ Carrito mantenido hasta confirmación de pago');
+            console.log('Carrito mantenido hasta confirmación de pago');
             
             // Redirigir a Mercado Pago
             if (data.redirectUrl) {
-                console.log('🔗 Redirigiendo a:', data.redirectUrl);
+                console.log('Redirigiendo a:', data.redirectUrl);
                 window.location.href = data.redirectUrl;
             } else {
                 throw new Error('No se recibió URL de redirección de Mercado Pago');
@@ -359,7 +359,7 @@ async function procesarPagoAutenticado() {
         }
         
     } catch (error) {
-        console.error('❌ Error procesando pago:', error);
+        console.error('Error procesando pago:', error);
         if (typeof showModal !== 'undefined') {
             showModal.error('Error en el pago', error.message || 'No se pudo procesar el pago');
         }
@@ -540,32 +540,32 @@ function verificarEstadoBotonPago() {
 // === FUNCIONES DE UTILIDAD ===
 
 function mostrarConfirmacion(titulo, mensaje, callback) {
-    console.log('❓ Mostrando confirmación:', titulo);
+    console.log('Mostrando confirmación:', titulo);
     confirmacionCallback = callback;
     
     if (typeof showModal !== 'undefined') {
-        console.log('✅ Usando showModal.confirm');
+        console.log('Usando showModal.confirm');
         // Parámetros correctos: (message, onConfirm, onCancel, details)
         showModal.confirm(
             `${titulo}\n\n${mensaje}`, // message
             () => {                     // onConfirm
-                console.log('✅ Usuario confirmó la acción');
+                console.log('Usuario confirmó la acción');
                 callback();
             },
             () => {                     // onCancel
-                console.log('❌ Usuario canceló la acción');
+                console.log('Usuario canceló la acción');
                 // No hacer nada - solo cancelar
             },
             ''                          // details (vacío)
         );
     } else {
-        console.log('⚠️ showModal no disponible, usando confirm nativo');
+        console.log('showModal no disponible, usando confirm nativo');
         // Fallback a confirm nativo
         if (confirm(`${titulo}\n\n${mensaje}`)) {
-            console.log('✅ Usuario confirmó la acción');
+            console.log('Usuario confirmó la acción');
             callback();
         } else {
-            console.log('❌ Usuario canceló la acción');
+            console.log('Usuario canceló la acción');
         }
     }
 }
@@ -615,7 +615,7 @@ window.agregarAlCarritoLocalStorage = function(productoId, nombre, precio, image
 
 // FUNCIÓN DE DEBUG PARA TESTEAR ELIMINACIÓN
 window.testEliminarProducto = function(productId) {
-    console.log('🧪 TEST: Eliminando producto:', productId);
+    console.log('TEST: Eliminando producto:', productId);
     eliminarDelCarrito(productId);
 };
 
@@ -652,24 +652,24 @@ function mostrarMensajePagoExitoso() {
 
 // Escuchar evento de login exitoso para continuar con checkout
 document.addEventListener('loginSuccess', function(event) {
-    console.log('🎉 Login exitoso detectado', event.detail);
+    console.log('Login exitoso detectado', event.detail);
     
     // VERIFICAR CARRITO INMEDIATAMENTE DESPUÉS DEL LOGIN
     const carritoInmediato = localStorage.getItem('petmarket_cart');
-    console.log('🛒 Estado del carrito INMEDIATAMENTE después del login:', carritoInmediato);
+    console.log('Estado del carrito INMEDIATAMENTE después del login:', carritoInmediato);
     
     const postLoginAction = sessionStorage.getItem('postLoginAction');
-    console.log('📋 Acción post-login:', postLoginAction);
+    console.log('Acción post-login:', postLoginAction);
     
     if (postLoginAction === 'checkout') {
-        console.log('🛒 Continuando con checkout después del login...');
+        console.log('Continuando con checkout después del login...');
         sessionStorage.removeItem('postLoginAction');
         
         // RE-CARGAR carrito desde localStorage por si se perdió
         cargarCarritoDesdeLocalStorage();
         
         // Verificar que el carrito siga teniendo productos
-        console.log('📦 Items en carrito antes del pago:', carritoData.items.length);
+        console.log('Items en carrito antes del pago:', carritoData.items.length);
         
         // Actualizar estado de botón de pago
         verificarEstadoBotonPago();
@@ -677,10 +677,10 @@ document.addEventListener('loginSuccess', function(event) {
         // Pequeño delay para asegurar que el estado se actualizó
         setTimeout(() => {
             if (carritoData.items.length > 0) {
-                console.log('✅ Procesando pago con', carritoData.items.length, 'productos');
+                console.log('Procesando pago con', carritoData.items.length, 'productos');
                 procesarPagoAutenticado(); // Llamar directamente a la función autenticada
             } else {
-                console.error('❌ No hay productos en el carrito para procesar');
+                console.error('No hay productos en el carrito para procesar');
                 if (typeof showModal !== 'undefined') {
                     showModal.error('Error', 'No hay productos en el carrito para procesar el pago');
                 }
@@ -691,7 +691,7 @@ document.addEventListener('loginSuccess', function(event) {
 
 // DEBUG: Función para monitorear cambios en localStorage
 if (window.location.pathname.includes('/carrito')) {
-    console.log('🔍 Monitoreando cambios en localStorage...');
+    console.log('Monitoreando cambios en localStorage...');
     
     // Monitorear cambios en localStorage
     const originalSetItem = localStorage.setItem;
@@ -700,23 +700,23 @@ if (window.location.pathname.includes('/carrito')) {
     
     localStorage.setItem = function(key, value) {
         if (key === 'petmarket_cart') {
-            console.log('🛒 CARRITO MODIFICADO - setItem:', value);
-            console.trace('📍 Stack trace:');
+            console.log('CARRITO MODIFICADO - setItem:', value);
+            console.trace('Stack trace:');
         }
         return originalSetItem.apply(this, arguments);
     };
     
     localStorage.removeItem = function(key) {
         if (key === 'petmarket_cart') {
-            console.log('🗑️ CARRITO ELIMINADO - removeItem');
-            console.trace('📍 Stack trace:');
+            console.log('CARRITO ELIMINADO - removeItem');
+            console.trace('Stack trace:');
         }
         return originalRemoveItem.apply(this, arguments);
     };
     
     localStorage.clear = function() {
-        console.log('🧹 LOCALSTORAGE COMPLETO LIMPIADO - clear()');
-        console.trace('📍 Stack trace:');
+        console.log('LOCALSTORAGE COMPLETO LIMPIADO - clear()');
+        console.trace('Stack trace:');
         return originalClear.apply(this, arguments);
     };
 }
